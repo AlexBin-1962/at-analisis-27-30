@@ -1456,7 +1456,7 @@ function getDlListFromCatalog(feats){
     const secKey=s=>String(s).replace(/\D+/g,'').padStart(4,'0');
     function winnerOf(votes){ let best=null,max=-1; for(const[k,v]of Object.entries(votes)){ if(v>max){max=v;best=k;} } const tot=Object.values(votes).reduce((a,b)=>a+b,0); return {party:best,votes:max,total:tot}; }
     const CORE_PARTIES=['PAN','PRI','PVEM','MORENA'];
-    const PARTY_COLORS={PAN:'#1e88e5',PRI:'#c62828',PVEM:'#2e7d32',MORENA:'#7b1fa2',OTROS:'#90a4ae'};
+    const PARTY_COLORS={PAN:'#1e88e5',PRI:'#ff0000',PVEM:'#2e7d32',MORENA:'#952f57 ',OTROS:'#90a4ae'};
 
     // ====== Panel: drag + close ======
     (function wireHistPanel(){
@@ -1907,7 +1907,7 @@ function getDlListFromCatalog(feats){
 
       // Colores por partido (fallback determinístico si no está mapeado)
       const AT27_CHP_COLORS = {
-        'PAN':'#1E88E5','PRI':'#D32F2F','PRD':'#FBC02D','PVEM':'#50E991','PT':'#E64A19',
+        'PAN':'#1E88E5','PRI':'#D32F2F','PRD':'#FBC02D','PVEM':'#00ff00','PT':'#E64A19',
         'MC':'#FF9800','MORENA':'#8D4B0F','PES':'#7E57C2','PANAL':'#26C6DA'
       };
       function AT27_CHP_colorFor(key){

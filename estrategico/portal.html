@@ -9,6 +9,69 @@
   <!-- Estilos internos CSS -->
   <!-- ===================== -->
   <style>
+ :root{
+  --azul:#4A90E2; --azul-osc:#2B6CB0;
+  --gris-suave:#F3F6FB; --borde-suave:#E6ECF5;
+  --side-left-top: 34px;   /* ↩︎ altura desde el top (ajústala) */
+  --side-left-gap: 86px;   /* ↩︎ margen desde el borde izquierdo */
+}
+
+/* Lateral izquierdo fijo, pegado arriba */
+
+.side-left, .brand-card {overflow: visible;}
+
+.side-left{
+  position: fixed;
+  left: var(--side-left-gap);
+  top: var(--side-left-top);         /* ⬅️ súbelo/bájalo con esta variable */
+  width: clamp(120px, 12vw, 220px);  /* responsivo */
+  z-index: 5;                        /* por encima del fondo, debajo de modales */
+  pointer-events: none;
+}
+
+/* Tarjeta del logo: compacta y sin recorte */
+.brand-card{
+  position: relative;
+  pointer-events: auto;
+  width: 100%;
+  max-width: 200px;                  /* evita que crezca de más */
+  background: #fff;                  /* más contraste que el gris suave */
+  border: 1px solid var(--borde-suave);
+  border-radius: 20px;
+  box-shadow: 0 10px 24px rgba(20,40,80,.08);
+  padding: 12px;
+}
+
+/* Si tu UI mete decoraciones con ::before/::after, las apagamos aquí */
+.brand-card::before,
+.brand-card::after{
+  content: none !important;
+}
+
+/* SVG responsivo y visible (sin cortes) */
+.brand-mark{
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.brand-img{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:200px;          /* límite alto */
+  object-fit:contain;        /* 🔒 jamás recorta */
+}
+
+/* Por si algún wrapper global recorta */
+.layout, main, #app { overflow: visible; }
+
+
+
+/* Si algún contenedor global tiene overflow:hidden, evita recortes */
+body, html { overflow-x: hidden; }
+
+
     :root {
       --stroke: #e6eaf2;
       --muted: #5f6b82;
@@ -179,9 +242,406 @@
     }
     .mod-btn[disabled]{opacity:.5;cursor:not-allowed}
     .disabled{opacity:.6;pointer-events:none}
+
+    :root{
+  --side-right-top: 84px;     /* altura desde arriba */
+  --side-right-gap: 16px;     /* separación del borde derecho */
+
+  --sr-bg: #ffffff;
+  --sr-text: #2A3345;
+  --sr-muted: #6B7280;
+  --sr-chip: #EEF3FA;
+      }
+
+      /* ====== Panel derecho fijo ====== */
+      .side-right.sr-panel{
+        position: fixed;
+        right: var(--side-right-gap);
+        top: var(--side-right-top);
+        width: clamp(240px, 18vw, 360px);
+        z-index: 6;
+        pointer-events: none; /* no bloquea clics fuera del panel */
+      }
+
+      /* ====== Tarjeta interna (recibe interacción) ====== */
+      .sr-card{
+        pointer-events: auto;
+        position: relative;
+        background: var(--sr-bg);
+        border: 1px solid var(--borde-suave);
+        border-radius: 20px;
+        box-shadow: 0 12px 28px rgba(20,40,80,.10);
+        padding: 16px 16px 14px;
+        color: var(--sr-text);
+        overflow: hidden;
+      }
+
+      /* Decoración suave en fondo */
+      .sr-card::after{
+        content:"";
+        position:absolute; inset:-40% -40% auto auto;
+        width: 220px; height: 220px; border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(74,144,226,.15), transparent 70%);
+        pointer-events:none;
+      }
+
+      /* ====== Header ====== */
+      .sr-header{
+        display:flex; align-items:center; gap:12px; margin-bottom:10px;
+      }
+
+      .sr-miniMark{
+        width:36px; height:36px; border-radius:12px;
+        background: var(--gris-suave);
+        display:grid; place-items:center; overflow:hidden;
+        border:1px solid var(--borde-suave);
+      }
+
+      .sr-miniMark svg{ width:28px; height:28px; display:block; }
+
+      .sr-headings h3{
+        margin:0; font-size: clamp(16px,1.5vw,20px); color: var(--azul-osc); letter-spacing:.2px;
+      }
+      .sr-headings p{
+        margin:2px 0 0; font-size: 12.5px; color: var(--sr-muted);
+      }
+
+      /* ====== Badges ====== */
+      .sr-badges{
+        display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;
+      }
+      .sr-badge{
+        background: var(--sr-chip);
+        border:1px solid var(--borde-suave);
+        color: var(--azul-osc);
+        font-weight:600;
+        font-size:12px;
+        padding:6px 8px; border-radius: 999px;
+      }
+
+      /* ====== KPIs ====== */
+      .sr-kpis{
+        display:grid; grid-template-columns: repeat(3,1fr); gap:8px; margin-bottom:12px;
+      }
+      .sr-kpi{
+        background:#FAFBFE; border:1px solid var(--borde-suave);
+        border-radius:12px; padding:8px;
+        display:grid; gap:4px; text-align:center;
+      }
+      .sr-kpi-label{ font-size:11px; color:#64748B; line-height:1.1; }
+      .sr-kpi-value{ font-size:16px; font-weight:800; color: var(--azul); }
+
+      /* ====== Progreso ====== */
+      .sr-progress{
+        display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:8px; margin-bottom:10px;
+      }
+      .sr-prog-label{ font-size:12px; color:#64748B; }
+      .sr-prog-num{ font-size:12px; font-weight:700; color: var(--azul-osc); }
+      .sr-prog-bar{
+        height:8px; background:#EEF2F7; border-radius:999px; overflow:hidden; border:1px solid var(--borde-suave);
+      }
+      .sr-prog-bar i{
+        display:block; height:100%; background: linear-gradient(90deg,#4A90E2,#2B6CB0);
+        border-radius:999px; box-shadow: 0 1px 0 rgba(0,0,0,.06) inset;
+      }
+
+      /* ====== Tips rotativos (CSS puro) ====== */
+      .sr-tips{ position:relative; min-height:22px; margin-bottom:12px; padding-top:4px; }
+      .sr-tip{
+        position:absolute; left:0; right:0;
+        opacity:0; transform: translateY(6px);
+        color: var(--azul); font-weight:600; font-size:13px;
+        animation: srRotate 12s infinite;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .sr-tip:nth-child(1){ animation-delay:0s; }
+      .sr-tip:nth-child(2){ animation-delay:4s; }
+      .sr-tip:nth-child(3){ animation-delay:8s; }
+      @keyframes srRotate{
+        0%{opacity:0;transform:translateY(6px)}
+        8%{opacity:1;transform:translateY(0)}
+        28%{opacity:1;transform:translateY(0)}
+        33%{opacity:0;transform:translateY(-6px)}
+        100%{opacity:0}
+      }
+
+      /* ====== CTA ====== */
+      .sr-cta{
+        display:inline-flex; align-items:center; justify-content:center;
+        gap:8px; padding:10px 12px; border-radius:12px;
+        background: linear-gradient(90deg,#4A90E2,#2B6CB0);
+        color:#fff; text-decoration:none; font-weight:700; font-size:13px;
+        box-shadow: 0 6px 16px rgba(42,74,120,.25);
+        transition: transform .12s ease, box-shadow .12s ease;
+      }
+      .sr-cta:hover{ transform: translateY(-1px); box-shadow: 0 10px 20px rgba(42,74,120,.25); }
+
+      /* ====== Toggle (pestaña pegada al borde) ====== */
+      .sr-toggle{
+        position:absolute; right: calc(100% + 8px); top:12px;
+        width:36px; height:36px; border-radius:12px;
+        background:#ffffff; color: var(--azul-osc);
+        border:1px solid var(--borde-suave);
+        box-shadow:0 8px 18px rgba(20,40,80,.10);
+        display:grid; place-items:center; cursor:pointer;
+      }
+      .sr-toggle:focus{ outline:2px solid #C7DBFF; outline-offset:2px; }
+
+      /* Estados abierto/cerrado */
+      .side-right.sr-closed .sr-card{ transform: translateX(8px); opacity:0; pointer-events:none; }
+      .side-right.sr-closed{ right: -6px; } /* se guarda casi fuera de pantalla */
+      .side-right.sr-closed .sr-toggle{
+        transform: rotate(180deg);
+      }
+
+      /* Responsivo: en pantallas medianas/pequeñas mostrar cerrado por defecto */
+      @media (max-width: 1200px){
+        .side-right.sr-panel{ width: clamp(220px, 28vw, 320px); }
+      }
+      @media (max-width: 1024px){
+        .side-right.sr-panel{ right: 6px; }
+      }
+      @media (max-width: 900px){
+        .side-right.sr-panel{ display:none; } /* si prefieres ocúltalo en mobile */
+      }
+
+      /* ===== Modal base ===== */
+      .sr-modal{
+        position: fixed; inset: 0; z-index: 999;
+        display: grid; place-items: center;
+        visibility: hidden; opacity: 0;
+        transition: opacity .18s ease, visibility .18s ease;
+      }
+      .sr-modal.is-open{ visibility: visible; opacity: 1; }
+
+      .sr-modal__backdrop{
+        position: absolute; inset: 0;
+        background: rgba(21,31,50,.42);
+        backdrop-filter: blur(2px);
+      }
+
+      .sr-modal__dialog{
+        position: relative;
+        width: min(720px, 92vw);
+        background: #fff;
+        border: 1px solid var(--borde-suave);
+        border-radius: 20px;
+        box-shadow: 0 24px 48px rgba(18,38,80,.25);
+        padding: 18px 18px 16px;
+        transform: translateY(12px) scale(.98);
+        opacity: 0;
+        transition: transform .22s ease, opacity .22s ease;
+      }
+      .sr-modal.is-open .sr-modal__dialog{
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+
+      /* Header / texto */
+      #sr-modal-title{
+        margin: 4px 28px 8px 0;
+        font-size: clamp(18px, 2.2vw, 22px);
+        color: var(--azul-osc);
+      }
+      .sr-modal__lead{
+        margin: 0 0 12px; color: #4b5563;
+      }
+
+      /* Lista de pasos */
+      .sr-modal__list{
+        margin: 0 0 12px 18px; padding: 0;
+        display: grid; gap: 8px; color: #2A3345;
+      }
+      .sr-modal__list li strong{ color: var(--azul); }
+
+      /* Chips / tips */
+      .sr-modal__chips{
+        display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 14px;
+      }
+      .chip{
+        background: #EEF3FA; border: 1px solid var(--borde-suave);
+        color: var(--azul-osc); border-radius: 999px;
+        font-size: 12px; font-weight: 600; padding: 6px 10px;
+      }
+
+      /* Footer */
+      .sr-modal__footer{ display: flex; justify-content: flex-end; gap: 8px; }
+      .sr-btn{
+        border: 1px solid var(--borde-suave);
+        background: #fff; color: var(--sr-text);
+        padding: 10px 12px; border-radius: 12px; font-weight: 700; cursor: pointer;
+      }
+      .sr-btn--primary{
+        background: linear-gradient(90deg,#4A90E2,#2B6CB0);
+        color: #fff; border: none;
+        box-shadow: 0 6px 16px rgba(42,74,120,.25);
+      }
+
+      /* Cerrar */
+      .sr-modal__close{
+        position: absolute; top: 12px; right: 12px;
+        width: 36px; height: 36px; border-radius: 12px;
+        border: 1px solid var(--borde-suave); background: #fff; color: #334155;
+        display: grid; place-items: center; cursor: pointer;
+      }
+
+      /* Accesibilidad visual en focus */
+      .sr-modal__close:focus, .sr-btn:focus{
+        outline: 2px solid #C7DBFF; outline-offset: 2px;
+      }
+
+      /* Responsivo */
+      @media (max-width: 520px){
+        .sr-modal__dialog{ padding: 16px 14px 14px; }
+      }
+
+
   </style>
 </head>
 <body>
+
+    <!-- LADO IZQUIERDO: LOGO RESPONSIVO -->
+      <aside class="side-left" aria-label="Identidad de la APP">
+        <div class="brand-card">
+          <img class="brand-img" src="assets/logo-at.svg" alt="Logo AT Análisis Estratégico">
+        </div>
+      
+
+          <defs>
+            <linearGradient id="g1" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0" stop-color="#4A90E2"/>
+              <stop offset="1" stop-color="#2B6CB0"/>
+            </linearGradient>
+          </defs>
+          <!-- Círculo exterior -->
+          <circle cx="100" cy="100" r="92" fill="none" stroke="url(#g1)" stroke-width="12"/>
+          <!-- Divisiones (3 módulos) -->
+          <path d="M100 100 L100 12" stroke="#4A90E2" stroke-width="10" stroke-linecap="round"/>
+          <path d="M100 100 L27 170" stroke="#4A90E2" stroke-width="10" stroke-linecap="round"/>
+          <path d="M100 100 L173 170" stroke="#4A90E2" stroke-width="10" stroke-linecap="round"/>
+          <!-- Rellenos suaves de los 3 sectores -->
+          <path d="M100 12 A88 88 0 0 1 173 170 L100 100 Z" fill="#EEF3FA"/>
+          <path d="M27 170 A88 88 0 0 1 100 12 L100 100 Z" fill="#E9EEF5"/>
+          <path d="M173 170 A88 88 0 0 1 27 170 L100 100 Z" fill="#F3F6FB"/>
+
+          <!-- ICONO 1: MAPA (Análisis Territorial) -->
+          <path d="M138 58 l12 6 -6 10 8 7 -10 8 -9 -5 -8 5 -9 -7 7 -9 -5 -10 10 -7 10 2z"
+                fill="#4A90E2" opacity="0.9"/>
+
+          <!-- ICONO 2: FLECHA ASCENDENTE (Ganar Todo) -->
+          <path d="M105 105 L160 150" stroke="#2B6CB0" stroke-width="10" stroke-linecap="round"/>
+          <polygon points="160,150 148,148 156,138" fill="#2B6CB0"/>
+
+          <!-- ICONO 3: PERSONA + CHECK (Campo) -->
+          <circle cx="70" cy="132" r="12" fill="#4A90E2"/>
+          <path d="M56 160 q14 -12 28 0 v10 h-28z" fill="#4A90E2"/>
+          <path d="M86 152 l8 8 14 -18" fill="none" stroke="#2B6CB0" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </aside>
+
+    <!-- LADO DERECHO: PANEL ESTRATÉGICO -->
+    <aside id="sr-panel" class="side-right sr-panel" aria-label="Descripción del proyecto">
+      <!-- Botón toggle (siempre visible) -->
+      <button id="sr-toggle" class="sr-toggle" aria-controls="sr-panel" aria-expanded="true" title="Mostrar/Ocultar info">
+        <!-- ícono flecha -->
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="sr-card" role="region" aria-label="AT Análisis Estratégico 2027">
+        <header class="sr-header">
+          <div class="sr-miniMark" aria-hidden="true">
+            <!-- minilogo -->
+            <svg viewBox="-8 -8 216 216">
+              <circle cx="100" cy="100" r="92" fill="none" stroke="#4A90E2" stroke-width="12" opacity=".25"/>
+              <path d="M100 100 L100 12 M100 100 L27 170 M100 100 L173 170" stroke="#4A90E2" stroke-width="10" stroke-linecap="round" opacity=".2"/>
+            </svg>
+          </div>
+          <div class="sr-headings">
+            <h3>AT Análisis Estratégico 2027</h3>
+            <p>Datos claros para decisiones de campaña.</p>
+          </div>
+        </header>
+
+        <div class="sr-badges">
+          <span class="sr-badge">Análisis Territorial</span>
+          <span class="sr-badge">Campo</span>
+          <span class="sr-badge">Ganar Todo</span>
+        </div>
+
+        <div class="sr-kpis">
+          <div class="sr-kpi">
+            <span class="sr-kpi-label">Top secciones foco</span>
+            <span class="sr-kpi-value">12</span>
+          </div>
+          <div class="sr-kpi">
+            <span class="sr-kpi-label">Margen &lt; 3%</span>
+            <span class="sr-kpi-value">8</span>
+          </div>
+          <div class="sr-kpi">
+            <span class="sr-kpi-label">Abstención alta</span>
+            <span class="sr-kpi-value">15</span>
+          </div>
+        </div>
+
+        <div class="sr-progress">
+          <span class="sr-prog-label">Ruta 2027</span>
+          <div class="sr-prog-bar"><i style="width: 64%"></i></div>
+          <span class="sr-prog-num">64%</span>
+        </div>
+
+        <div class="sr-tips" aria-live="polite">
+          <span class="sr-tip">Prioriza secciones con margen &lt; 3%.</span>
+          <span class="sr-tip">Cruza abstención 2024 vs. crecimiento LN.</span>
+          <span class="sr-tip">DF 2: concentra brigadas en Top-N secciones.</span>
+        </div>
+
+        <a class="sr-cta" href="#" role="button" aria-label="Ver guía rápida">
+          Ver guía rápida
+        </a>
+      </div>
+    </aside>
+
+
+    <!-- MODAL: GUÍA RÁPIDA -->
+    <div id="sr-modal" class="sr-modal" aria-hidden="true">
+      <div class="sr-modal__backdrop" data-sr-close></div>
+
+      <div class="sr-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="sr-modal-title">
+        <button class="sr-modal__close" type="button" data-sr-close aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <h3 id="sr-modal-title">Guía rápida</h3>
+        <p class="sr-modal__lead">Pasos exprés para usar el portal en demo con el DF 2.</p>
+
+        <ol class="sr-modal__list">
+          <li><strong>Selecciona el universo</strong> (elige <em>solo uno</em>): Municipio, Distrito Federal o Distrito Local.</li>
+          <li><strong>Análisis Territorial</strong>: mapas e histórico 2018–2024 para entender tendencia y márgenes.</li>
+          <li><strong>Ganar Todo</strong>: identifica secciones clave por <em>margen &lt; 3%</em>, abstención alta y metas por sección.</li>
+          <li><strong>Campo</strong>: levanta y monitorea reportes del territorio (brigadas, avances, incidencias).</li>
+          <li><strong>Ruta DF 2</strong>: elige <em>DF 2</em> → abre <em>Ganar Todo</em> → vista “¿Qué se requiere para ganar?” → prioriza Top-N secciones.</li>
+        </ol>
+
+        <div class="sr-modal__chips">
+          <span class="chip">Atajo: Ctrl + K (búsqueda)</span>
+          <span class="chip">Tip: exporta capturas para PPT</span>
+          <span class="chip">Tip: revisa abstención 2024</span>
+        </div>
+
+        <div class="sr-modal__footer">
+          <button class="sr-btn sr-btn--primary" type="button" data-sr-close>Entendido</button>
+        </div>
+      </div>
+    </div>
+
+
+
   <main class="wrap">
     <!-- =============================== -->
     <!-- Sección: Filtros de selección  -->
@@ -483,6 +943,75 @@
   evaluarSeleccion();
 })();
 </script>
+
+<script>
+  (function(){
+    const panel = document.getElementById('sr-panel');
+    const btn = document.getElementById('sr-toggle');
+    if(!panel || !btn) return;
+
+    // Estado inicial abierto
+    panel.classList.remove('sr-closed');
+    btn.setAttribute('aria-expanded', 'true');
+
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      const isClosed = panel.classList.toggle('sr-closed');
+      btn.setAttribute('aria-expanded', String(!isClosed));
+    });
+  })();
+</script>
+
+<script>
+  (function(){
+    const modal   = document.getElementById('sr-modal');
+    const openBtn = document.querySelector('.sr-cta');   // tu botón "Ver guía rápida"
+    const closeEls = modal.querySelectorAll('[data-sr-close], .sr-modal__backdrop');
+
+    if(!modal || !openBtn) return;
+
+    let lastFocus = null;
+
+    function trapFocus(e){
+      const focusables = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if(!focusables.length) return;
+      const first = focusables[0];
+      const last  = focusables[focusables.length - 1];
+
+      if(e.key === 'Tab'){
+        if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+        else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+      } else if(e.key === 'Escape'){
+        close();
+      }
+    }
+
+    function open(e){
+      if(e) e.preventDefault();
+      lastFocus = document.activeElement;
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      // foco al botón cerrar
+      const closeBtn = modal.querySelector('.sr-modal__close');
+      if(closeBtn) closeBtn.focus();
+      document.addEventListener('keydown', trapFocus);
+    }
+
+    function close(){
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', trapFocus);
+      if(lastFocus) lastFocus.focus();
+    }
+
+    openBtn.addEventListener('click', open);
+    closeEls.forEach(el => el.addEventListener('click', close));
+  })();
+</script>
+
+
 
 
 </body>
