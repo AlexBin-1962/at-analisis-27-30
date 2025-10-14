@@ -39,76 +39,101 @@
     }
       /* la lista queda clickeable */
 
-/* Etiqueta de la SECCIÓN seleccionada (rosa tenue) */
-.sec-label{
-  background: rgba(255, 235, 238, 0.96);  /* #ffebee */
-  border: 1px solid #e91e63;
-  color: #880e4f;
-  padding: 2px 6px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  pointer-events: none;
-  white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(0,0,0,.15);
-}
+    /* Etiqueta de la SECCIÓN seleccionada (rosa tenue) */
+    .sec-label{
+      background: rgba(255, 235, 238, 0.96);  /* #ffebee */
+      border: 1px solid #e91e63;
+      color: #880e4f;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0,0,0,.15);
+    }
 
-/* Etiquetas de SECCIONES ADYACENTES (azul/gris tenue) */
-.sec-label-adj{
-  background: rgba(227, 242, 253, 0.94);  /* #e3f2fd */
-  border: 1px solid #64b5f6;
-  color: #0d47a1;
-  padding: 1px 5px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  pointer-events: none;
-  white-space: nowrap;
-  box-shadow: 0 1px 4px rgba(0,0,0,.12);
-}
+    /* Etiquetas de SECCIONES ADYACENTES (azul/gris tenue) */
+    .sec-label-adj{
+      background: rgba(227, 242, 253, 0.94);  /* #e3f2fd */
+      border: 1px solid #64b5f6;
+      color: #0d47a1;
+      padding: 1px 5px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: 0 1px 4px rgba(0,0,0,.12);
+    }
 
 
-/* Panel flotante sección */
-#sec-info {
-  position: absolute;
-  right: 16px; bottom: 16px;
-  width: 320px; max-width: 38vw; min-width: 260px;
-  background: #ffffff;
-  border: 1px solid #cfd8dc;
-  border-radius: 10px;
-  box-shadow: 0 10px 24px rgba(0,0,0,.15);
-  resize: both; overflow: auto; z-index: 4000;
-  display: none;
-  pointer-events: auto;
-}
-#sec-info .hdr {
-  cursor: move;
-  display:flex; align-items:center; justify-content:space-between;
-  background: linear-gradient(180deg,#eceff1,#e3f2fd);
-  padding: 8px 12px;
-  border-bottom: 1px solid #cfd8dc;
-  font-weight: 700; color: #263238;
-}
+    /* Panel flotante sección */
+    #sec-info {
+      position: absolute;
+      right: 16px; bottom: 16px;
+      width: 320px; max-width: 38vw; min-width: 260px;
+      background: #ffffff;
+      border: 1px solid #cfd8dc;
+      border-radius: 10px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.15);
+      resize: both; overflow: auto; z-index: 4000;
+      display: none;
+      pointer-events: auto;
+    }
+    #sec-info .hdr {
+      cursor: move;
+      display:flex; align-items:center; justify-content:space-between;
+      background: linear-gradient(180deg,#eceff1,#e3f2fd);
+      padding: 8px 12px;
+      border-bottom: 1px solid #cfd8dc;
+      font-weight: 700; color: #263238;
+    }
 
-#sec-info .hdr .btn-close{
-  cursor: pointer;
-  border: none; outline: none;
-  background: #ffcdd2;         /* rosa tenue */
-  color: #880e4f;
-  width: 24px; height: 24px; line-height: 24px;
-  border-radius: 6px;
-  font-size: 16px; font-weight: 800;
-}
-#sec-info .hdr .btn-close:hover{ background:#ef9a9a; }
-#sec-info .body { padding: 10px 12px; color: #37474f; }
-#sec-info .row  { display:flex; justify-content:space-between; margin:6px 0; }
-#sec-info .k    { color:#607d8b; }
-#sec-info .v    { font-weight:600; }
+    #sec-info .hdr .btn-close{
+      cursor: pointer;
+      border: none; outline: none;
+      background: #ffcdd2;         /* rosa tenue */
+      color: #880e4f;
+      width: 24px; height: 24px; line-height: 24px;
+      border-radius: 6px;
+      font-size: 16px; font-weight: 800;
+    }
+    #sec-info .hdr .btn-close:hover{ background:#ef9a9a; }
+    #sec-info .body { padding: 10px 12px; color: #37474f; }
+    #sec-info .row  { display:flex; justify-content:space-between; margin:6px 0; }
+    #sec-info .k    { color:#607d8b; }
+    #sec-info .v    { font-weight:600; }
  
+    .ec-hidden { display:none; }
+    .ec-launcher{
+      position:fixed; right:16px; bottom:16px; z-index:1200;
+      background:#ffffff; border:1px solid #e6e6e6; box-shadow:0 8px 24px rgba(0,0,0,.12);
+      padding:10px 14px; border-radius:14px; cursor:pointer; font-weight:600;
+    }
+    .ec-panel{
+      position:fixed; right:16px; top:70px; width:360px; max-height:80vh; overflow:auto; z-index:1201;
+      background:#fff; border:1px solid #ececec; box-shadow:0 10px 28px rgba(0,0,0,.15); border-radius:16px; padding:12px;
+    }
+    .ec-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .ec-icon{ background:transparent; border:none; font-size:16px; cursor:pointer; }
+    .ec-tabs{ display:flex; gap:6px; margin-bottom:8px; }
+    .ec-tab{ flex:1; padding:8px; border:1px solid #eee; background:#f9f9f9; border-radius:10px; cursor:pointer; }
+    .ec-tab-active{ background:#fff; border-color:#ddd; font-weight:600; }
+    .ec-field{ display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+    .ec-grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .ec-captura-modos{ display:flex; gap:6px; align-items:center; margin-bottom:10px; }
+    .ec-btn{ border:1px solid #ddd; background:#fafafa; padding:8px 10px; border-radius:10px; cursor:pointer; }
+    .ec-primary{ background:#7b1b2b; color:#fff; border:none; }
+    .ec-secondary{ background:#f1f1f1; }
+    .ec-tertiary{ background:#fff; border:1px dashed #ddd; }
+    .ec-actions{ display:flex; flex-wrap:wrap; gap:8px; }
+    .ec-counter{ margin-top:6px; font-size:12px; color:#666; }
+    .ec-grow{ flex:1; }
 
 
 
-  </style>
+</style>
 </head>
 <body>
   <div id="panel-lateral">
@@ -130,8 +155,6 @@
       <ul id="sec-suggest" style="margin:8px 0 0 0; padding:0; list-style:none; max-height:180px; overflow:auto;
                                   border:1px solid #cbd5e1; border-radius:6px; background:#fff; display:none;"></ul>
     </div>
-
-
 
     <div id="mini-universe" style="padding:12px 12px 6px 12px; background:#eef2f7; border-top:1px solid #cbd5e1">
         <div class="row" style="margin-bottom:8px">
@@ -350,6 +373,8 @@
     }
   }
 
+    
+
   // ====== PANEL FLOTANTE (drag + datos) ======
   (function wireSecInfoPanel(){
     const box = document.getElementById('sec-info');
@@ -540,8 +565,6 @@
     }
     return null; // fallback será MUN_NAME_KEY
     }
-
-
 
       // —— Utils de texto ——
       function _norm(s){
@@ -914,17 +937,391 @@ function getDlListFromCatalog(feats){
 
   </script>
   <div id="sec-info">
-    <div class="hdr">
-    <span class="ttl">Sección</span>
-    <button id="sec-close" class="btn-close" aria-label="Cerrar">×</button>
+      <div class="hdr">
+      <span class="ttl">Sección</span>
+      <button id="sec-close" class="btn-close" aria-label="Cerrar">×</button>
+    </div>
+    <div class="body">
+      <div class="row"><span class="k">Sección</span>        <span class="v" id="si-sec">—</span></div>
+      <div class="row"><span class="k">Distrito Federal</span><span class="v" id="si-df">—</span></div>
+      <div class="row"><span class="k">Distrito Local</span>  <span class="v" id="si-dl">—</span></div>
+      <div class="row"><span class="k">LN (2024)</span>    <span class="v" id="si-ln">—</span></div>
+    </div>
   </div>
-  <div class="body">
-    <div class="row"><span class="k">Sección</span>        <span class="v" id="si-sec">—</span></div>
-    <div class="row"><span class="k">Distrito Federal</span><span class="v" id="si-df">—</span></div>
-    <div class="row"><span class="k">Distrito Local</span>  <span class="v" id="si-dl">—</span></div>
-    <div class="row"><span class="k">LN (2024)</span>    <span class="v" id="si-ln">—</span></div>
+
+    <!-- === ESTRATEGICO CAMPO: LAUNCHER === -->
+  <div id="estrategico-campo-launcher" class="ec-launcher" title="Módulo CAMPO">
+    <span>CAMPO</span>
   </div>
-</div>
+
+  <!-- === ESTRATEGICO CAMPO: PANEL === -->
+  <div id="estrategico-campo-panel" class="ec-panel ec-hidden">
+    <div class="ec-header">
+      <strong>Módulo CAMPO · AT 27–30</strong>
+      <button id="ec-btn-cerrar" class="ec-icon">✕</button>
+    </div>
+
+    <div class="ec-tabs">
+      <button class="ec-tab ec-tab-active" data-tab="captura">Promotor</button>
+      <button class="ec-tab" data-tab="admin">Administrador</button>
+    </div>
+
+    <!-- TAB: CAPTURA -->
+    <div class="ec-tabview" id="ec-tab-captura">
+      <div class="ec-field">
+        <label>Tipo asignación</label>
+        <select id="ec-tipo">
+          <option value="SIMPATIZANTE">SIMPATIZANTE</option>
+          <option value="LIDER">LÍDER</option>
+          <option value="ADVERSARIO">ADVERSARIO</option>
+          <option value="REP_CASILLA">REPRESENTANTE DE CASILLA</option>
+          <option value="REP_GENERAL">REPRESENTANTE GENERAL</option>
+          <option value="OBSERVADOR">OBSERVADOR</option>
+        </select>
+      </div>
+
+      <div class="ec-grid2">
+        <div class="ec-field">
+          <label>Nombre</label>
+          <input id="ec-nombre" placeholder="Nombre completo" />
+        </div>
+        <div class="ec-field">
+          <label>Teléfono</label>
+          <input id="ec-telefono" placeholder="10 dígitos" />
+        </div>
+      </div>
+
+      <div class="ec-grid2">
+        <div class="ec-field">
+          <label>Sección</label>
+          <input id="ec-seccion" placeholder="Se autollenará por mapa/GPS" />
+        </div>
+        <div class="ec-field">
+          <label>Ámbito</label>
+          <input id="ec-ambito" placeholder="MUN / DF / DL (opcional)" />
+        </div>
+      </div>
+
+      <div class="ec-captura-modos">
+        <button id="ec-gps" class="ec-btn">📍 GPS</button>
+        <button id="ec-mapa" class="ec-btn">🗺️ Selección en mapa</button>
+        <div class="ec-field ec-grow">
+          <input id="ec-dom" placeholder="Domicilio (calle, número, colonia, municipio)" />
+        </div>
+        <button id="ec-geocode" class="ec-btn">🔎</button>
+      </div>
+
+      <div class="ec-field">
+        <label>Observaciones</label>
+        <textarea id="ec-obs" rows="2" placeholder="Notas rápidas"></textarea>
+      </div>
+
+      <div class="ec-actions">
+        <button id="ec-guardar" class="ec-primary">Guardar registro</button>
+        <button id="ec-export" class="ec-secondary">Exportar GeoJSON</button>
+        <button id="ec-copiar" class="ec-secondary">Copiar JSON</button>
+        <button id="ec-limpiar" class="ec-tertiary">Limpiar formulario</button>
+      </div>
+
+      <div class="ec-counter"><span id="ec-contador">0</span> registros locales</div>
+    </div>
+
+    <!-- TAB: ADMIN -->
+    <div class="ec-tabview ec-hidden" id="ec-tab-admin">
+      <div class="ec-field">
+        <label>URL GeoJSON (GitHub RAW)</label>
+        <input id="ec-admin-url" placeholder="https://.../puntos_campo.geojson" />
+      </div>
+      <div class="ec-actions">
+        <button id="ec-admin-cargar" class="ec-primary">Cargar puntos</button>
+        <button id="ec-admin-limpiar" class="ec-tertiary">Quitar capa</button>
+      </div>
+      <small>Tip: publica <code>puntos_campo.geojson</code> en tu repo y pega aquí la URL RAW.</small>
+    </div>
+  </div>
+
+  <script>
+  /* =======================
+    ESTRATEGICO · Módulo CAMPO
+    Namespace: E27Campo
+    ======================= */
+  const E27Campo = (() => {
+    // --- Config ---
+    const STORAGE_KEY = 'estrategico_campo_registros_v1';
+    const LAYER_ID = 'estrategico-campo-layer';
+    const colorByTipo = {
+      'SIMPATIZANTE': '#2e7d32',
+      'LIDER': '#1565c0',
+      'ADVERSARIO': '#c62828',
+      'REPRESENTANTE DE CASILLA': '#6a1b9a',
+      'REPRESENTANTE GENERAL': '#ad1457',
+      'REP_CASILLA': '#6a1b9a',
+      'REP_GENERAL': '#ad1457',
+      'OBSERVADOR': '#ef6c00'
+    };
+
+    // --- Estado ---
+    let registros = loadLocal();
+    let pickingOnMap = false;
+    const layerGroup = L.layerGroup().addTo(map);
+    layerGroup._estrategicoId = LAYER_ID;
+
+    // --- UI refs ---
+    const $ = (sel) => document.querySelector(sel);
+    const launcher = $('#estrategico-campo-launcher');
+    const panel = $('#estrategico-campo-panel');
+    const btnCerrar = $('#ec-btn-cerrar');
+    const tabs = document.querySelectorAll('.ec-tab');
+    const tabCaptura = $('#ec-tab-captura');
+    const tabAdmin = $('#ec-tab-admin');
+
+    const el = {
+      tipo: $('#ec-tipo'),
+      nombre: $('#ec-nombre'),
+      telefono: $('#ec-telefono'),
+      seccion: $('#ec-seccion'),
+      ambito: $('#ec-ambito'),
+      obs: $('#ec-obs'),
+      gps: $('#ec-gps'),
+      mapa: $('#ec-mapa'),
+      dom: $('#ec-dom'),
+      geocode: $('#ec-geocode'),
+      guardar: $('#ec-guardar'),
+      exportar: $('#ec-export'),
+      copiar: $('#ec-copiar'),
+      limpiar: $('#ec-limpiar'),
+      contador: $('#ec-contador'),
+      adminUrl: $('#ec-admin-url'),
+      adminCargar: $('#ec-admin-cargar'),
+      adminLimpiar: $('#ec-admin-limpiar'),
+    };
+
+    // --- Init ---
+    updateCounter();
+    redrawLayer();
+    wireUI();
+
+    // --- Functions ---
+    function wireUI(){
+      launcher.addEventListener('click', () => panel.classList.toggle('ec-hidden'));
+      btnCerrar.addEventListener('click', () => panel.classList.add('ec-hidden'));
+
+      tabs.forEach(t => t.addEventListener('click', () => {
+        tabs.forEach(x => x.classList.remove('ec-tab-active'));
+        t.classList.add('ec-tab-active');
+        const tab = t.dataset.tab;
+        tabCaptura.classList.toggle('ec-hidden', tab !== 'captura');
+        tabAdmin.classList.toggle('ec-hidden', tab !== 'admin');
+      }));
+
+      el.mapa.addEventListener('click', activarPickEnMapa);
+      el.gps.addEventListener('click', captureByGPS);
+      el.geocode.addEventListener('click', geocodeAddressStub);
+
+      el.guardar.addEventListener('click', onGuardar);
+      el.exportar.addEventListener('click', onExportar);
+      el.copiar.addEventListener('click', onCopiar);
+      el.limpiar.addEventListener('click', limpiarForm);
+
+      el.adminCargar.addEventListener('click', adminCargarGeoJSON);
+      el.adminLimpiar.addEventListener('click', () => { layerGroup.clearLayers(); redrawLayer(); });
+    }
+
+    // Captura por clic en mapa
+    function activarPickEnMapa(){
+      pickingOnMap = true;
+      launcher.title = 'Haz clic en el mapa para fijar la ubicación';
+      map.once('click', async (e) => {
+        pickingOnMap = false;
+        const {lat, lng} = e.latlng;
+        const seccion = inferirSeccionDesdeMapa(lat, lng); // usa tu lógica/índice actual
+        setUbicacionForm({lat, lng, seccion});
+        dibujarPuntoTemporal(lat, lng);
+      });
+    }
+
+    // Captura por GPS
+    function captureByGPS(){
+      if(!navigator.geolocation){
+        alert('Este dispositivo no permite GPS.');
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(pos => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const seccion = inferirSeccionDesdeMapa(lat, lng);
+        setUbicacionForm({lat, lng, seccion});
+        dibujarPuntoTemporal(lat, lng);
+        map.setView([lat,lng], 18);
+      }, err => alert('No fue posible obtener GPS: ' + err.message), {enableHighAccuracy:true, timeout:10000});
+    }
+
+    // Geocodificar domicilio (STUB) -> reemplaza por tu servicio real
+    async function geocodeAddressStub(){
+      const q = el.dom.value?.trim();
+      if(!q){ alert('Escribe un domicilio.'); return; }
+      // TODO: integra tu geocoder (Nominatim / API propia). Por ahora, mostramos aviso.
+      alert('Geocoder pendiente de integrar. Usa GPS o Mapa por ahora.');
+    }
+
+    // Dibuja punto temporal (sólo vista)
+    function dibujarPuntoTemporal(lat, lng){
+      L.circleMarker([lat,lng], {radius:7, color:'#444', weight:1, fillOpacity:.8}).addTo(layerGroup);
+    }
+
+    // Inferir sección (ajusta con tu índice espacial/prop ya existente)
+    function inferirSeccionDesdeMapa(lat, lng){
+      // Sugerencia: si ya tienes 'capasPorSeccion' o una spatial index, úsala aquí.
+      // De momento, devolvemos vacío para no romper flujo:
+      try {
+        // Ejemplo (si tienes un layer de secciones con pointInPolygon):
+        // const sec = buscarSeccionPorPunto(lat, lng); return sec?.props?.SECCION || '';
+        return '';
+      } catch { return ''; }
+    }
+
+    function setUbicacionForm({lat, lng, seccion}){
+      el.seccion.value = seccion || el.seccion.value || '';
+      el.seccion.dataset.lat = lat;
+      el.seccion.dataset.lng = lng;
+    }
+
+    function onGuardar(){
+      const tipo = (el.tipo.value || '').toUpperCase();
+      const nombre = (el.nombre.value || '').trim();
+      const telefono = (el.telefono.value || '').trim();
+      const seccion = (el.seccion.value || '').trim();
+      const ambito = (el.ambito.value || '').trim();
+      const lat = parseFloat(el.seccion.dataset.lat || '');
+      const lng = parseFloat(el.seccion.dataset.lng || '');
+      const obs = (el.obs.value || '').trim();
+
+      if(!tipo || Number.isNaN(lat) || Number.isNaN(lng)){
+        alert('Falta tipo y/o ubicación (GPS/Mapa/Domicilio).');
+        return;
+      }
+
+      const now = new Date().toISOString();
+      const feature = {
+        type: 'Feature',
+        properties: {
+          TIPO: tipo,
+          NOMBRE: nombre,
+          TELEFONO: telefono,
+          SECCION: seccion,
+          AMBITO: ambito,
+          OBS: obs,
+          CREATED_AT: now
+        },
+        geometry: { type: 'Point', coordinates: [lng, lat] }
+      };
+
+      registros.push(feature);
+      saveLocal(registros);
+      updateCounter();
+      redrawLayer();
+      // Reset ubicación para evitar duplicados por error:
+      delete el.seccion.dataset.lat; delete el.seccion.dataset.lng;
+      toast('Registro guardado localmente.');
+    }
+
+    function redrawLayer(){
+      // Limpia sólo los marcadores "nuestros" (dejamos otros layers intactos).
+      layerGroup.clearLayers();
+      // Dibuja locales:
+      registros.forEach(f => {
+        const [lng, lat] = f.geometry.coordinates;
+        const tipo = f.properties.TIPO;
+        const color = colorByTipo[tipo] || '#37474f';
+        L.circleMarker([lat, lng], {
+          radius: 7, color, weight:1, fillOpacity:.9
+        }).bindPopup(popupHtml(f)).addTo(layerGroup);
+      });
+    }
+
+    function popupHtml(f){
+      const p = f.properties || {};
+      return `
+        <div style="min-width:220px">
+          <div><strong>${p.TIPO || '-'}</strong></div>
+          <div>${p.NOMBRE || ''}</div>
+          <div>${p.TELEFONO || ''}</div>
+          <div>Sección: ${p.SECCION || '-'}</div>
+          <div>Ámbito: ${p.AMBITO || '-'}</div>
+          <div style="color:#666">${p.OBS || ''}</div>
+          <div style="font-size:11px;color:#888">Creado: ${p.CREATED_AT || ''}</div>
+        </div>
+      `;
+    }
+
+    function onExportar(){
+      const fc = { type:'FeatureCollection', features: registros };
+      const blob = new Blob([JSON.stringify(fc, null, 2)], {type:'application/geo+json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.download = 'puntos_campo.geojson';
+      a.href = url; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function onCopiar(){
+      const fc = { type:'FeatureCollection', features: registros };
+      navigator.clipboard.writeText(JSON.stringify(fc))
+        .then(() => toast('GeoJSON copiado al portapapeles.'))
+        .catch(() => alert('No se pudo copiar.'));
+    }
+
+    function limpiarForm(){
+      ['nombre','telefono','seccion','ambito','obs','dom'].forEach(id => { el[id].value = ''; });
+      delete el.seccion.dataset.lat; delete el.seccion.dataset.lng;
+    }
+
+    async function adminCargarGeoJSON(){
+      const url = el.adminUrl.value?.trim();
+      if(!url){ alert('Pega una URL RAW de GeoJSON.'); return; }
+      try {
+        const resp = await fetch(url, {cache:'no-store'});
+        const data = await resp.json();
+        // dibuja capa externa
+        L.geoJSON(data, {
+          pointToLayer: (feat, latlng) => {
+            const t = feat.properties?.TIPO || '';
+            const color = colorByTipo[t] || '#37474f';
+            return L.circleMarker(latlng, {radius:6, color, weight:1, fillOpacity:.8});
+          },
+          onEachFeature: (feat, layer) => layer.bindPopup(popupHtml(feat))
+        }).addTo(layerGroup);
+        toast('Capa cargada.');
+      } catch(e){
+        alert('No se pudo cargar el GeoJSON: ' + e.message);
+      }
+    }
+
+    // --- Persistencia ---
+    function loadLocal(){
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+      catch{ return []; }
+    }
+    function saveLocal(arr){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    }
+    function updateCounter(){
+      el.contador.textContent = registros.length;
+    }
+
+    // --- Helpers ---
+    function toast(msg){
+      console.log('[CAMPO]', msg);
+    }
+
+    // API pública opcional
+    return {
+      getRegistros: () => [...registros],
+      setRegistros: (arr) => { registros = Array.isArray(arr)? arr: []; saveLocal(registros); redrawLayer(); updateCounter(); }
+    };
+  })();
+</script>
+
 
 </body>
 </html>

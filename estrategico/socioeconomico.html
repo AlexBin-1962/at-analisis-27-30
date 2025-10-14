@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Socioeconómico · v2 (con Proyección 2027)</title>
+  <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <style>
+
+    /* Etiqueta fija al centrar una sección */
+
+    /* Placa "Sección ###" fija al centro */
+    .sec-badge{
+      background:#fff; color:#111827; border:3px solid #3b28ff;
+      border-radius:8px; padding:4px 10px; font-weight:700; font-size:12px;
+      box-shadow:0 10px 24px rgba(0,0,0,.18);
+    }
+    .sec-badge .pin{
+      display:inline-block; width:10px; height:6px; border:2px solid #3b28ff;
+      border-radius:8px; margin-right:6px;
+    }
+
+    .leaflet-tooltip.sec-label{
+      background:#111827; color:#fff; border:none; border-radius:10px;
+      padding:6px 8px; box-shadow:0 8px 20px rgba(0,0,0,.18); font-size:12px;
+    }
+    .leaflet-tooltip.sec-label:before{ display:none; }
+
+    html, body { margin:0; padding:0; height:100%; width:100%; font-family:'Segoe UI', Arial, sans-serif; background:#f4f6fb; color:#1f2937; }
+    
+    
+    :root{ --sidebar-w:320px; --stroke:#e6eaf2; --primary:#2563eb; --accent:#3b82f6; --card:#fff; }
+    
+    #panel-lateral{
+      position:absolute; left:0; top:0; bottom:0; width:var(--sidebar-w); height:100%;
+      background: linear-gradient(180deg, #8ea3ad 0%, #dfe6e9 100%);
+      border-right:1px solid #b2bec3; box-shadow:2px 0 5px rgba(0,0,0,.08);
+      display:flex; flex-direction:column; z-index:2000; overflow-y:auto;   /* <- scroll si hiciera falta */
+    }
+    #panel-header{ padding:10px 12px; font-size:16px; }
+
+        /* Antes: position:absolute; top:0; left:var(--sidebar-w); width:calc(100% - var(--sidebar-w)); height:100%; */
+    #map{
+      position: fixed;          /* ocupa siempre la ventana */
+      top: 0;
+      left: var(--sidebar-w);   /* deja libre el sidebar */
+      right: 0;
+      bottom: 0;
+      z-index: 100;
+      background: #f4f6fb;      /* opcional, por si tarda el tile */
+    }
+
+
+     #map{ position:absolute; top:0; left:var(--sidebar-w); width:calc(100% - var(--sidebar-w)); height:100%; } 
+
+    .card{ margin:10px; padding:10px; border:1px solid var(--stroke); border-radius:14px; background:var(--card); }
+    .row{ display:flex; flex-direction:column; gap:4px; margin-bottom:6px; }
+    label{ font-size:12px; color:#475569; }
+    select, input[type="number"], input[type="text"]{
+      width:100%; padding:8px; border:1px solid var(--stroke); border-radius:10px; background:#f3f6fa; font-size:13.5px;
+    }
+    .btn{ cursor:pointer; background:#fff; color:#111827; border:1px solid var(--stroke); border-radius:10px; padding:8px 10px; font-weight:700; font-size:13px; }
+    .btn.primary{ background:var(--accent); color:#fff; border-color:#1d4ed8; }
+    .hint{ display:none; }  /* <- oculta textos explicativos */
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
+
+    /* Leyenda */
+    .legend{ position:absolute; right:14px; bottom:18px; z-index:2100; background:#fff; border:1px solid var(--stroke); border-radius:12px; padding:10px 12px; box-shadow:0 10px 28px rgba(0,0,0,.12); min-width:200px; }
+    .legend h4{ margin:0 0 6px; font-size:14px; color:#111827; }
+    .legend .item{ display:flex; align-items:center; gap:8px; margin:4px 0; font-size:12.5px; color:#374151; }
+    .legend .sw{ width:16px; height:12px; border-radius:4px; border:1px solid rgba(0,0,0,.15); }
+
+    /* Panel del universo mínimo (reutiliza patrón) */
+    .mini{ background:#eef2f7; border-top:1px solid #cbd5e1; padding:12px; }
+    .mini .row{ margin-bottom:8px; }
+
+    #q-suggest{
+      position: relative; max-height: 220px; overflow:auto;
+      background:#fff; border:1px solid #cbd5e1; border-radius:6px;
+      display:none; z-index:3000;
+    }
+    #q-suggest li{ padding:6px 8px; border-bottom:1px solid #eef2f7; cursor:pointer; }
+    #q-suggest li:hover{ background:#f8fafc; }
+
+  </style>
+</head>
+<body>
+  <div id="map-wrap"><div id="map"></div></div>
+  <div id="panel-lateral">
+    <div id="panel-header">Socioeconómico</div>
+
+  <!-- UNIVERSO (arriba) -->
+  <div class="card mini" id="universo">
+    <div class="row" style="flex-direction:row; gap:6px;">
+      <input id="q-seccion" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Buscar sección (ej. 1234)"/>
+      <button class="btn" id="btn-ir-sec">Ir</button>
+    </div>
+    <ul id="q-suggest" style="margin:6px 0 0; padding:0; list-style:none;"></ul>
+
+
+    <div class="row"><label><input type="checkbox" id="mini-all"> Estado completo</label></div>
+
+    <div class="row">
+      <label>Municipio</label>
+      <select id="mini-mun"><option value="">— Ninguno —</option></select>
+    </div>
+    <div class="row">
+      <label>Distrito Federal</label>
+      <select id="mini-df"><option value="">— Ninguno —</option></select>
+    </div>
+    <div class="row">
+      <label>Distrito Local</label>
+      <select id="mini-dl"><option value="">— Ninguno —</option></select>
+    </div>
+  </div>
+
+    <!-- Controles -->
+    <div class="card" id="controls">
+      <div class="row">
+        <label for="ind-sel">Indicador</label>
+        <select id="ind-sel">
+          <option value="IM">Marginación (IM)</option>
+          <option value="EDU">Rezago educativo</option>
+          <option value="ING">Ingreso estimado</option>
+          <option value="SERV">Acceso a servicios</option>
+          <option value="POB">Pobreza (proxy)</option>
+          <option value="URB">Índice urbano-rural</option>
+          <!-- Luego se añaden Población 18+ 2027 y Lista Nominal 2027 -->
+        </select>
+        <div class="hint">Fuente: GeoJSON + socioeconómico que tengas en el Portal (AT_PATHS). Si no hay dataset, se simula para probar.</div>
+      </div>
+
+      <div class="row">
+        <label for="clasif">Clasificación</label>
+        <select id="clasif">
+          <option value="q5">Quintiles (Q5)</option>
+          <option value="q4">Cuartiles (Q4)</option>
+          <option value="q3">Tercios (Q3)</option>
+        </select>
+        <div class="hint">Cuantiles: separa en rangos de igual número de secciones; oscuro = mayor valor.</div>
+      </div>
+
+      <div class="row" style="gap:8px;">
+        <input type="file" id="file-input" accept=".csv,.json"/>
+        <button class="btn" id="btn-clear">Limpiar datos cargados</button>
+      </div>
+
+      <div class="row">
+        <button class="btn primary" id="btn-aplicar">Aplicar en mapa</button>
+      </div>
+    </div>
+
+    <!-- Proyección 2027 -->
+    <div class="card" id="proj">
+      <div class="row">
+        <strong>Proyección 2027</strong>
+        <div class="hint">Si existe 2018→2024, uso CAGR local; si no, uso tu tasa anual.</div>
+      </div>
+
+      <div class="row">
+        <label for="tasa-ln">Tasa anual LN (%)</label>
+        <input type="number" id="tasa-ln" step="0.1" min="-10" max="10" value="1.5"/>
+        <button class="btn" id="btn-proj-ln">Calcular <b>Lista Nominal 2027</b></button>
+      </div>
+
+      <div class="row">
+        <label for="tasa-p18">Tasa anual P18+ (%)</label>
+        <input type="number" id="tasa-p18" step="0.1" min="-10" max="10" value="1.2"/>
+        <button class="btn" id="btn-proj-p18">Calcular <b>Población 18+ 2027</b></button>
+      </div>
+
+      <div class="hint">Campos esperados (si existen): LN_2018, LN_2024, P18_2018, P18_2024. Si faltan, se usa la tasa.</div>
+    </div>
+  
+
+
+ 
+
+  <div id="legend" class="legend" style="display:none;"></div>
+
+  <script>
+    // ========= Config =========
+    const FIELD_KEYS = { mun:'MUNICIPIO', dl:'DISTRITO_L', df:'DISTRITO_F' };
+    const PALETTE = ['#eff3ff','#cfe0fb','#9ec5fe','#6ea8fe','#3d8bfd','#1d4ed8'];
+
+    function getPaths(){ try{ return JSON.parse(localStorage.getItem('AT_PATHS')||'{}'); }catch{ return {}; } }
+    function getUniverse(){ try{ return JSON.parse(localStorage.getItem('AT_UNIVERSE')||'null'); }catch{ return null; } }
+
+    const paths = getPaths();
+    const urlGeo = paths.geo || 'data/geo/secciones.geojson';
+    const socioUrl = paths.socio || 'data/socioeconomico.json';
+    const catUrl = paths.catalog || 'data/catalogo_territorial.json';
+
+    // ========= Mapa =========
+    function ensureMap(){
+      if (window.__AT_MAP && window.__AT_MAP instanceof L.Map) return window.__AT_MAP;
+      const m = L.map('map', { zoomControl:true }).setView([21.0,-101.3], 18);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OSM' }).addTo(m);
+      window.__AT_MAP = m;
+      setTimeout(()=> m.invalidateSize(), 100);   // <- importante tras reordenar paneles
+      return m;
+    }
+    window.addEventListener('resize', ()=> window.__AT_MAP?.invalidateSize());
+
+
+    function toComp(v){ if(v==null) return ''; const s=String(v).trim(); return (isFinite(s) && s!=='') ? Number(s) : s.toUpperCase(); }
+
+    function filterGeo(geojson, u){
+      if (!u || u.scope==='ALL') return geojson;
+      const keyField = u.scope==='MUN' ? FIELD_KEYS.mun : (u.scope==='DL' ? FIELD_KEYS.dl : FIELD_KEYS.df);
+      const feats = (geojson.features||[]).filter(f => toComp(f.properties?.[keyField])===toComp(u.key));
+      return { ...geojson, features: feats };
+    }
+
+    
+    let HILITE = null;
+
+    function cleanSec(s){ return String(s||'').replace(/\D+/g,''); }
+
+    function featureBySection(geo, sec){
+      const code = cleanSec(sec);
+      return (geo.features||[]).find(f => cleanSec(f.properties?.SECCION ?? f.properties?.id) === code);
+    }
+
+    function highlightSection(sec){
+      const m = ensureMap();
+      const u = getMiniUniverse() || getUniverse();
+      const geo = filterGeo(RAW || {features:[]}, u);
+      const feat = featureBySection(geo, sec);
+      if(!feat){ alert('Sección no encontrada en el universo actual'); return; }
+      if (HILITE){ try{ m.removeLayer(HILITE); }catch{} }
+      HILITE = L.geoJSON(feat, { style:{ color:'#0ea5e9', weight:3, fillOpacity:0 } }).addTo(m);
+      try{ m.fitBounds(HILITE.getBounds(), { padding:[18,18] }); }catch{}
+    }
+
+
+
+    // ========= Carga base =========
+    let RAW = null;         // GeoJSON completo
+    let LAYER = null;       // Capa actual (universo)
+    let SOCIO = null;       // Datos socioeconómicos (por SECCION)
+    let CURRENT = { ind:'IM', clasif:'q5' };
+    let LAST_GEO = null;
+
+    async function loadGeo(){
+      if (RAW) return RAW;
+      const r = await fetch(urlGeo); if (!r.ok) throw new Error('GeoJSON HTTP '+r.status);
+      RAW = await r.json(); return RAW;
+    }
+    async function loadCatalog(){
+      if (window.AT_CATALOG) return window.AT_CATALOG;
+      try{
+        const r = await fetch(catUrl); if (!r.ok) throw new Error();
+        window.AT_CATALOG = await r.json();
+      }catch{ window.AT_CATALOG = null; }
+      return window.AT_CATALOG;
+    }
+
+    async function loadSocio(){
+      if (SOCIO) return SOCIO;
+      try{
+        const r = await fetch(socioUrl);
+        if (!r.ok) throw new Error();
+        const js = await r.json();
+        if (js && js.secciones) { SOCIO = js; return js; }
+      }catch{}
+      // Fallback demo
+      const raw = await loadGeo();
+      const out = { secciones:{} };
+      for (const f of (raw.features||[])){
+        const id = String(f.properties?.SECCION ?? f.properties?.Seccion ?? f.properties?.id ?? '').replace(/\D+/g,'');
+        if (!id) continue;
+        out.secciones[id] = {
+          IM: Math.random()*100,
+          EDU: Math.random()*100,
+          ING: Math.random()*100,
+          SERV: Math.random()*100,
+          POB: Math.random()*100,
+          URB: Math.random()*100,
+          LN_2018: Math.floor(1000+Math.random()*2000),
+          LN_2024: Math.floor(1100+Math.random()*2200),
+          P18_2018: Math.floor(2000+Math.random()*4000),
+          P18_2024: Math.floor(2100+Math.random()*4200)
+        };
+      }
+      SOCIO = out;
+      console.warn('[AT] Socioeconómico DEMO; carga tu CSV/JSON para datos reales.');
+      return out;
+    }
+
+    // ========= Mini-universo =========
+    const MINI = { selMun:null, selDf:null, selDl:null, all:null };
+    function uniqSorted(values){
+      const arr = values.map(v => String(v ?? '').trim()).filter(Boolean);
+      const set = Array.from(new Set(arr));
+      return set.sort((a,b) => (isFinite(a)&&isFinite(b)) ? Number(a)-Number(b) : a.localeCompare(b,'es'));
+    }
+    function buildMiniOptions(raw){
+      const feats = raw.features || [];
+      const grab = k => uniqSorted(feats.map(f => f.properties?.[k]));
+      return { mun: grab(FIELD_KEYS.mun), df: grab(FIELD_KEYS.df), dl: grab(FIELD_KEYS.dl) };
+    }
+    function fillSel(sel, arr){
+      sel.innerHTML = '<option value="">— Ninguno —</option>' + arr.map(v => `<option value="${v}">${v}</option>`).join('');
+    }
+    function getMiniUniverse(){
+      // leer DIRECTO del DOM (sin depender de MINI.*)
+      const all   = document.getElementById('mini-all');
+      const selMun= document.getElementById('mini-mun');
+      const selDf = document.getElementById('mini-df');
+      const selDl = document.getElementById('mini-dl');
+
+      // si NO hay controles en el DOM, usa el universo guardado en Portal
+      if (!all && !selMun && !selDf && !selDl){
+        try { return JSON.parse(localStorage.getItem('AT_UNIVERSE') || 'null'); }
+        catch { return null; }
+      }
+
+      if (all?.checked) return { scope:'ALL', key:null, label:'Estado completo' };
+
+      const vMun = selMun?.value?.trim();
+      if (vMun) return { scope:'MUN', key:vMun, label:`Municipio ${vMun}` };
+
+      const vDf  = selDf?.value?.trim();
+      if (vDf)  return { scope:'DF',  key:vDf,  label:`DF ${vDf}` };
+
+      const vDl  = selDl?.value?.trim();
+      if (vDl)  return { scope:'DL',  key:vDl,  label:`DL ${vDl}` };
+
+      // si ninguno tiene valor, regresa el universo del Portal (fallback)
+      try { return JSON.parse(localStorage.getItem('AT_UNIVERSE') || 'null'); }
+      catch { return null; }
+    }
+
+    function miniExclusivity(which){
+      const selMun = document.getElementById('mini-mun');
+      const selDf  = document.getElementById('mini-df');
+      const selDl  = document.getElementById('mini-dl');
+      const all    = document.getElementById('mini-all');
+
+      if (which==='ALL'){ if(selMun) selMun.value=''; if(selDf) selDf.value=''; if(selDl) selDl.value=''; }
+      if (which==='MUN'){ if(selDf) selDf.value=''; if(selDl) selDl.value=''; if(all) all.checked=false; }
+      if (which==='DF' ){ if(selMun) selMun.value=''; if(selDl) selDl.value=''; if(all) all.checked=false; }
+      if (which==='DL' ){ if(selMun) selMun.value=''; if(selDf) selDf.value=''; if(all) all.checked=false; }
+      applyUniverse?.();
+    }
+
+
+    async function initMini(raw,u){
+      MINI.selMun = document.getElementById('mini-mun');
+      MINI.selDf  = document.getElementById('mini-df');
+      MINI.selDl  = document.getElementById('mini-dl');
+      MINI.all    = document.getElementById('mini-all');
+      const opt = buildMiniOptions(raw);
+      fillSel(MINI.selMun, opt.mun);
+      fillSel(MINI.selDf,  opt.df);
+      fillSel(MINI.selDl,  opt.dl);
+      if (u){
+        if (u.scope==='ALL') MINI.all.checked=true;
+        if (u.scope==='MUN') MINI.selMun.value=String(u.key);
+        if (u.scope==='DF')  MINI.selDf.value=String(u.key);
+        if (u.scope==='DL')  MINI.selDl.value=String(u.key);
+      }
+      MINI.selMun.addEventListener('change', () => miniExclusivity('MUN'));
+      MINI.selDf .addEventListener('change', () => miniExclusivity('DF'));
+      MINI.selDl .addEventListener('change', () => miniExclusivity('DL'));
+      MINI.all   .addEventListener('change', () => miniExclusivity('ALL'));
+    }
+
+    // ========= Choropleth =========
+    const SUM_INDICATORS = new Set(['P18_2027','LN_2027']);
+    function labelFor(ind){
+      const map = {
+        IM: 'Marginación (IM)',
+        EDU: 'Rezago educativo',
+        ING: 'Ingreso estimado',
+        SERV: 'Acceso a servicios',
+        POB: 'Pobreza (proxy)',
+        URB: 'Índice urbano-rural',
+        P18_2027: 'Población 18+ 2027',
+        LN_2027: 'Lista Nominal 2027'
+      };
+      return map[ind] || ind;
+    }
+    function valuesForIndicator(geo, socio, ind){
+      const vals = [];
+      for (const f of (geo.features||[])){
+        const id = String(f.properties?.SECCION ?? f.properties?.id ?? '').replace(/\D+/g,'');
+        const slot = socio.secciones?.[id];
+        if (!slot) continue;
+        const v = Number(slot[ind]);
+        if (isFinite(v)) vals.push(v);
+      }
+      return vals;
+    }
+    function quantiles(arr, k){
+      if (!arr.length) return [];
+      const a = [...arr].sort((x,y)=>x-y);
+      const q = [];
+      for (let i=1;i<k;i++){
+        const p = i/k;
+        const idx = Math.min(a.length-1, Math.max(0, Math.floor(p*(a.length-1))));
+        q.push(a[idx]);
+      }
+      return q;
+    }
+    function paletteFor(k){
+      if (k===3) return PALETTE.slice(0,4);
+      if (k===4) return PALETTE.slice(1,5);
+      return PALETTE.slice(1,6);
+    }
+    function classify(v, cuts){
+      let i=0; while(i<cuts.length && v>cuts[i]) i++; return i;
+    }
+
+    function clearLayer(){
+      const m = ensureMap();
+      if (LAYER){ try{ m.removeLayer(LAYER); }catch(e){} LAYER=null; }
+    }
+
+    function renderLegend(ind, cuts, colors){
+      const box = document.getElementById('legend');
+      if (!box) return;
+      const labels = [];
+      for (let i=0;i<colors.length;i++){
+        const a = (i===0) ? -Infinity : cuts[i-1];
+        const b = (i===cuts.length) ? Infinity : cuts[i];
+        const lab = (a===-Infinity) ? `≤ ${b.toFixed(1)}`
+                 : (b===Infinity) ? `> ${a.toFixed(1)}`
+                 : `${a.toFixed(1)} – ${b.toFixed(1)}`;
+        labels.push({ lab, col: colors[i] });
+      }
+      box.innerHTML = `<h4>${labelFor(ind)} · cuantiles</h4>` + labels.map(x=>`
+        <div class="item"><span class="sw" style="background:${x.col}"></span> ${x.lab}</div>`).join('');
+
+      if (SUM_INDICATORS.has(ind) && LAST_GEO){
+        const total = sumForIndicator(LAST_GEO, SOCIO, ind);
+        const fmt = n => new Intl.NumberFormat('es-MX').format(Math.round(n));
+        box.innerHTML += `<div class="item"><b>Total universo:</b> ${fmt(total)}</div>`;
+      }
+      box.style.display='block';
+    }
+
+    function drawChoropleth(geo, socio, ind, mode='q5'){
+      clearLayer();
+      const m = ensureMap();
+      LAST_GEO = geo;
+      const k = mode==='q3'?3:(mode==='q4'?4:5);
+      const vals = valuesForIndicator(geo, socio, ind);
+      const cuts = quantiles(vals, k);
+      const colors = paletteFor(k);
+
+      LAYER = L.geoJSON(geo, {
+        style: f => {
+          const id = String(f.properties?.SECCION ?? f.properties?.id ?? '').replace(/\D+/g,'');
+          const slot = socio.secciones?.[id];
+          let col = '#94a3b8';
+          if (slot && isFinite(slot[ind])){
+            const i = classify(Number(slot[ind]), cuts);
+            col = colors[i] || col;
+          }
+          return { color:'#111827', weight:0.8, opacity:0.4, fillColor:col, fillOpacity:0.7 };
+        },
+        onEachFeature: (f, lyr)=>{
+          const p = f.properties||{};
+          const id = String(p.SECCION ?? p.id ?? '—');
+          const slot = socio.secciones?.[id.replace(/\D+/g,'')];
+          const val = slot && isFinite(slot[ind]) ? Number(slot[ind]).toFixed(1) : '—';
+          lyr.bindTooltip(`<div style="font-size:12px;"><b>Sección:</b> ${id}<br><b>${labelFor(ind)}:</b> ${val}</div>`, {sticky:true, opacity:.95, direction:'top'});
+          lyr.on('mouseover', () => lyr.setStyle({weight:1.5}));
+          lyr.on('mouseout',  () => lyr.setStyle({weight:0.8}));
+        }
+      }).addTo(m);
+
+      try{ m.fitBounds(LAYER.getBounds(), { padding:[20,20] }); }catch{}
+
+      renderLegend(ind, cuts, colors);
+    }
+
+    // ========= Archivo del usuario =========
+    function parseCSV(text){
+      const lines = text.split(/\r?\n/).filter(Boolean);
+      const headers = lines.shift().split(',').map(s=>s.trim());
+      const idx = {
+        sec: headers.findIndex(h=>/^SECCION$/i.test(h)),
+        IM: headers.findIndex(h=>/^IM$/i.test(h)),
+        EDU: headers.findIndex(h=>/^EDU$/i.test(h)),
+        ING: headers.findIndex(h=>/^ING$/i.test(h)),
+        SERV: headers.findIndex(h=>/^SERV$/i.test(h)),
+        POB: headers.findIndex(h=>/^POB(RESA)?$/i.test(h)),
+        URB: headers.findIndex(h=>/^URB$/i.test(h)),
+        LN_2018: headers.findIndex(h=>/^LN_?2018$/i.test(h)),
+        LN_2024: headers.findIndex(h=>/^LN_?2024$/i.test(h)),
+        P18_2018: headers.findIndex(h=>/^P18_?2018$/i.test(h)),
+        P18_2024: headers.findIndex(h=>/^P18_?2024$/i.test(h)),
+      };
+      const out = { secciones:{} };
+      for (const ln of lines){
+        const cells = ln.split(',').map(c=>c.trim());
+        const id = String(cells[idx.sec]||'').replace(/\D+/g,'');
+        if (!id) continue;
+        const obj = {};
+        function takeAt(k){ const pos = idx[k]; if (pos>=0){ const v = Number((cells[pos]||'').replace(/\s+/g,'')); if (isFinite(v)) obj[k] = v; } }
+        ['IM','EDU','ING','SERV','POB','URB','LN_2018','LN_2024','P18_2018','P18_2024'].forEach(takeAt);
+        out.secciones[id] = obj;
+      }
+      return out;
+    }
+
+    function wireFileInput(){
+      const input = document.getElementById('file-input');
+      const btnClear = document.getElementById('btn-clear');
+      input.addEventListener('change', async (e)=>{
+        const f = e.target.files?.[0]; if (!f) return;
+        try{
+          const text = await f.text();
+          let js = null;
+          if (/\.json$/i.test(f.name)){
+            js = JSON.parse(text);
+            if (!js.secciones) throw new Error('JSON inválido: falta "secciones"');
+          }else{
+            js = parseCSV(text);
+          }
+          SOCIO = js;
+          localStorage.setItem('AT_SOCIO_USER', JSON.stringify(js));
+          alert('Datos socioeconómicos cargados ✔');
+        }catch(err){
+          console.error(err);
+          alert('No pude leer el archivo. Asegúrate de incluir SECCION y, si quieres proyección, LN_2018/LN_2024 y/o P18_2018/P18_2024.');
+        }
+      });
+      btnClear.addEventListener('click', ()=>{
+        localStorage.removeItem('AT_SOCIO_USER'); SOCIO=null; alert('Se limpió el dataset cargado.');
+      });
+    }
+
+    function restoreUserSocio(){
+      try{
+        const s = localStorage.getItem('AT_SOCIO_USER');
+        if (s){ SOCIO = JSON.parse(s); }
+      }catch{}
+    }
+
+    // ========= Proyección =========
+    function ensureOption(value, text){
+      const sel = document.getElementById('ind-sel');
+      if (![...sel.options].some(o=>o.value===value)){
+        const opt = document.createElement('option'); opt.value=value; opt.textContent=text || labelFor(value); sel.appendChild(opt);
+      }
+    }
+    function CAGR(a, b, years){ if (!(a>0) || !(b>0) || !(years>0)) return NaN; return Math.pow(b/a, 1/years) - 1; }
+    function projectField({ base2024, base2018, outKey, defaultRate, label }){
+      if (!SOCIO || !SOCIO.secciones){ alert('Carga primero el dataset socioeconómico.'); return 0; }
+      let count=0;
+      for (const [sec, row] of Object.entries(SOCIO.secciones)){
+        const v2024 = Number(row[base2024]);
+        if (!isFinite(v2024)) continue;
+        let g = NaN;
+        const v2018 = Number(row[base2018]);
+        if (isFinite(v2018) && v2018>0){
+          g = CAGR(v2018, v2024, 6);  // 2018 -> 2024
+        }
+        if (!isFinite(g)) g = defaultRate;  // fallback
+        const v2027 = v2024 * Math.pow(1+g, 3); // 2024 -> 2027
+        if (isFinite(v2027)){ row[outKey] = v2027; count++; }
+      }
+      try{ localStorage.setItem('AT_SOCIO_USER', JSON.stringify(SOCIO)); }catch{}
+      ensureOption(outKey, label);
+      return count;
+    }
+
+    function sumForIndicator(geo, socio, ind){
+      let s = 0;
+      for (const f of (geo.features||[])){
+        const id = String(f.properties?.SECCION ?? f.properties?.id ?? '').replace(/\D+/g,'');
+        const row = socio.secciones?.[id];
+        const v = row ? Number(row[ind]) : NaN;
+        if (Number.isFinite(v)) s += v;
+      }
+      return s;
+    }
+
+    // ========= Universe redraw =========
+    async function applyUniverse(){
+      const u2 = getMiniUniverse() || getUniverse();
+      const raw = await loadGeo();
+      const geo2 = filterGeo(raw, u2);
+      const m = ensureMap();
+      if (LAYER){ try{ m.removeLayer(LAYER); }catch{} }
+      LAYER = L.geoJSON(geo2, { style:{ color:'#000', weight:.8, fillOpacity:.05 } }).addTo(m);
+      try{ m.fitBounds(LAYER.getBounds(), { padding:[18,18] }); }catch{}
+      LAST_GEO = geo2;
+    }
+
+    // ========= Boot =========
+    document.addEventListener('DOMContentLoaded', async () => {
+      const m = ensureMap();
+      const u = getUniverse();
+      if (!u){ alert('Define el universo en el Portal primero.'); try{ location.href='portal.html'; }catch{} return; }
+
+      const raw = await loadGeo();
+      const geo = filterGeo(raw, u);
+      if (LAYER) { try{ m.removeLayer(LAYER); }catch{} }
+      LAYER = L.geoJSON(geo, { style:{ color:'#000', weight:.8, fillOpacity:.05 } }).addTo(m);
+      try{ m.fitBounds(LAYER.getBounds(), { padding:[18,18] }); }catch{}
+      LAST_GEO = geo;
+
+      initMini(raw, u);
+      loadCatalog();
+
+      restoreUserSocio();
+      if (!SOCIO) await loadSocio();
+
+    // Buscar sección (click o Enter)
+    const goSec = async () => {
+      const u = (typeof getMiniUniverse==='function' && getMiniUniverse())
+                || JSON.parse(localStorage.getItem('AT_UNIVERSE') || 'null');
+
+      const raw = window.RAW || await loadGeo();   // <- ahora sí puedes usar await
+      window.RAW = raw;                            // cachea
+      const geo = filterGeo(raw, u);
+
+      const q = document.getElementById('q-seccion')?.value?.trim();
+      if (!q) return;
+
+      const code = String(q).replace(/\D+/g,'');
+      const feat = (geo.features||[]).find(f =>
+        String(f.properties?.SECCION ?? f.properties?.id ?? '')
+          .replace(/\D+/g,'') === code
+      );
+      if (!feat) return alert('Sección no encontrada en el universo actual');
+
+      const m = ensureMap();
+      if (window.HILITE) { try { m.removeLayer(window.HILITE); } catch {} }
+      window.HILITE = L.geoJSON(feat, { style:{ color:'#0ea5e9', weight:3, fillOpacity:0 } }).addTo(m);
+      try { m.fitBounds(window.HILITE.getBounds(), { padding:[20,20] }); } catch {}
+    };
+
+    document.getElementById('btn-ir-sec')?.addEventListener('click', () => { goSec(); });
+    document.getElementById('q-seccion')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') goSec(); });
+
+
+
+      document.getElementById('ind-sel').addEventListener('change', (e)=>{ CURRENT.ind = e.target.value; });
+      document.getElementById('clasif').addEventListener('change', (e)=>{ CURRENT.clasif = e.target.value; });
+      document.getElementById('btn-aplicar').addEventListener('click', async ()=>{
+        const geoNow = filterGeo(raw, getMiniUniverse() || u);
+        try{ drawChoropleth(geoNow, SOCIO, CURRENT.ind, CURRENT.clasif); }catch(err){ console.error(err); alert('No pude dibujar el mapa.'); }
+      });
+
+      // Proyección con etiquetas amigables
+      document.getElementById('btn-proj-ln').addEventListener('click', ()=>{
+        const rate = Number(document.getElementById('tasa-ln').value)/100;
+        const n = projectField({ base2024:'LN_2024', base2018:'LN_2018', outKey:'LN_2027', defaultRate: rate, label:'Lista Nominal 2027' });
+        alert(`Listo: se calcularon Lista Nominal 2027 en ${n} secciones.`);
+      });
+      document.getElementById('btn-proj-p18').addEventListener('click', ()=>{
+        const rate = Number(document.getElementById('tasa-p18').value)/100;
+        const n = projectField({ base2024:'P18_2024', base2018:'P18_2018', outKey:'P18_2027', defaultRate: rate, label:'Población 18+ 2027' });
+        alert(`Listo: se calcularon Población 18+ 2027 en ${n} secciones.`);
+      });
+
+      wireFileInput();
+    });
+  </script>
+
+  <script>
+    /* ——— índice y búsqueda ——— */
+    const _norm = s => String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+    let __IDX = [];   // {sec, mun, df, dl, feature}
+
+    function buildSecIndexForCurrentUniverse(){
+      const u   = (typeof getMiniUniverse==='function' && getMiniUniverse()) || getUniverse();
+      const geo = filterGeo(window.RAW || {features:[]}, u);
+      __IDX = (geo.features||[]).map(f=>{
+        const p=f.properties||{};
+        return {
+          sec: String(p.SECCION ?? p.id ?? '').trim(),
+          mun: p.MUNICIPIO, df:p.DISTRITO_F, dl:p.DISTRITO_L,
+          text:_norm(`${p.SECCION||p.id||''} ${p.MUNICIPIO||''} ${p.DISTRITO_F||''} ${p.DISTRITO_L||''}`),
+          feature:f
+        };
+      }).filter(x=>x.sec);
+    }
+
+    function searchSecs(q, limit=15){
+      const Q = _norm(q); if(!Q) return [];
+      const digits = /^\d+$/.test(Q);
+      const starts = __IDX.filter(it => _norm(it.sec).startsWith(Q));
+      let out = starts;
+      if (out.length < limit){
+        const more = digits
+          ? __IDX.filter(it => _norm(it.sec).includes(Q) && !starts.includes(it))
+          : __IDX.filter(it => it.text.includes(Q) && !starts.includes(it));
+        out = out.concat(more);
+      }
+      return out.slice(0,limit);
+    }
+
+    function renderSuggest(list){
+      const ul = document.getElementById('q-suggest'); if(!ul) return;
+      if (!list.length){ ul.style.display='none'; ul.innerHTML=''; return; }
+      ul.innerHTML = list.map(it=>{
+        const meta = [
+          it.mun ? `Mun: ${it.mun}` : null,
+          (it.df!=null) ? `DF: ${it.df}` : null,
+          (it.dl!=null) ? `DL: ${it.dl}` : null
+        ].filter(Boolean).join(' · ');
+        return `<li data-sec="${it.sec}">
+          <div><b>${it.sec}</b>${meta?` — <small style="color:#64748b">${meta}</small>`:''}</div>
+        </li>`;
+      }).join('');
+      ul.style.display='block';
+    }
+
+    /* ——— ir a la sección ——— */
+    async function gotoSectionFromItem(item){
+      if (typeof gotoSection === 'function'){        // usa tu versión “simple” si ya la pegaste
+        return gotoSection(item.sec);
+      }
+      // fallback mínimo:
+      const m = ensureMap();
+      const hl = L.geoJSON(item.feature, {style:{color:'#0ea5e9',weight:3,fillOpacity:0}}).addTo(m);
+      try{ m.fitBounds(hl.getBounds(), {padding:[20,20]}); }catch{}
+      setTimeout(()=> m.removeLayer(hl), 1200);
+    }
+
+    /* ——— cableado UI ——— */
+    function wireSuggest(){
+      const input = document.getElementById('q-seccion');
+      const ul    = document.getElementById('q-suggest');
+      const btn   = document.getElementById('btn-ir-sec');
+      if (!input || !ul) return;
+
+      input.addEventListener('input', ()=> renderSuggest(searchSecs(input.value, 15)));
+      input.addEventListener('keydown', (e)=>{
+        if (e.key==='Enter'){
+          e.preventDefault();
+          const [first] = searchSecs(input.value, 1);
+          if (first){ gotoSectionFromItem(first); ul.style.display='none'; }
+        }
+        if (e.key==='Escape'){ ul.style.display='none'; }
+      });
+      ul.addEventListener('click', ev=>{
+        const li = ev.target.closest('li[data-sec]'); if(!li) return;
+        const sec = li.getAttribute('data-sec');
+        const it  = __IDX.find(x=>x.sec===sec);
+        if (it){ gotoSectionFromItem(it); }
+        ul.style.display='none';
+      });
+      btn?.addEventListener('click', ()=>{
+        const [first] = searchSecs(input.value, 1);
+        if (first){ gotoSectionFromItem(first); ul.style.display='none'; }
+      });
+      input.addEventListener('blur', ()=> setTimeout(()=> ul.style.display='none', 120));
+    }
+
+    /* ——— inicializar cuando RAW/universo estén listos ——— */
+    document.addEventListener('DOMContentLoaded', async ()=>{
+      if (!window.RAW){ try{ await loadGeo(); }catch{} }
+      buildSecIndexForCurrentUniverse();
+      wireSuggest();
+    });
+
+    /* ——— reindexar al cambiar de universo (una sola vez) ——— */
+    if (!window.__wired_applyUniverseSuggest){
+      const __oldApply = window.applyUniverse;
+      window.applyUniverse = async function(){
+        const r = __oldApply ? await __oldApply() : null;
+        buildSecIndexForCurrentUniverse();
+        return r;
+      };
+      window.__wired_applyUniverseSuggest = true;
+    }
+
+    // Evita que el panel “tape” clics del mapa
+    if (window.L && L.DomEvent){
+      const side = document.getElementById('panel-lateral');
+      if (side){ L.DomEvent.disableClickPropagation(side); L.DomEvent.disableScrollPropagation(side); }
+    }
+  </script>
+
+  <script>
+    /* — Etiqueta/label para la sección seleccionada — */
+    window.HILITE_LABEL = null;
+
+    function labelFor(ind){
+      const map = {
+        IM:'Marginación (IM)', EDU:'Rezago educativo', ING:'Ingreso estimado',
+        SERV:'Acceso a servicios', POB:'Pobreza (proxy)', URB:'Índice urbano-rural',
+        P18_2027:'Población 18+ 2027', LN_2027:'Lista Nominal 2027'
+      };
+      return map[ind] || ind;
+    }
+    const fmt = n => (n==null || !isFinite(n)) ? '—'
+      : (Math.abs(n)>=1000 ? new Intl.NumberFormat('es-MX').format(Math.round(n)) : Number(n).toFixed(1));
+
+    function showSectionLabel(sec){
+      const m = ensureMap();
+      if (!window.HILITE) return;
+      // centro del polígono resaltado
+      let center = null;
+      try{ center = window.HILITE.getBounds().getCenter(); }catch(_){}
+      if (!center) return;
+
+      // Valor actual del indicador (si existe)
+      const ind = window.CURRENT?.ind;
+      let val = null;
+      if (ind && window.SOCIO?.secciones){
+        const row = window.SOCIO.secciones[String(sec).replace(/\D+/g,'')];
+        if (row && isFinite(row[ind])) val = Number(row[ind]);
+      }
+
+      // Quitar etiqueta previa y dibujar nueva
+      if (window.HILITE_LABEL){ try{ m.removeLayer(window.HILITE_LABEL); }catch{} }
+      const content = `<b>Sección ${sec}</b>${ind?`<br>${labelFor(ind)}: ${fmt(val)}`:''}`;
+      window.HILITE_LABEL = L.tooltip({permanent:true, direction:'center', className:'sec-label'})
+                              .setLatLng(center).setContent(content).addTo(m);
+    }
+
+    /* Integra la etiqueta en tus navegaciones:
+      - Si usas goSec/gotoSection, añade una línea al final: showSectionLabel(q o sec)
+    */
+    const _old_goSec = window.goSec;
+    window.goSec = async function(){
+      if (_old_goSec) await _old_goSec();  // deja que tu función resalte y haga fitBounds
+      const q = document.getElementById('q-seccion')?.value?.trim();
+      if (q) showSectionLabel(q);
+    };
+
+    // Si usas focusSection() en el sugeridor, añade:
+  
+    window.focusSection = async function(arg){
+      if (_old_focusSection) await _old_focusSection(arg);
+      const sec = typeof arg==='string' ? arg : arg?.sec;
+      if (sec) showSectionLabel(sec);
+    };
+</script>
+
+<script>
+// ===== Placa fija "Sección ###" =====
+  window.SEC_BADGE = window.SEC_BADGE || null;
+
+  function showSectionBadge(sec, feat){
+    const m = ensureMap();
+    let center = null;
+    try{
+      if (feat) center = L.geoJSON(feat).getBounds().getCenter();
+      else if (window.HILITE) center = window.HILITE.getBounds().getCenter();
+    }catch(_){}
+    if (!center) return;
+
+    // Borra la anterior
+    if (window.SEC_BADGE){ try{ m.removeLayer(window.SEC_BADGE); }catch{} }
+
+    const html = `<div class="sec-badge"><span class="pin"></span>Sección ${String(sec)}</div>`;
+    const icon = L.divIcon({ className:'', html, iconSize:null });
+    window.SEC_BADGE = L.marker(center, { icon, interactive:false, keyboard:false }).addTo(m);
+  }
+
+
+
+  // 2) Si usas focusSection(item) desde las sugerencias:
+ 
+
+
+  // 3) Limpia la placa al cambiar de universo
+  if (!window.__wipe_badge_on_universe){
+    const _old_apply = window.applyUniverse;
+    window.applyUniverse = async function(){
+      const r = _old_apply ? await _old_apply() : null;
+      if (window.SEC_BADGE){ try{ ensureMap().removeLayer(window.SEC_BADGE); }catch{} window.SEC_BADGE=null; }
+      return r;
+    };
+    window.__wipe_badge_on_universe = true;
+  }
+</script>
+
+
+
+
+</body>
+</html>
