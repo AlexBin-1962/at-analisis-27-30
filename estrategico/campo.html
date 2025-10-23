@@ -1,599 +1,1162 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Campo</title>
-  <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet"/>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campo</title>
+    <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <link rel="icon" href="data:," />
 
-  <style>
-    html, body { margin:0; padding:0; height:100%; width:100%; font-family:'Segoe UI', Arial, sans-serif; background:#f4f4f4; }
-    :root{ --sidebar-w:320px; }
-    #panel-lateral{
-      position:absolute;
-      left:0; top:0; bottom:0; width:var(--sidebar-w); height:100%;
-      background: linear-gradient(180deg, #8ea3ad 0%, #dfe6e9 100%);
-      color:#2c3e50; border-right:1px solid #b2bec3;
-      display:flex; flex-direction:column; 
-      box-shadow:2px 0 5px rgba(0,0,0,0.1); box-sizing:border-box; align-items:stretch;
-      z-index:2000;
-    }
-    #panel-header{ background:#b2bec3; color:#2c3e50; padding:12px 15px; display:flex; align-items:center; font-size:18px; font-weight:bold; }
-    #panel-header img{ height:32px; margin-right:10px; }
-    #map{ position:absolute; top:0; left:var(--sidebar-w); width:calc(100% - var(--sidebar-w)); height:100%; }
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #f4f4f4;
+      }
+      :root {
+        --sidebar-w: 320px;
+      }
+      #panel-lateral {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: var(--sidebar-w);
+        height: 100%;
+        background: linear-gradient(180deg, #8ea3ad 0%, #dfe6e9 100%);
+        color: #2c3e50;
+        border-right: 1px solid #b2bec3;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+        align-items: stretch;
+        z-index: 2000;
+      }
+      #panel-header {
+        background: #b2bec3;
+        color: #2c3e50;
+        padding: 12px 15px;
+        display: flex;
+        align-items: center;
+        font-size: 18px;
+        font-weight: bold;
+      }
+      #panel-header img {
+        height: 32px;
+        margin-right: 10px;
+      }
 
-    #sec-search    { position: relative; }                /* contenedor del buscador */
-    #sec-suggest   { z-index: 3000; } 
-    #sec-suggest {
-      position: absolute;
-      left: 12px; right: 12px;
-      top: 46px;           /* ajusta según tu input */
-      max-height: 220px;
-      overflow: auto;
-    }
+      /* === Botón CAMPO integrado al panel lateral === */
+      .btn-campo {
+        background: linear-gradient(90deg, #7b1b2b 0%, #a53850 100%);
+        color: #fff;
+        font-weight: 600;
+        border: none;
+        border-radius: 14px;
+        padding: 10px 16px;
+        font-size: 15px;
+        width: 90%;
+        max-width: 240px;
+        cursor: pointer;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+        transition: all 0.25s ease;
+      }
+      .btn-campo:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+        background: linear-gradient(90deg, #8f243a 0%, #b94a62 100%);
+      }
+      .btn-campo i {
+        margin-right: 6px;
+      }
+
+      #map {
+        position: absolute;
+        top: 0;
+        left: var(--sidebar-w);
+        width: calc(100% - var(--sidebar-w));
+        height: 100%;
+      }
+
+      #sec-search {
+        position: relative;
+      } /* contenedor del buscador */
+      #sec-suggest {
+        z-index: 3000;
+      }
+      #sec-suggest {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        top: 46px; /* ajusta según tu input */
+        max-height: 220px;
+        overflow: auto;
+      }
       /* la lista queda clickeable */
 
-    /* Etiqueta de la SECCIÓN seleccionada (rosa tenue) */
-    .sec-label{
-      background: rgba(255, 235, 238, 0.96);  /* #ffebee */
-      border: 1px solid #e91e63;
-      color: #880e4f;
-      padding: 2px 6px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      pointer-events: none;
-      white-space: nowrap;
-      box-shadow: 0 2px 6px rgba(0,0,0,.15);
-    }
+      /* Etiqueta de la SECCIÓN seleccionada (rosa tenue) */
+      .sec-label {
+        background: rgba(255, 235, 238, 0.96); /* #ffebee */
+        border: 1px solid #e91e63;
+        color: #880e4f;
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        pointer-events: none;
+        white-space: nowrap;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      }
 
-    /* Etiquetas de SECCIONES ADYACENTES (azul/gris tenue) */
-    .sec-label-adj{
-      background: rgba(227, 242, 253, 0.94);  /* #e3f2fd */
-      border: 1px solid #64b5f6;
-      color: #0d47a1;
-      padding: 1px 5px;
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      pointer-events: none;
-      white-space: nowrap;
-      box-shadow: 0 1px 4px rgba(0,0,0,.12);
-    }
+      /* Etiquetas de SECCIONES ADYACENTES (azul/gris tenue) */
+      .sec-label-adj {
+        background: rgba(227, 242, 253, 0.94); /* #e3f2fd */
+        border: 1px solid #64b5f6;
+        color: #0d47a1;
+        padding: 1px 5px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        pointer-events: none;
+        white-space: nowrap;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+      }
 
+      /* Panel compacto móvil */
+      @media (max-width: 768px) {
+        .ec-panel {
+          right: 8px;
+          left: 8px;
+          width: auto;
+          max-width: none;
+          padding: 10px;
+          top: auto;
+          bottom: 70px;
+        }
+        .ec-launcher {
+          right: 12px;
+          bottom: 12px;
+        }
+        .ec-field {
+          margin-bottom: 8px;
+        }
+        .ec-grid2 {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+        .ec-actions {
+          gap: 6px;
+        }
+        .ec-btn,
+        .ec-primary,
+        .ec-secondary,
+        .ec-tertiary {
+          padding: 8px 10px;
+          border-radius: 10px;
+        }
+        .ec-header {
+          position: sticky;
+          top: 0;
+          background: #fff;
+          padding-bottom: 6px;
+        }
+      }
 
-    /* Panel flotante sección */
-    #sec-info {
-      position: absolute;
-      right: 16px; bottom: 16px;
-      width: 320px; max-width: 38vw; min-width: 260px;
-      background: #ffffff;
-      border: 1px solid #cfd8dc;
-      border-radius: 10px;
-      box-shadow: 0 10px 24px rgba(0,0,0,.15);
-      resize: both; overflow: auto; z-index: 4000;
-      display: none;
-      pointer-events: auto;
-    }
-    #sec-info .hdr {
-      cursor: move;
-      display:flex; align-items:center; justify-content:space-between;
-      background: linear-gradient(180deg,#eceff1,#e3f2fd);
-      padding: 8px 12px;
-      border-bottom: 1px solid #cfd8dc;
-      font-weight: 700; color: #263238;
-    }
+      /* Botón lanzador más discreto */
+      .ec-launcher {
+        padding: 8px 12px;
+        border-radius: 12px;
+        font-size: 14px;
+      }
 
-    #sec-info .hdr .btn-close{
-      cursor: pointer;
-      border: none; outline: none;
-      background: #ffcdd2;         /* rosa tenue */
-      color: #880e4f;
-      width: 24px; height: 24px; line-height: 24px;
-      border-radius: 6px;
-      font-size: 16px; font-weight: 800;
-    }
-    #sec-info .hdr .btn-close:hover{ background:#ef9a9a; }
-    #sec-info .body { padding: 10px 12px; color: #37474f; }
-    #sec-info .row  { display:flex; justify-content:space-between; margin:6px 0; }
-    #sec-info .k    { color:#607d8b; }
-    #sec-info .v    { font-weight:600; }
- 
-    .ec-hidden { display:none; }
-    .ec-launcher{
-      position:fixed; right:16px; bottom:16px; z-index:1200;
-      background:#ffffff; border:1px solid #e6e6e6; box-shadow:0 8px 24px rgba(0,0,0,.12);
-      padding:10px 14px; border-radius:14px; cursor:pointer; font-weight:600;
-    }
-    .ec-panel{
-      position:fixed; right:16px; top:70px; width:360px; max-height:80vh; overflow:auto; z-index:1201;
-      background:#fff; border:1px solid #ececec; box-shadow:0 10px 28px rgba(0,0,0,.15); border-radius:16px; padding:12px;
-    }
-    .ec-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-    .ec-icon{ background:transparent; border:none; font-size:16px; cursor:pointer; }
-    .ec-tabs{ display:flex; gap:6px; margin-bottom:8px; }
-    .ec-tab{ flex:1; padding:8px; border:1px solid #eee; background:#f9f9f9; border-radius:10px; cursor:pointer; }
-    .ec-tab-active{ background:#fff; border-color:#ddd; font-weight:600; }
-    .ec-field{ display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
-    .ec-grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .ec-captura-modos{ display:flex; gap:6px; align-items:center; margin-bottom:10px; }
-    .ec-btn{ border:1px solid #ddd; background:#fafafa; padding:8px 10px; border-radius:10px; cursor:pointer; }
-    .ec-primary{ background:#7b1b2b; color:#fff; border:none; }
-    .ec-secondary{ background:#f1f1f1; }
-    .ec-tertiary{ background:#fff; border:1px dashed #ddd; }
-    .ec-actions{ display:flex; flex-wrap:wrap; gap:8px; }
-    .ec-counter{ margin-top:6px; font-size:12px; color:#666; }
-    .ec-grow{ flex:1; }
+      /* Input más densos */
 
+      /* Drag handle en el header del panel */
+      #estrategico-campo-panel {
+        position: fixed;
+      }
+      #estrategico-campo-panel .ec-header {
+        cursor: move;
+        user-select: none;
+      }
 
+      #estrategico-campo-panel input,
+      #estrategico-campo-panel select,
+      #estrategico-campo-panel textarea {
+        font-size: 14px;
+        padding: 8px 10px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+      }
 
-</style>
-</head>
-<body>
-  <div id="panel-lateral">
-    <div id="panel-header">
-      <!-- <img src="assets/img/logo.png" alt="Logo"/> -->
-      <span>Campo</span>
-    </div>
-    <!-- Aquí va el contenido del panel lateral -->
+      /* Panel flotante sección */
+      #sec-info {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        width: 320px;
+        max-width: 38vw;
+        min-width: 260px;
+        background: #ffffff;
+        border: 1px solid #cfd8dc;
+        border-radius: 10px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+        resize: both;
+        overflow: auto;
+        z-index: 4000;
+        display: none;
+        pointer-events: auto;
+      }
+      #sec-info .hdr {
+        cursor: move;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(180deg, #eceff1, #e3f2fd);
+        padding: 8px 12px;
+        border-bottom: 1px solid #cfd8dc;
+        font-weight: 700;
+        color: #263238;
+      }
 
-    <!-- Buscador de secciones -->
-    <div id="sec-search" style="padding:10px 12px; border-top:1px solid #cbd5e1; background:#eef2f7">
-      <div style="display:flex; gap:8px; align-items:center;">
-        <input id="sec-q" type="text" placeholder="Buscar sección (ej. 1234 o '1234 León')" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search"
-              style="flex:1; padding:6px 8px; border:1px solid #94a3b8; border-radius:6px;">
-        <label style="white-space:nowrap; font-size:12px;">
-          <input id="sec-global" type="checkbox"> Todo el estado
-        </label>
+      #sec-info .hdr .btn-close {
+        cursor: pointer;
+        border: none;
+        outline: none;
+        background: #ffcdd2; /* rosa tenue */
+        color: #880e4f;
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 800;
+      }
+      #sec-info .hdr .btn-close:hover {
+        background: #ef9a9a;
+      }
+      #sec-info .body {
+        padding: 10px 12px;
+        color: #37474f;
+      }
+      #sec-info .row {
+        display: flex;
+        justify-content: space-between;
+        margin: 6px 0;
+      }
+      #sec-info .k {
+        color: #607d8b;
+      }
+      #sec-info .v {
+        font-weight: 600;
+      }
+
+      .ec-hidden {
+        display: none;
+      }
+      .ec-launcher {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 1200;
+        background: #ffffff;
+        border: 1px solid #e6e6e6;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        padding: 10px 14px;
+        border-radius: 14px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .ec-panel {
+        position: fixed;
+        right: 16px;
+        top: 70px;
+        width: 360px;
+        max-height: 80vh;
+        overflow: auto;
+        z-index: 1201;
+        background: #fff;
+        border: 1px solid #ececec;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15);
+        border-radius: 16px;
+        padding: 12px;
+      }
+      .ec-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .ec-icon {
+        background: transparent;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      .ec-tabs {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+      .ec-tab {
+        flex: 1;
+        padding: 8px;
+        border: 1px solid #eee;
+        background: #f9f9f9;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      .ec-tab-active {
+        background: #fff;
+        border-color: #ddd;
+        font-weight: 600;
+      }
+      .ec-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      .ec-grid2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .ec-captura-modos {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .ec-btn {
+        border: 1px solid #ddd;
+        background: #fafafa;
+        padding: 8px 10px;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      .ec-primary {
+        background: #7b1b2b;
+        color: #fff;
+        border: none;
+      }
+      .ec-secondary {
+        background: #f1f1f1;
+      }
+      .ec-tertiary {
+        background: #fff;
+        border: 1px dashed #ddd;
+      }
+      .ec-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .ec-counter {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #666;
+      }
+      .ec-grow {
+        flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      Nota (2025-10-22): Se eliminaron bloques HTML duplicados que contenían
+      elementos con atributos `id` repetidos (por ejemplo: `ec-*`, `ct-pin`).
+      Cambios realizados:
+        - Eliminado el bloque reducido `#ec-panel` para evitar duplicidad con
+          el panel completo `#estrategico-campo-panel`.
+        - Eliminado el segundo modal duplicado ("Modal PIN demo").
+        - Convertidas las segundas ocurrencias visuales de `ec-kpis` y
+          `ec-contador` a clases (`.ec-kpis`, `.ec-contador`) para mantener
+          la integridad del DOM sin romper selectores JS que apuntan a los IDs
+          principales.
+      Resultado: se suprimen los warnings de elementos con IDs no únicos en
+      la consola del navegador y se conserva la funcionalidad del módulo CAMPO.
+    -->
+    <!-- Elementos funcionales para wireUI eliminados (duplicados) -->
+
+    <div id="panel-lateral">
+      <div id="panel-header">
+        <!-- <img src="assets/img/logo.png" alt="Logo"/> -->
+        <span>Campo</span>
       </div>
-      <ul id="sec-suggest" style="margin:8px 0 0 0; padding:0; list-style:none; max-height:180px; overflow:auto;
-                                  border:1px solid #cbd5e1; border-radius:6px; background:#fff; display:none;"></ul>
+      <!-- Aquí va el contenido del panel lateral -->
+
+      <!-- Buscador de secciones -->
+      <div
+        id="sec-search"
+        style="
+          padding: 10px 12px;
+          border-top: 1px solid #cbd5e1;
+          background: #eef2f7;
+        "
+      >
+        <div style="display: flex; gap: 8px; align-items: center">
+          <input
+            id="sec-q"
+            type="text"
+            placeholder="Buscar sección (ej. 1234 o '1234 León')"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+            enterkeyhint="search"
+            style="
+              flex: 1;
+              padding: 6px 8px;
+              border: 1px solid #94a3b8;
+              border-radius: 6px;
+            "
+          />
+          <label style="white-space: nowrap; font-size: 12px">
+            <input id="sec-global" type="checkbox" /> Todo el estado
+          </label>
+        </div>
+        <ul
+          id="sec-suggest"
+          style="
+            margin: 8px 0 0 0;
+            padding: 0;
+            list-style: none;
+            max-height: 180px;
+            overflow: auto;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #fff;
+            display: none;
+          "
+        ></ul>
+      </div>
+
+      <div
+        id="mini-universe"
+        style="
+          padding: 12px 12px 6px 12px;
+          background: #eef2f7;
+          border-top: 1px solid #cbd5e1;
+        "
+      >
+        <div class="row" style="margin-bottom: 8px">
+          <label
+            ><input type="checkbox" id="mini-all-state" /> Estado
+            completo</label
+          >
+        </div>
+        <div class="row" style="margin-bottom: 8px">
+          <label>Municipio</label>
+          <select id="mini-sel-mun" style="width: 100%; padding: 6px">
+            <option value="">— Ninguno —</option>
+          </select>
+        </div>
+        <div class="row" style="margin-bottom: 8px">
+          <label>Distrito Federal</label>
+          <select id="mini-sel-df" style="width: 100%; padding: 6px">
+            <option value="">— Ninguno —</option>
+          </select>
+        </div>
+        <div class="row" style="margin-bottom: 8px">
+          <label>Distrito Local</label>
+          <select id="mini-sel-dl" style="width: 100%; padding: 6px">
+            <option value="">— Ninguno —</option>
+          </select>
+        </div>
+        <div class="hint" style="font-size: 12px; color: #64748b">
+          Elige solo uno. Al cambiar, el mapa se actualiza.
+        </div>
+      </div>
+      <!-- Botón CAMPO integrado al panel lateral -->
+      <div
+        id="btn-campo-container"
+        style="margin-top: 12px; text-align: center"
+      >
+        <button
+          id="btn-campo"
+          class="btn-campo"
+          type="button"
+          data-target="#estrategico-campo-panel"
+          aria-controls="estrategico-campo-panel"
+          aria-expanded="false"
+        >
+          <i class="fa fa-map-marker-alt"></i> Módulo CAMPO
+        </button>
+      </div>
     </div>
+    <div id="map"></div>
 
-    <div id="mini-universe" style="padding:12px 12px 6px 12px; background:#eef2f7; border-top:1px solid #cbd5e1">
-        <div class="row" style="margin-bottom:8px">
-            <label><input type="checkbox" id="mini-all-state"> Estado completo</label>
-        </div>
-        <div class="row" style="margin-bottom:8px">
-            <label>Municipio</label>
-            <select id="mini-sel-mun" style="width:100%;padding:6px"><option value="">— Ninguno —</option></select>
-        </div>
-        <div class="row" style="margin-bottom:8px">
-            <label>Distrito Federal</label>
-            <select id="mini-sel-df" style="width:100%;padding:6px"><option value="">— Ninguno —</option></select>
-        </div>
-        <div class="row" style="margin-bottom:8px">
-            <label>Distrito Local</label>
-            <select id="mini-sel-dl" style="width:100%;padding:6px"><option value="">— Ninguno —</option></select>
-        </div>
-        <div class="hint" style="font-size:12px;color:#64748b">Elige solo uno. Al cambiar, el mapa se actualiza.</div>
-    </div>
-
-  </div>
-  <div id="map"></div>
-
-  <!-- === SCRIPT ÚNICO === -->
-  <script>
-  // ===== 0) Campos (ajusta si tus nombres son distintos) =====
-  // DL = Distrito Local, DF = Distrito Federal
-  const FIELD_KEYS = { mun: 'MUNICIPIO', dl: 'DISTRITO_L', df: 'DISTRITO_F' };
-
-
-    const paths = JSON.parse(localStorage.getItem('AT_PATHS')||'{}');
-    const urlGeo = paths.geo || 'data/geo/secciones.geojson';
-    const catUrl = paths.catalog || 'data/catalogo_territorial.json';
-    const ELP = paths.electoral?.P || 'data/electoral/P.json';
-// ...
-
-
-
-  // ===== 1) Mapa único y chequeo =====
-  function ensureLeafletMap() {
-    if (window.__AT_MAP && window.__AT_MAP instanceof L.Map) return window.__AT_MAP;
-    const m = L.map('map', { zoomControl:true }).setView([21.0, -101.3], 7);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OSM' }).addTo(m);
-    window.__AT_MAP = m;
-    return m;
-  }
-  function assertIsLeafletMap(m) {
-    if (!(m instanceof L.Map) || typeof m.addLayer !== 'function') {
-      throw new Error('[AT] addTo(): destino no es un Leaflet Map. Revisa variables llamadas "map" o dobles inicializaciones.');
-    }
-  }
-
-  function closeSecInfoPanel(){
-    const box = document.getElementById('sec-info');
-    if (box) box.style.display = 'none';
-    // Si quieres limpiar resaltado y etiquetas al cerrar:
-    if (typeof clearSectionOverlays === 'function') clearSectionOverlays();
-  }
-
-
-  function ensureSecInfoPanelWired(){
-  const box = document.getElementById('sec-info');
-  const hdr = box?.querySelector('.hdr');
-  if (!box || !hdr || box.__wired) return;
-
-  // Bloquear propagación al mapa (no “parpadea” al arrastrar)
-  if (window.L && L.DomEvent){
-    L.DomEvent.disableClickPropagation(box);
-    L.DomEvent.disableScrollPropagation(box);
-  }
-
-  // Drag del panel
-  let dragging = false, sx=0, sy=0, bx=0, by=0;
-  hdr.addEventListener('mousedown', (e)=>{
-    if (e.target.closest('.btn-close')) return; // no iniciar drag si clic en "×"
-    e.preventDefault(); e.stopPropagation();
-    dragging = true;
-    const r = box.getBoundingClientRect();
-    sx = e.clientX; sy = e.clientY; bx = r.left; by = r.top;
-    box.style.position = 'absolute'; box.style.right='auto'; box.style.bottom='auto';
-    document.body.style.userSelect = 'none';
-  });
-  window.addEventListener('mousemove', (e)=>{
-    if (!dragging) return;
-    e.preventDefault(); e.stopPropagation();
-    const dx = e.clientX - sx, dy = e.clientY - sy;
-    box.style.left = (bx + dx) + 'px';
-    box.style.top  = (by + dy) + 'px';
-  });
-  window.addEventListener('mouseup', ()=>{
-    if (!dragging) return;
-    dragging = false; document.body.style.userSelect = '';
-  });
-
-  // Botón “×”
-  const btn = document.getElementById('sec-close');
-  if (btn && !btn.__wired){
-    btn.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); closeSecInfoPanel(); });
-    btn.__wired = true;
-  }
-
-  box.__wired = true;
-}
-
-
-
-  // ===== 2) Filtrado por universo =====
-  function toComp(v){ if(v==null) return ''; const s=String(v).trim(); return (isFinite(s) && s!=='') ? Number(s) : s.toUpperCase(); }
-  function matches(props, u){
-    if(u.scope==='ALL') return true;
-    const keyField = u.scope==='MUN' ? FIELD_KEYS.mun : (u.scope==='DL' ? FIELD_KEYS.dl : FIELD_KEYS.df);
-    return toComp(props?.[keyField]) === toComp(u.key);
-  }
-  function filterGeojson(geojson, u){
-    if(u.scope==='ALL') return geojson;
-    const features = (geojson.features || []).filter(f => matches(f.properties, u));
-    return { ...geojson, features };
-  }
-
-
-  // ====== CARGA ELECTORAL (para obtener 24DL_LN) ======
-  function getPaths(){ try{ return JSON.parse(localStorage.getItem('AT_PATHS')||'{}'); }catch{ return {}; } }
-  function getPuestoPath(p){ const paths = getPaths(); return paths?.electoral?.[p] || `data/electoral/${p}.json`; }
-
-  window.AT_ELECT = window.AT_ELECT || {};
-  async function getElectData(puesto){
-    if (window.AT_ELECT[puesto]) return window.AT_ELECT[puesto];
-    const res = await fetch(getPuestoPath(puesto));
-    if (!res.ok) throw new Error(`HTTP ${res.status} en ${puesto}`);
-    const js = await res.json();
-    window.AT_ELECT[puesto] = js;
-    return js;
-  }
-  // LN para 2024 desde DL; si no hay, intenta P (fallback)
-  async function getLN24DL(sec){
-    const key = String(sec);
-    try {
-      const dl = await getElectData('DL');
-      const ln = dl?.secciones?.[key]?.["2024"]?.LN;
-      if (typeof ln === 'number') return ln;
-    } catch(_){}
-    try {
-      const p = await getElectData('P');
-      const ln = p?.secciones?.[key]?.["2024"]?.LN;
-      if (typeof ln === 'number') return ln;
-    } catch(_){}
-    return null;
-  }
-
-  // ====== ADYACENCIAS (Turf) ======
-  function bboxIntersects(b1, b2){
-    return !(b2[0] > b1[2] || b2[2] < b1[0] || b2[1] > b1[3] || b2[3] < b1[1]);
-  }
-  function getAdjacents(feat){
-    const all = (window.AT_DATA?.features)
-            || (window.AT_CTX?.layer?.toGeoJSON?.()?.features)
-            || [];
-    if (!all.length) return [];
-    const b1 = turf.bbox(feat);
-    const out = [];
-    const sec1 = feat.properties?.SECCION;
-    for (const f of all){
-      const p = f.properties || {};
-      if (p.SECCION === sec1) continue;
-      const b2 = turf.bbox(f);
-      if (!bboxIntersects(b1,b2)) continue;
-      try {
-        if (turf.booleanTouches(feat, f) || turf.booleanOverlap(feat, f) || turf.booleanIntersects(feat, f)){
-          out.push(f);
+    <!-- === SCRIPT ÚNICO === -->
+    <script>
+      // --- Map helper a prueba de colisiones ---
+      function atMap() {
+        const m = ensureLeafletMap(); // tu función ya existente
+        if (!m || !(m instanceof L.Map)) {
+          throw new Error("[AT] Mapa no inicializado correctamente");
         }
-      } catch(_){}
-    }
-    return out.slice(0, 25); // cota de seguridad
-  }
+        return m;
+      }
 
-  // ====== LABELS SOBRE EL MAPA ======
-  function addLabelForFeature(feat, className, text){
-    try {
-      const c = turf.centerOfMass(feat).geometry.coordinates; // [lon, lat]
-      const m = L.marker([c[1], c[0]], { icon: L.divIcon({ className, html: text, iconSize:[0,0] }) });
-      window.__SEC_LABELS = window.__SEC_LABELS || L.layerGroup().addTo(ensureLeafletMap());
-      window.__SEC_LABELS.addLayer(m);
-      return m;
-    } catch(_){}
-    return null;
-  }
+      // ===== 0) Campos (ajusta si tus nombres son distintos) =====
+      // DL = Distrito Local, DF = Distrito Federal
+      const FIELD_KEYS = {
+        mun: "MUNICIPIO",
+        dl: "DISTRITO_L",
+        df: "DISTRITO_F",
+      };
 
-  function clearSectionOverlays(){
-    const atMap = ensureLeafletMap();
-    if (window.__SEC_HL){ try{ atMap.removeLayer(__SEC_HL); }catch(_){ } window.__SEC_HL = null; }
-    if (window.__SEC_ADJ){ try{ atMap.removeLayer(__SEC_ADJ); }catch(_){ } window.__SEC_ADJ = null; }
-    if (window.__SEC_LABELS){ try{ atMap.removeLayer(__SEC_LABELS); }catch(_){ } window.__SEC_LABELS = null; }
-  }
+      const paths = JSON.parse(localStorage.getItem("AT_PATHS") || "{}");
+      const urlGeo = paths.geo || "data/geo/secciones.geojson";
+      const catUrl = paths.catalog || "data/catalogo_territorial.json";
+      const ELP = paths.electoral?.P || "data/electoral/P.json";
+      // ...
 
-  // Dibuja selección + adyacentes + labels
-  function paintSelectionAndAdj(feat){
-    const atMap = ensureLeafletMap();
-    clearSectionOverlays();
+      // ===== 1) Mapa único y chequeo =====
+      function ensureLeafletMap() {
+        if (window.__AT_MAP && window.__AT_MAP instanceof L.Map)
+          return window.__AT_MAP;
+        const m = L.map("map", { zoomControl: true }).setView(
+          [21.0, -101.3],
+          7
+        );
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OSM",
+        }).addTo(m);
+        window.__AT_MAP = m;
+        return m;
+      }
+      function assertIsLeafletMap(m) {
+        if (!(m instanceof L.Map) || typeof m.addLayer !== "function") {
+          throw new Error(
+            '[AT] addTo(): destino no es un Leaflet Map. Revisa variables llamadas "map" o dobles inicializaciones.'
+          );
+        }
+      }
 
-    // resaltado principal
-    window.__SEC_HL = L.geoJSON(feat, { style:{ color:'#e91e63', weight:3, fillOpacity:0.25 } }).addTo(atMap);
-    try { atMap.fitBounds(window.__SEC_HL.getBounds(), { padding:[28,28] }); } catch(_){}
+      function closeSecInfoPanel() {
+        const box = document.getElementById("sec-info");
+        if (box) box.style.display = "none";
+        // Si quieres limpiar resaltado y etiquetas al cerrar:
+        if (typeof clearSectionOverlays === "function") clearSectionOverlays();
+      }
 
-    // adyacentes
-    const adj = getAdjacents(feat);
-    if (adj.length){
-      window.__SEC_ADJ = L.geoJSON({type:'FeatureCollection', features:adj}, { style:{ color:'#90a4ae', weight:1.2, dashArray:'4,4', fillOpacity:0.05 } }).addTo(atMap);
-    }
+      function ensureSecInfoPanelWired() {
+        const box = document.getElementById("sec-info");
+        const hdr = box?.querySelector(".hdr");
+        if (!box || !hdr || box.__wired) return;
 
-    // labels
-    const sec = feat.properties?.SECCION ?? '—';
-    addLabelForFeature(feat, 'sec-label', `Sección ${sec}`);
-    for (const f of adj){
-      const s2 = f.properties?.SECCION ?? '—';
-      addLabelForFeature(f, 'sec-label-adj', s2);
-    }
-  }
-
-    
-
-  // ====== PANEL FLOTANTE (drag + datos) ======
-  (function wireSecInfoPanel(){
-    const box = document.getElementById('sec-info');
-    const hdr = box?.querySelector('.hdr');
-    if (!box || !hdr || box.__wired) return;
-    let dragging = false, sx=0, sy=0, bx=0, by=0;
-    hdr.addEventListener('mousedown', (e)=>{
-      dragging=true; sx=e.clientX; sy=e.clientY;
-      const r = box.getBoundingClientRect(); bx=r.left; by=r.top;
-      document.body.style.userSelect='none';
-    });
-    window.addEventListener('mousemove', (e)=>{
-      if (!dragging) return;
-      const dx = e.clientX - sx, dy = e.clientY - sy;
-      box.style.left = (bx + dx) + 'px';
-      box.style.top  = (by + dy) + 'px';
-      box.style.right = 'auto'; box.style.bottom='auto';
-      box.style.position = 'absolute';
-    });
-    window.addEventListener('mouseup', ()=>{ dragging=false; document.body.style.userSelect=''; });
-    box.__wired = true;
-  })();
-
-  async function showSectionInfo(feat){
-    ensureSecInfoPanelWired();
-    const p = feat.properties || {};
-    const sec = p.SECCION ?? '—';
-    const df  = p[FIELD_KEYS.df] ?? '—';
-    const dl  = p[FIELD_KEYS.dl] ?? '—';
-
-    // LN 24DL_LN
-    let ln = await getLN24DL(sec);
-    if (ln==null) ln = '—';
-
-    // Pintar
-    const box = document.getElementById('sec-info');
-    box.querySelector('.hdr').textContent = `Sección ${sec}`;
-    document.getElementById('si-sec').textContent = sec;
-    document.getElementById('si-df').textContent  = df;
-    document.getElementById('si-dl').textContent  = dl;
-    document.getElementById('si-ln').textContent  = ln;
-    box.style.display = 'block';
-  }
-
-
-
-  // ENTER + CLIC + ULTIMO TOKEN
-
-    function currentNeedle(q){
-      if (!q) return '';
-      const parts = String(q).split(/[,;\s]+/).filter(Boolean);
-      return parts.length ? parts[parts.length-1] : '';
-    }
-
-// ===== Mini-selector de universo dentro del módulo =====
-    let __mini = { selMun:null, selDf:null, selDl:null, all:null };
-
-    function uniqueSorted(values){
-    const arr = values.map(v => String(v ?? '').trim()).filter(Boolean);
-    const set = Array.from(new Set(arr));
-    return set.sort((a,b) => (isFinite(a)&&isFinite(b)) ? Number(a)-Number(b) : a.localeCompare(b,'es'));
-    }
-    function buildMiniOptions(raw){
-    const feats = raw.features || [];
-    const grab = k => uniqueSorted(feats.map(f => f.properties?.[k]));
-    return { mun: grab(FIELD_KEYS.mun), df: grab(FIELD_KEYS.df), dl: grab(FIELD_KEYS.dl) };
-    }
-    function fillSelect(sel, arr){
-    sel.innerHTML = '<option value="">— Ninguno —</option>' + arr.map(v=>`<option value="${v}">${v}</option>`).join('');
-    }
-    function getMiniUniverse(){
-    const { selMun, selDf, selDl, all } = __mini;
-    if(all.checked) return { scope:'ALL', key:null, label:'Estado completo' };
-    if(selMun.value) return { scope:'MUN', key: selMun.value, label:`Municipio ${selMun.options[selMun.selectedIndex].text}` };
-    if(selDf.value)  return { scope:'DF',  key: selDf.value,  label:`Distrito Federal ${selDf.value}` };
-    if(selDl.value)  return { scope:'DL',  key: selDl.value,  label:`Distrito Local ${selDl.value}` };
-    return null;
-    }
-    function miniExclusivity(which){
-    const { selMun, selDf, selDl, all } = __mini;
-    if(which==='ALL'){ selMun.value=''; selDf.value=''; selDl.value=''; }
-    if(which==='MUN'){ selDf.value=''; selDl.value=''; all.checked=false; }
-    if(which==='DF'){  selMun.value=''; selDl.value=''; all.checked=false; }
-    if(which==='DL'){  selMun.value=''; selDf.value=''; all.checked=false; }
-    applyMiniUniverse();
-    }
-    function applyMiniUniverse(){
-    const u2 = getMiniUniverse();
-    if(!u2) return;
-    // 1) Persistir
-    localStorage.setItem('AT_UNIVERSE', JSON.stringify({ ...u2, ts:Date.now() }));
-    // 2) Redibujar con el nuevo universo usando el raw ya cargado
-    const atMap = ensureLeafletMap();
-    const filtered2 = filterGeojson(window.AT_DATA, u2);
-    if (window.AT_CTX?.layer) { atMap.removeLayer(AT_CTX.layer); }
-    const layer2 = L.geoJSON(filtered2, { style:{ color:'#7d0025', weight:1.2, fillOpacity:0.15 } }).addTo(atMap);
-    try { atMap.fitBounds(layer2.getBounds(), { padding:[20,20] }); } catch(e){}
-    window.AT_CTX = { ...(window.AT_CTX||{}), universe: u2, layer: layer2 };
-    // 3) Header
-    const hdr = document.querySelector('#panel-header span');
-    if(hdr){ hdr.textContent = `Análisis Territorial · ${u2.label}`; }
-      refreshSectionSearch(u2);
-    }
-    function initMiniSelector(raw, u){
-    // Guardar el geojson bruto para futuros re-filtros
-    window.AT_DATA = raw;
-
-    __mini.selMun = document.getElementById('mini-sel-mun');
-    labelMunicipiosFromCatalog('#mini-sel-mun');
-
-    __mini.selDf  = document.getElementById('mini-sel-df');
-    __mini.selDl  = document.getElementById('mini-sel-dl');
-    __mini.all    = document.getElementById('mini-all-state');
-
-    const opt = buildMiniOptions(raw);
-    fillSelect(__mini.selMun, opt.mun);
-    fillSelect(__mini.selDf,  opt.df);
-    fillSelect(__mini.selDl,  opt.dl);
-
-    // Reflejar el universo actual
-    if(u.scope==='ALL'){ __mini.all.checked = true; }
-    if(u.scope==='MUN'){ __mini.selMun.value = String(u.key); }
-    if(u.scope==='DF'){  __mini.selDf.value  = String(u.key); }
-    if(u.scope==='DL'){  __mini.selDl.value  = String(u.key); }
-
-
-    
-        async function labelMunicipiosFromCatalog(selectId){
-        const sel = document.querySelector(selectId);
-        if (!sel) return;
-
-        // 1) Ruta del catálogo desde el Portal (AT_PATHS) o fallback
-        let catUrl = 'data/catalogo_territorial.json';
-        try {
-            const paths = JSON.parse(localStorage.getItem('AT_PATHS') || '{}');
-            if (paths?.catalog) catUrl = paths.catalog;
-        } catch {}
-
-        // 2) Cargar catálogo
-        let cat = null;
-        try {
-            const r = await fetch(catUrl);
-            if (!r.ok) throw new Error('HTTP '+r.status);
-            cat = await r.json();
-        } catch (e) {
-            console.warn('[AT] No se pudo cargar el catálogo:', e);
-            return; // salimos sin tocar etiquetas
+        // Bloquear propagación al mapa (no “parpadea” al arrastrar)
+        if (window.L && L.DomEvent) {
+          L.DomEvent.disableClickPropagation(box);
+          L.DomEvent.disableScrollPropagation(box);
         }
 
-        const mapa = cat?.municipios || {};
-        // helper: si el catálogo trae ceros a la izquierda en las llaves
-        const getName = (code) => {
-            const s = String(code);
-            return mapa[s] || mapa[s.padStart(2,'0')] || mapa[s.padStart(3,'0')] || s;
+        // Drag del panel
+        let dragging = false,
+          sx = 0,
+          sy = 0,
+          bx = 0,
+          by = 0;
+        hdr.addEventListener("mousedown", (e) => {
+          if (e.target.closest(".btn-close")) return; // no iniciar drag si clic en "×"
+          e.preventDefault();
+          e.stopPropagation();
+          dragging = true;
+          const r = box.getBoundingClientRect();
+          sx = e.clientX;
+          sy = e.clientY;
+          bx = r.left;
+          by = r.top;
+          box.style.position = "absolute";
+          box.style.right = "auto";
+          box.style.bottom = "auto";
+          document.body.style.userSelect = "none";
+        });
+        window.addEventListener("mousemove", (e) => {
+          if (!dragging) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const dx = e.clientX - sx,
+            dy = e.clientY - sy;
+          box.style.left = bx + dx + "px";
+          box.style.top = by + dy + "px";
+        });
+        window.addEventListener("mouseup", () => {
+          if (!dragging) return;
+          dragging = false;
+          document.body.style.userSelect = "";
+        });
+
+        // Botón “×”
+        const btn = document.getElementById("sec-close");
+        if (btn && !btn.__wired) {
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeSecInfoPanel();
+          });
+          btn.__wired = true;
+        }
+
+        box.__wired = true;
+      }
+
+      // ===== 2) Filtrado por universo =====
+      function toComp(v) {
+        if (v == null) return "";
+        const s = String(v).trim();
+        return isFinite(s) && s !== "" ? Number(s) : s.toUpperCase();
+      }
+      function matches(props, u) {
+        if (u.scope === "ALL") return true;
+        const keyField =
+          u.scope === "MUN"
+            ? FIELD_KEYS.mun
+            : u.scope === "DL"
+            ? FIELD_KEYS.dl
+            : FIELD_KEYS.df;
+        return toComp(props?.[keyField]) === toComp(u.key);
+      }
+      function filterGeojson(geojson, u) {
+        if (u.scope === "ALL") return geojson;
+        const features = (geojson.features || []).filter((f) =>
+          matches(f.properties, u)
+        );
+        return { ...geojson, features };
+      }
+
+      // ====== CARGA ELECTORAL (para obtener 24DL_LN) ======
+      function getPaths() {
+        try {
+          return JSON.parse(localStorage.getItem("AT_PATHS") || "{}");
+        } catch {
+          return {};
+        }
+      }
+      function getPuestoPath(p) {
+        const paths = getPaths();
+        return paths?.electoral?.[p] || `data/electoral/${p}.json`;
+      }
+
+      window.AT_ELECT = window.AT_ELECT || {};
+      async function getElectData(puesto) {
+        if (window.AT_ELECT[puesto]) return window.AT_ELECT[puesto];
+        const res = await fetch(getPuestoPath(puesto));
+        if (!res.ok) throw new Error(`HTTP ${res.status} en ${puesto}`);
+        const js = await res.json();
+        window.AT_ELECT[puesto] = js;
+        return js;
+      }
+      // LN para 2024 desde DL; si no hay, intenta P (fallback)
+      async function getLN24DL(sec) {
+        const key = String(sec);
+        try {
+          const dl = await getElectData("DL");
+          const ln = dl?.secciones?.[key]?.["2024"]?.LN;
+          if (typeof ln === "number") return ln;
+        } catch (_) {}
+        try {
+          const p = await getElectData("P");
+          const ln = p?.secciones?.[key]?.["2024"]?.LN;
+          if (typeof ln === "number") return ln;
+        } catch (_) {}
+        return null;
+      }
+
+      // ====== ADYACENCIAS (Turf) ======
+      function bboxIntersects(b1, b2) {
+        return !(
+          b2[0] > b1[2] ||
+          b2[2] < b1[0] ||
+          b2[1] > b1[3] ||
+          b2[3] < b1[1]
+        );
+      }
+      function getAdjacents(feat) {
+        const all =
+          window.AT_DATA?.features ||
+          window.AT_CTX?.layer?.toGeoJSON?.()?.features ||
+          [];
+        if (!all.length) return [];
+        const b1 = turf.bbox(feat);
+        const out = [];
+        const sec1 = feat.properties?.SECCION;
+        for (const f of all) {
+          const p = f.properties || {};
+          if (p.SECCION === sec1) continue;
+          const b2 = turf.bbox(f);
+          if (!bboxIntersects(b1, b2)) continue;
+          try {
+            if (
+              turf.booleanTouches(feat, f) ||
+              turf.booleanOverlap(feat, f) ||
+              turf.booleanIntersects(feat, f)
+            ) {
+              out.push(f);
+            }
+          } catch (_) {}
+        }
+        return out.slice(0, 25); // cota de seguridad
+      }
+
+      // ====== LABELS SOBRE EL MAPA ======
+      function addLabelForFeature(feat, className, text) {
+        try {
+          const c = turf.centerOfMass(feat).geometry.coordinates; // [lon, lat]
+          const m = L.marker([c[1], c[0]], {
+            icon: L.divIcon({ className, html: text, iconSize: [0, 0] }),
+          });
+          window.__SEC_LABELS =
+            window.__SEC_LABELS || L.layerGroup().addTo(ensureLeafletMap());
+          window.__SEC_LABELS.addLayer(m);
+          return m;
+        } catch (_) {}
+        return null;
+      }
+
+      function clearSectionOverlays() {
+        const atMap = ensureLeafletMap();
+        if (window.__SEC_HL) {
+          try {
+            atMap.removeLayer(__SEC_HL);
+          } catch (_) {}
+          window.__SEC_HL = null;
+        }
+        if (window.__SEC_ADJ) {
+          try {
+            atMap.removeLayer(__SEC_ADJ);
+          } catch (_) {}
+          window.__SEC_ADJ = null;
+        }
+        if (window.__SEC_LABELS) {
+          try {
+            atMap.removeLayer(__SEC_LABELS);
+          } catch (_) {}
+          window.__SEC_LABELS = null;
+        }
+      }
+
+      // Dibuja selección + adyacentes + labels
+      function paintSelectionAndAdj(feat) {
+        const atMap = ensureLeafletMap();
+        clearSectionOverlays();
+
+        // resaltado principal
+        window.__SEC_HL = L.geoJSON(feat, {
+          style: { color: "#e91e63", weight: 3, fillOpacity: 0.25 },
+        }).addTo(atMap);
+        try {
+          atMap().fitBounds(window.__SEC_HL.getBounds(), { padding: [28, 28] });
+        } catch (_) {}
+
+        // adyacentes
+        const adj = getAdjacents(feat);
+        if (adj.length) {
+          window.__SEC_ADJ = L.geoJSON(
+            { type: "FeatureCollection", features: adj },
+            {
+              style: {
+                color: "#90a4ae",
+                weight: 1.2,
+                dashArray: "4,4",
+                fillOpacity: 0.05,
+              },
+            }
+          ).addTo(atMap);
+        }
+
+        // labels
+        const sec = feat.properties?.SECCION ?? "—";
+        addLabelForFeature(feat, "sec-label", `Sección ${sec}`);
+        for (const f of adj) {
+          const s2 = f.properties?.SECCION ?? "—";
+          addLabelForFeature(f, "sec-label-adj", s2);
+        }
+      }
+
+      function findSectionFeatureForPoint(lat, lng) {
+        const raw = window.AT_DATA;
+        if (!raw?.features?.length || !window.turf) return null;
+        const pt = turf.point([lng, lat]);
+        // Usa el universo actual si está filtrado; si no, recorre todo
+        const feats =
+          window.AT_CTX?.layer?.toGeoJSON?.()?.features || raw.features;
+        for (const f of feats) {
+          try {
+            if (turf.booleanPointInPolygon(pt, f)) return f;
+          } catch (_) {}
+        }
+        return null;
+      }
+
+      function setUbicacionFormAuto({ lat, lng }) {
+        const $seccion = document.getElementById("ec-seccion");
+        const $ambito = document.getElementById("ec-ambito");
+        const $dl = document.getElementById("ec-dl");
+        const $df = document.getElementById("ec-df");
+        const $muni = document.getElementById("ec-muni");
+        if (!$seccion || !$ambito) return null;
+
+        const feat = findSectionFeatureForPoint(lat, lng);
+        if (feat) {
+          const p = feat.properties || {};
+          const muni = p.MUNICIPIO ?? p.MUN ?? "";
+          const dl = p.DISTRITO_L ?? p.DL ?? "";
+          const df = p.DISTRITO_F ?? p.DF ?? "";
+
+          $seccion.value = p.SECCION ?? "";
+          $seccion.dataset.lat = lat;
+          $seccion.dataset.lng = lng;
+          $ambito.value = `MUN:${muni} · DL:${dl} · DF:${df}`;
+          if ($dl) $dl.value = dl;
+          if ($df) $df.value = df;
+          if ($muni) $muni.value = muni;
+          return { p, feat };
+        } else {
+          $seccion.dataset.lat = lat;
+          $seccion.dataset.lng = lng;
+          $ambito.value = "";
+          if ($dl) $dl.value = "";
+          if ($df) $df.value = "";
+          if ($muni) $muni.value = "";
+          return null;
+        }
+      }
+
+      // ====== PANEL FLOTANTE (drag + datos) ======
+      (function wireSecInfoPanel() {
+        const box = document.getElementById("sec-info");
+        const hdr = box?.querySelector(".hdr");
+        if (!box || !hdr || box.__wired) return;
+        let dragging = false,
+          sx = 0,
+          sy = 0,
+          bx = 0,
+          by = 0;
+        hdr.addEventListener("mousedown", (e) => {
+          dragging = true;
+          sx = e.clientX;
+          sy = e.clientY;
+          const r = box.getBoundingClientRect();
+          bx = r.left;
+          by = r.top;
+          document.body.style.userSelect = "none";
+        });
+        window.addEventListener("mousemove", (e) => {
+          if (!dragging) return;
+          const dx = e.clientX - sx,
+            dy = e.clientY - sy;
+          box.style.left = bx + dx + "px";
+          box.style.top = by + dy + "px";
+          box.style.right = "auto";
+          box.style.bottom = "auto";
+          box.style.position = "absolute";
+        });
+        window.addEventListener("mouseup", () => {
+          dragging = false;
+          document.body.style.userSelect = "";
+        });
+        box.__wired = true;
+      })();
+
+      async function showSectionInfo(feat) {
+        ensureSecInfoPanelWired();
+        const p = feat.properties || {};
+        const sec = p.SECCION ?? "—";
+        const df = p[FIELD_KEYS.df] ?? "—";
+        const dl = p[FIELD_KEYS.dl] ?? "—";
+
+        // LN 24DL_LN
+        let ln = await getLN24DL(sec);
+        if (ln == null) ln = "—";
+
+        // Pintar
+        const box = document.getElementById("sec-info");
+        box.querySelector(".hdr").textContent = `Sección ${sec}`;
+        document.getElementById("si-sec").textContent = sec;
+        document.getElementById("si-df").textContent = df;
+        document.getElementById("si-dl").textContent = dl;
+        document.getElementById("si-ln").textContent = ln;
+        box.style.display = "block";
+      }
+
+      // ENTER + CLIC + ULTIMO TOKEN
+
+      function currentNeedle(q) {
+        if (!q) return "";
+        const parts = String(q)
+          .split(/[,;\s]+/)
+          .filter(Boolean);
+        return parts.length ? parts[parts.length - 1] : "";
+      }
+
+      // ===== Mini-selector de universo dentro del módulo =====
+      let __mini = { selMun: null, selDf: null, selDl: null, all: null };
+
+      function uniqueSorted(values) {
+        const arr = values.map((v) => String(v ?? "").trim()).filter(Boolean);
+        const set = Array.from(new Set(arr));
+        return set.sort((a, b) =>
+          isFinite(a) && isFinite(b)
+            ? Number(a) - Number(b)
+            : a.localeCompare(b, "es")
+        );
+      }
+      function buildMiniOptions(raw) {
+        const feats = raw.features || [];
+        const grab = (k) => uniqueSorted(feats.map((f) => f.properties?.[k]));
+        return {
+          mun: grab(FIELD_KEYS.mun),
+          df: grab(FIELD_KEYS.df),
+          dl: grab(FIELD_KEYS.dl),
         };
+      }
+      function fillSelect(sel, arr) {
+        sel.innerHTML =
+          '<option value="">— Ninguno —</option>' +
+          arr.map((v) => `<option value="${v}">${v}</option>`).join("");
+      }
+      function getMiniUniverse() {
+        const { selMun, selDf, selDl, all } = __mini;
+        if (all.checked)
+          return { scope: "ALL", key: null, label: "Estado completo" };
+        if (selMun.value)
+          return {
+            scope: "MUN",
+            key: selMun.value,
+            label: `Municipio ${selMun.options[selMun.selectedIndex].text}`,
+          };
+        if (selDf.value)
+          return {
+            scope: "DF",
+            key: selDf.value,
+            label: `Distrito Federal ${selDf.value}`,
+          };
+        if (selDl.value)
+          return {
+            scope: "DL",
+            key: selDl.value,
+            label: `Distrito Local ${selDl.value}`,
+          };
+        return null;
+      }
+      function miniExclusivity(which) {
+        const { selMun, selDf, selDl, all } = __mini;
+        if (which === "ALL") {
+          selMun.value = "";
+          selDf.value = "";
+          selDl.value = "";
+        }
+        if (which === "MUN") {
+          selDf.value = "";
+          selDl.value = "";
+          all.checked = false;
+        }
+        if (which === "DF") {
+          selMun.value = "";
+          selDl.value = "";
+          all.checked = false;
+        }
+        if (which === "DL") {
+          selMun.value = "";
+          selDf.value = "";
+          all.checked = false;
+        }
+        applyMiniUniverse();
+      }
+      function applyMiniUniverse() {
+        const u2 = getMiniUniverse();
+        if (!u2) return;
+        // 1) Persistir
+        localStorage.setItem(
+          "AT_UNIVERSE",
+          JSON.stringify({ ...u2, ts: Date.now() })
+        );
+        // 2) Redibujar con el nuevo universo usando el raw ya cargado
+        const atMap = ensureLeafletMap();
+        const filtered2 = filterGeojson(window.AT_DATA, u2);
+        if (window.AT_CTX?.layer) {
+          atMap.removeLayer(AT_CTX.layer);
+        }
+        const layer2 = L.geoJSON(filtered2, {
+          style: { color: "#7d0025", weight: 1.2, fillOpacity: 0.15 },
+        }).addTo(atMap);
+        try {
+          atMap().fitBounds(layer2.getBounds(), { padding: [20, 20] });
+        } catch (e) {}
+        window.AT_CTX = {
+          ...(window.AT_CTX || {}),
+          universe: u2,
+          layer: layer2,
+        };
+        // 3) Header
+        const hdr = document.querySelector("#panel-header span");
+        if (hdr) {
+          hdr.textContent = `Análisis Territorial · ${u2.label}`;
+        }
+        refreshSectionSearch(u2);
+      }
+      function initMiniSelector(raw, u) {
+        // Guardar el geojson bruto para futuros re-filtros
+        window.AT_DATA = raw;
 
-        // 3) Reetiquetar opciones (sin cambiar value)
-        for (const opt of sel.options) {
+        __mini.selMun = document.getElementById("mini-sel-mun");
+        labelMunicipiosFromCatalog("#mini-sel-mun");
+
+        __mini.selDf = document.getElementById("mini-sel-df");
+        __mini.selDl = document.getElementById("mini-sel-dl");
+        __mini.all = document.getElementById("mini-all-state");
+
+        const opt = buildMiniOptions(raw);
+        fillSelect(__mini.selMun, opt.mun);
+        fillSelect(__mini.selDf, opt.df);
+        fillSelect(__mini.selDl, opt.dl);
+
+        // Reflejar el universo actual
+        if (u.scope === "ALL") {
+          __mini.all.checked = true;
+        }
+        if (u.scope === "MUN") {
+          __mini.selMun.value = String(u.key);
+        }
+        if (u.scope === "DF") {
+          __mini.selDf.value = String(u.key);
+        }
+        if (u.scope === "DL") {
+          __mini.selDl.value = String(u.key);
+        }
+
+        async function labelMunicipiosFromCatalog(selectId) {
+          const sel = document.querySelector(selectId);
+          if (!sel) return;
+
+          // 1) Ruta del catálogo desde el Portal (AT_PATHS) o fallback
+          let catUrl = "data/catalogo_territorial.json";
+          try {
+            const paths = JSON.parse(localStorage.getItem("AT_PATHS") || "{}");
+            if (paths?.catalog) catUrl = paths.catalog;
+          } catch {}
+
+          // 2) Cargar catálogo
+          let cat = null;
+          try {
+            const r = await fetch(catUrl);
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            cat = await r.json();
+          } catch (e) {
+            console.warn("[AT] No se pudo cargar el catálogo:", e);
+            return; // salimos sin tocar etiquetas
+          }
+
+          const mapa = cat?.municipios || {};
+          // helper: si el catálogo trae ceros a la izquierda en las llaves
+          const getName = (code) => {
+            const s = String(code);
+            return (
+              mapa[s] ||
+              mapa[s.padStart(2, "0")] ||
+              mapa[s.padStart(3, "0")] ||
+              s
+            );
+          };
+
+          // 3) Reetiquetar opciones (sin cambiar value)
+          for (const opt of sel.options) {
             if (!opt.value) continue; // deja "— Ninguno —"
             const name = getName(opt.value);
             opt.text = `${opt.value} — ${name}`;
+          }
         }
+
+        // Eventos (auto-ejecuta)
+        __mini.selMun.addEventListener("change", () => miniExclusivity("MUN"));
+        __mini.selDf.addEventListener("change", () => miniExclusivity("DF"));
+        __mini.selDl.addEventListener("change", () => miniExclusivity("DL"));
+        __mini.all.addEventListener("change", () => miniExclusivity("ALL"));
+      }
+
+      // Nombre fijo del campo (texto) del municipio
+      const MUN_NAME_KEY = "MUNICIPIO";
+
+      // Detecta automáticamente el campo de CÓDIGO de municipio (si no, usa el nombre)
+      function detectMunCodeKey(raw) {
+        const feats = raw.features || [];
+        const candidates = [
+          "MUN",
+          "CVE_MUN",
+          "CLV_MUN",
+          "ID_MUN",
+          "MUNICIPIO_ID",
+          "MUNICIPIO_CVE",
+          "CVE_MUNICIPIO",
+          "CVE_MPIO",
+        ];
+        for (const k of candidates) {
+          const ok = feats.some((f) => {
+            const v = f.properties?.[k];
+            return (
+              v != null &&
+              String(v).trim() !== "" &&
+              String(v).toUpperCase() !== "NULL"
+            );
+          });
+          if (ok) return k;
         }
-
-   
-
-    // Eventos (auto-ejecuta)
-    __mini.selMun.addEventListener('change', ()=> miniExclusivity('MUN'));
-    __mini.selDf .addEventListener('change', ()=> miniExclusivity('DF'));
-    __mini.selDl .addEventListener('change', ()=> miniExclusivity('DL'));
-    __mini.all   .addEventListener('change', ()=> miniExclusivity('ALL'));
-    }
-
-
-    // Nombre fijo del campo (texto) del municipio
-    const MUN_NAME_KEY = 'MUNICIPIO';
-
-    // Detecta automáticamente el campo de CÓDIGO de municipio (si no, usa el nombre)
-    function detectMunCodeKey(raw){
-    const feats = raw.features || [];
-    const candidates = ['MUN','CVE_MUN','CLV_MUN','ID_MUN','MUNICIPIO_ID','MUNICIPIO_CVE','CVE_MUNICIPIO','CVE_MPIO'];
-    for (const k of candidates) {
-        const ok = feats.some(f => {
-        const v = f.properties?.[k];
-        return v != null && String(v).trim() !== '' && String(v).toUpperCase() !== 'NULL';
-        });
-        if (ok) return k;
-    }
-    return null; // fallback será MUN_NAME_KEY
-    }
+        return null; // fallback será MUN_NAME_KEY
+      }
 
       // —— Utils de texto ——
-      function _norm(s){
-        if (s==null) return '';
-        return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+      function _norm(s) {
+        if (s == null) return "";
+        return String(s)
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toUpperCase()
+          .trim();
       }
-      function _isDigits(s){ return /^[0-9]+$/.test(String(s||'')); }
+      function _isDigits(s) {
+        return /^[0-9]+$/.test(String(s || ""));
+      }
 
       // —— Nombre de municipio desde catálogo (si existe) ——
-      function getMunNameFromCatalog(code){
+      function getMunNameFromCatalog(code) {
         const cat = window.AT_CATALOG;
-        if (!cat?.municipios) return String(code ?? '');
+        if (!cat?.municipios) return String(code ?? "");
         const s = String(code);
         // maneja posibles ceros a la izquierda
-        return cat.municipios[s] || cat.municipios[s.padStart(2,'0')] || cat.municipios[s.padStart(3,'0')] || s;
+        return (
+          cat.municipios[s] ||
+          cat.municipios[s.padStart(2, "0")] ||
+          cat.municipios[s.padStart(3, "0")] ||
+          s
+        );
       }
 
       // —— Índice de secciones ——
       let __SEC_INDEX = { items: [], global: false };
 
-      function buildSectionIndex(raw, universe, useGlobal){
-        const feats = (raw?.features || []);
-        const munKey = (window.AT_KEYS?.munCode) || FIELD_KEYS.mun;
+      function buildSectionIndex(raw, universe, useGlobal) {
+        const feats = raw?.features || [];
+        const munKey = window.AT_KEYS?.munCode || FIELD_KEYS.mun;
         const items = [];
 
         // dataset base: global = todas, local = filtradas por universo
-        const base = useGlobal ? feats : (filterGeojson(raw, universe).features || []);
+        const base = useGlobal
+          ? feats
+          : filterGeojson(raw, universe).features || [];
 
-        for(const f of base){
+        for (const f of base) {
           const p = f.properties || {};
           const sec = p.SECCION ?? p.Seccion ?? p.seccion ?? null;
           if (sec == null) continue;
@@ -604,23 +1167,31 @@
           const dl = p[FIELD_KEYS.dl];
 
           // texto para búsqueda
-          const text = `${sec} ${munCode ?? ''} ${munName ?? ''} ${df ?? ''} ${dl ?? ''}`;
+          const text = `${sec} ${munCode ?? ""} ${munName ?? ""} ${df ?? ""} ${
+            dl ?? ""
+          }`;
           // bounds (si multiparte, Leaflet lo resuelve)
           let bounds = null;
-          try { bounds = L.geoJSON(f).getBounds(); } catch(_){}
+          try {
+            bounds = L.geoJSON(f).getBounds();
+          } catch (_) {}
 
           items.push({
             sec: String(sec).trim(),
             munCode: munCode,
             munName: munName,
-            df, dl, feature: f, textNorm: _norm(text), bounds
+            df,
+            dl,
+            feature: f,
+            textNorm: _norm(text),
+            bounds,
           });
         }
 
         __SEC_INDEX = { items, global: !!useGlobal };
       }
 
-      function searchSections(query, limit=15){
+      function searchSections(query, limit = 15) {
         const q = _norm(query);
         if (!q) return [];
         const ds = __SEC_INDEX.items;
@@ -628,700 +1199,1328 @@
         // Heurística sencilla:
         // - si es numérico puro: prioridad a SECCION que empiece con q
         // - si no: contiene tokens
-        if (_isDigits(q)){
-          const starts = ds.filter(it => _norm(it.sec).startsWith(q));
+        if (_isDigits(q)) {
+          const starts = ds.filter((it) => _norm(it.sec).startsWith(q));
           if (starts.length >= limit) return starts.slice(0, limit);
-          const contains = ds.filter(it => _norm(it.sec).includes(q));
+          const contains = ds.filter((it) => _norm(it.sec).includes(q));
           return [...starts, ...contains].slice(0, limit);
         } else {
           const tokens = q.split(/\s+/).filter(Boolean);
-          return ds.filter(it => tokens.every(t => it.textNorm.includes(t))).slice(0, limit);
+          return ds
+            .filter((it) => tokens.every((t) => it.textNorm.includes(t)))
+            .slice(0, limit);
         }
       }
 
       // —— UI de sugerencias ——
       let __SEC_HIGHLIGHT = null;
 
-      function renderSecSuggestions(list){
-        const ul = document.getElementById('sec-suggest');
+      function renderSecSuggestions(list) {
+        const ul = document.getElementById("sec-suggest");
         if (!ul) return;
-        if (!list.length){ ul.style.display='none'; ul.innerHTML=''; return; }
+        if (!list.length) {
+          ul.style.display = "none";
+          ul.innerHTML = "";
+          return;
+        }
 
-        ul.innerHTML = list.map(it => {
-          const label = `${it.sec} — ${it.munName || it.munCode || ''}`.replace(/\s+-\s+$/, '');
-          const meta  = [];
-          if (it.dl!=null) meta.push(`DL ${it.dl}`);
-          if (it.df!=null) meta.push(`DF ${it.df}`);
-          const sub = meta.length ? `<small style="color:#64748b">${meta.join(' · ')}</small>` : '';
-          return `<li data-sec="${it.sec}" style="padding:6px 8px; border-bottom:1px solid #e5e7eb; cursor:pointer">
+        ul.innerHTML = list
+          .map((it) => {
+            const label = `${it.sec} — ${
+              it.munName || it.munCode || ""
+            }`.replace(/\s+-\s+$/, "");
+            const meta = [];
+            if (it.dl != null) meta.push(`DL ${it.dl}`);
+            if (it.df != null) meta.push(`DF ${it.df}`);
+            const sub = meta.length
+              ? `<small style="color:#64748b">${meta.join(" · ")}</small>`
+              : "";
+            return `<li data-sec="${it.sec}" style="padding:6px 8px; border-bottom:1px solid #e5e7eb; cursor:pointer">
                     <div>${label}</div>${sub}
                   </li>`;
-        }).join('');
-        ul.style.display = 'block';
-
-
+          })
+          .join("");
+        ul.style.display = "block";
       }
 
-    function gotoSection(item){
-      const atMap = (window.AT_CTX?.map) || ensureLeafletMap();
+      function gotoSection(item) {
+        const atMap = window.AT_CTX?.map || ensureLeafletMap();
 
-      // 1) Resolver el feature de la sección
-      const sec = String(item.sec ?? item.SECCION ?? '');
-      let feat = item.feature;
+        // 1) Resolver el feature de la sección
+        const sec = String(item.sec ?? item.SECCION ?? "");
+        let feat = item.feature;
 
-      if (!feat) {
-        const feats =
-          (window.AT_CTX?.layer?.toGeoJSON?.().features) ||
-          (window.AT_DATA?.features) || [];
-        feat = feats.find(f => String(f.properties?.SECCION) === sec);
+        if (!feat) {
+          const feats =
+            window.AT_CTX?.layer?.toGeoJSON?.().features ||
+            window.AT_DATA?.features ||
+            [];
+          feat = feats.find((f) => String(f.properties?.SECCION) === sec);
+        }
+
+        if (!feat) {
+          console.warn(
+            "[AT] No encontré el feature para la sección",
+            sec,
+            item
+          );
+          return;
+        }
+
+        // 2) Pintar selección + adyacentes + labels (esto limpia overlays previos)
+        paintSelectionAndAdj(feat);
+
+        // 3) Mostrar panel con DF, DL y LN (24DL_LN)
+        showSectionInfo(feat);
+
+        // 4) Feedback visual (parpadeo leve sobre el highlight actual)
+        const hl = window.__SEC_HL;
+        if (hl && typeof hl.setStyle === "function") {
+          try {
+            hl.setStyle({ weight: 4 });
+            setTimeout(() => {
+              try {
+                hl.setStyle({ weight: 3 });
+              } catch (_) {}
+            }, 220);
+          } catch (_) {}
+        }
+
+        // 5) Oculta la lista de sugerencias (si está visible)
+        const ul = document.getElementById("sec-suggest");
+        if (ul) ul.style.display = "none";
       }
-
-      if (!feat) {
-        console.warn('[AT] No encontré el feature para la sección', sec, item);
-        return;
-      }
-
-      // 2) Pintar selección + adyacentes + labels (esto limpia overlays previos)
-      paintSelectionAndAdj(feat);
-
-      // 3) Mostrar panel con DF, DL y LN (24DL_LN)
-      showSectionInfo(feat);
-
-      // 4) Feedback visual (parpadeo leve sobre el highlight actual)
-      const hl = window.__SEC_HL;
-      if (hl && typeof hl.setStyle === 'function') {
-        try {
-          hl.setStyle({ weight: 4 });
-          setTimeout(() => { try { hl.setStyle({ weight: 3 }); } catch(_){} }, 220);
-        } catch(_){}
-      }
-
-      // 5) Oculta la lista de sugerencias (si está visible)
-      const ul = document.getElementById('sec-suggest');
-      if (ul) ul.style.display = 'none';
-    }
-
 
       // Delegación de clic en las sugerencias (una sola vez)
-    (function wireSectionSearchEventsOnce(){
-      const ul = document.getElementById('sec-suggest');
-      const input = document.getElementById('sec-q');
-      if (!ul || !input) return;
+      (function wireSectionSearchEventsOnce() {
+        const ul = document.getElementById("sec-suggest");
+        const input = document.getElementById("sec-q");
+        if (!ul || !input) return;
 
-       // Si está dentro de un form, evita submit al Enter
-      const form = input.closest('form');
-      form?.addEventListener('submit', e => e.preventDefault());
+        // Si está dentro de un form, evita submit al Enter
+        const form = input.closest("form");
+        form?.addEventListener("submit", (e) => e.preventDefault());
 
-      // Clic en cualquier <li data-sec="...">
-      if (!ul.__wiredClick){
-        ul.addEventListener('click', (ev)=>{
-          const li = ev.target.closest('li[data-sec]');
-          if (!li) return;
-          const sec = li.getAttribute('data-sec');
-          const item = (__SEC_INDEX?.items||[]).find(x => String(x.sec) === String(sec));
-          if (item) gotoSection(item);
-          ul.style.display = 'none';
-        });
-        ul.__wiredClick = true;
-      }
+        // Clic en cualquier <li data-sec="...">
+        if (!ul.__wiredClick) {
+          ul.addEventListener("click", (ev) => {
+            const li = ev.target.closest("li[data-sec]");
+            if (!li) return;
+            const sec = li.getAttribute("data-sec");
+            const item = (__SEC_INDEX?.items || []).find(
+              (x) => String(x.sec) === String(sec)
+            );
+            if (item) gotoSection(item);
+            ul.style.display = "none";
+          });
+          ul.__wiredClick = true;
+        }
 
-      // Enter en el input = ir al primer resultado
-      if (!input.__wiredKey){
-        input.addEventListener('keydown', (ev)=>{
-          if (ev.key === 'Enter'){
-            ev.preventDefault(); // <- evita submit/autocomplete
-            const results = searchSections(input.value, 1);
-        const needle = currentNeedle(input.value);
-        const [first] = searchSections(needle, 1);
-        if (first) gotoSection(first);
-        ul.style.display = 'none';
-       }
-          if (ev.key === 'Escape'){
-            ul.style.display = 'none';
-          }
-        });
-        input.__wiredKey = true;
-      }
+        // Enter en el input = ir al primer resultado
+        if (!input.__wiredKey) {
+          input.addEventListener("keydown", (ev) => {
+            if (ev.key === "Enter") {
+              ev.preventDefault(); // <- evita submit/autocomplete
+              const results = searchSections(input.value, 1);
+              const needle = currentNeedle(input.value);
+              const [first] = searchSections(needle, 1);
+              if (first) gotoSection(first);
+              ul.style.display = "none";
+            }
+            if (ev.key === "Escape") {
+              ul.style.display = "none";
+            }
+          });
+          input.__wiredKey = true;
+        }
 
-      // Input: recalcula sugerencias usando el "último token"
-      if (!input.__wiredInput){
-        input.addEventListener('input', ()=>{
-          const needle = currentNeedle(input.value);
-          renderSecSuggestions(searchSections(needle, 15));
-        });
-        input.__wiredInput = true;
-      }
-    })();
-
+        // Input: recalcula sugerencias usando el "último token"
+        if (!input.__wiredInput) {
+          input.addEventListener("input", () => {
+            const needle = currentNeedle(input.value);
+            renderSecSuggestions(searchSections(needle, 15));
+          });
+          input.__wiredInput = true;
+        }
+      })();
 
       // —— Inicializar Buscador en el módulo ——
-      function initSectionSearch(raw, universe){
-        const input   = document.getElementById('sec-q');
-        const list    = document.getElementById('sec-suggest');
-        const globalC = document.getElementById('sec-global');
+      function initSectionSearch(raw, universe) {
+        const input = document.getElementById("sec-q");
+        const list = document.getElementById("sec-suggest");
+        const globalC = document.getElementById("sec-global");
         if (!input || !list) return;
 
         // construir índice (por universo actual)
         buildSectionIndex(raw, universe, !!globalC?.checked);
 
-
-
         // Cambiar ámbito (global / universo actual)
-        globalC?.addEventListener('change', () => {
+        globalC?.addEventListener("change", () => {
           buildSectionIndex(raw, universe, !!globalC.checked);
           // refresca sugerencias con la query actual
-          if (input.value){
+          if (input.value) {
             renderSecSuggestions(searchSections(input.value, 15));
           }
         });
       }
 
       // —— Cuando cambies de universo con tu mini-selector, reindexa ——
-      function refreshSectionSearch(universe){
-        const input   = document.getElementById('sec-q');
-        const globalC = document.getElementById('sec-global');
+      function refreshSectionSearch(universe) {
+        const input = document.getElementById("sec-q");
+        const globalC = document.getElementById("sec-global");
         if (!window.AT_DATA || !input) return;
         buildSectionIndex(window.AT_DATA, universe, !!globalC?.checked);
-        if (input.value){
+        if (input.value) {
           renderSecSuggestions(searchSections(input.value, 15));
         }
       }
 
-
-      function getRawForIndex(){
+      function getRawForIndex() {
         // Usa el dataset completo si ya lo cacheaste
         if (window.AT_DATA) return window.AT_DATA;
         // Si no, al menos usa lo ya pintado en el mapa
         const lyr = window.AT_CTX?.layer;
-        return (lyr && typeof lyr.toGeoJSON === 'function') ? lyr.toGeoJSON() : null;
-  }
+        return lyr && typeof lyr.toGeoJSON === "function"
+          ? lyr.toGeoJSON()
+          : null;
+      }
 
-
-  // ===== 3) Boot =====
-  document.addEventListener('DOMContentLoaded', async () => {
-    // a) Leer universo y rutas puestos en el PORTAL
-    const u     = JSON.parse(localStorage.getItem('AT_UNIVERSE') || 'null');
-    const paths = JSON.parse(localStorage.getItem('AT_PATHS') || '{"geo":""}');
-    if (!u) {
-      const hdr = document.querySelector('#panel-header span');
-      hdr && (hdr.textContent += ' · selecciona el universo en el Portal');
-      setTimeout(()=>{ location.href = 'portal.html'; }, 600);
-      return;
-    }
-
-    // b) Etiqueta del universo
-    const hdr = document.querySelector('#panel-header span');
-    hdr && (hdr.textContent += ` · ${u.label}`);
-
-    // c) Mapa único
-    const atMap = ensureLeafletMap();
-    assertIsLeafletMap(atMap);
-
-    // d) Cargar y filtrar GeoJSON
-    const url = paths.geo || 'data/geo/secciones.geojson'; // <-- ajusta si tu ruta difiere
-
-    // Cargar catálogo territorial (para nombres visibles)
-    const catUrl = (paths.catalog && paths.catalog.trim()) || '/data/catalogo_territorial.json';
-    let catalog = window.AT_CATALOG || null;
-    if (!catalog) {
-    try {
-        const rc = await fetch(catUrl);
-        if (!rc.ok) throw new Error(`HTTP ${rc.status} al cargar catálogo ${catUrl}`);
-        catalog = await rc.json();
-        window.AT_CATALOG = catalog;
-    } catch (err) {
-        console.warn('[AT] No se pudo cargar el catálogo de nombres:', err);
-        window.AT_CATALOG = catalog = null; // seguimos sin nombres amigables
-    }
-    }
-
-
- let raw = window.AT_DATA || null; // usa caché si ya existe
-if (!raw) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status} al cargar ${url}`);
-    raw = await res.json();       // ✅ solo una vez
-    window.AT_DATA = raw;         // ✅ guarda en caché aquí
-  } catch (err) {
-    console.error('[AT] Error cargando GeoJSON:', err);
-    alert('No se pudo cargar el GeoJSON');
-    return;
-  }
-}
-// a partir de aquí, usa 'raw'
-
-    const filtered = filterGeojson(raw, u);
-    console.log('[AT] Universo:', u, 'Total:', raw.features?.length||0, 'Filtradas:', filtered.features?.length||0);
-
-    if(!filtered.features || filtered.features.length===0){
-      console.warn('[AT] No hay geometrías para el universo seleccionado:', u);
-      alert('No hay datos para el universo seleccionado');
-    }
-
-    // Nombre fijo del campo (texto) del municipio
-        const MUN_NAME_KEY = 'MUNICIPIO';
-
-    // Detecta campo de CÓDIGO (si existe); si no, usa el de nombre
-        function detectMunCodeKey(raw){
-        const feats = raw.features || [];
-        const candidates = ['MUN','CVE_MUN','CLV_MUN','ID_MUN','MUNICIPIO_ID','MUNICIPIO_CVE','CVE_MUNICIPIO','CVE_MPIO'];
-        for (const k of candidates) {
-            if (feats.some(f => (f.properties?.[k] ?? '') !== '')) return k;
+      // ===== 3) Boot =====
+      document.addEventListener("DOMContentLoaded", async () => {
+        // a) Leer universo y rutas puestos en el PORTAL
+        const u = JSON.parse(localStorage.getItem("AT_UNIVERSE") || "null");
+        const paths = JSON.parse(
+          localStorage.getItem("AT_PATHS") || '{"geo":""}'
+        );
+        if (!u) {
+          const hdr = document.querySelector("#panel-header span");
+          hdr && (hdr.textContent += " · selecciona el universo en el Portal");
+          setTimeout(() => {
+            location.href = "portal.html";
+          }, 600);
+          return;
         }
-        return null;
+
+        // b) Etiqueta del universo
+        const hdr = document.querySelector("#panel-header span");
+        hdr && (hdr.textContent += ` · ${u.label}`);
+
+        // c) Mapa único
+        const atMap = ensureLeafletMap();
+        assertIsLeafletMap(atMap);
+
+        // d) Cargar y filtrar GeoJSON
+        const url = paths.geo || "data/geo/secciones.geojson"; // <-- ajusta si tu ruta difiere
+
+        // Cargar catálogo territorial (para nombres visibles)
+        const catUrl =
+          (paths.catalog && paths.catalog.trim()) ||
+          "/data/catalogo_territorial.json";
+        let catalog = window.AT_CATALOG || null;
+        if (!catalog) {
+          try {
+            const rc = await fetch(catUrl);
+            if (!rc.ok)
+              throw new Error(`HTTP ${rc.status} al cargar catálogo ${catUrl}`);
+            catalog = await rc.json();
+            window.AT_CATALOG = catalog;
+          } catch (err) {
+            console.warn("[AT] No se pudo cargar el catálogo de nombres:", err);
+            window.AT_CATALOG = catalog = null; // seguimos sin nombres amigables
+          }
+        }
+
+        let raw = window.AT_DATA || null; // usa caché si ya existe
+        if (!raw) {
+          try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status} al cargar ${url}`);
+            raw = await res.json(); // ✅ solo una vez
+            window.AT_DATA = raw; // ✅ guarda en caché aquí
+          } catch (err) {
+            console.error("[AT] Error cargando GeoJSON:", err);
+            alert("No se pudo cargar el GeoJSON");
+            return;
+          }
+        }
+        // a partir de aquí, usa 'raw'
+
+        const filtered = filterGeojson(raw, u);
+        console.log(
+          "[AT] Universo:",
+          u,
+          "Total:",
+          raw.features?.length || 0,
+          "Filtradas:",
+          filtered.features?.length || 0
+        );
+
+        if (!filtered.features || filtered.features.length === 0) {
+          console.warn(
+            "[AT] No hay geometrías para el universo seleccionado:",
+            u
+          );
+          alert("No hay datos para el universo seleccionado");
+        }
+
+        // Nombre fijo del campo (texto) del municipio
+        const MUN_NAME_KEY = "MUNICIPIO";
+
+        // Detecta campo de CÓDIGO (si existe); si no, usa el de nombre
+        function detectMunCodeKey(raw) {
+          const feats = raw.features || [];
+          const candidates = [
+            "MUN",
+            "CVE_MUN",
+            "CLV_MUN",
+            "ID_MUN",
+            "MUNICIPIO_ID",
+            "MUNICIPIO_CVE",
+            "CVE_MUNICIPIO",
+            "CVE_MPIO",
+          ];
+          for (const k of candidates) {
+            if (feats.some((f) => (f.properties?.[k] ?? "") !== "")) return k;
+          }
+          return null;
         }
 
         const munCodeKey = detectMunCodeKey(raw) || MUN_NAME_KEY; // fallback: nombre
         FIELD_KEYS.mun = munCodeKey;
         window.AT_KEYS = { munCode: munCodeKey, munName: MUN_NAME_KEY };
 
-
-    // e) Dibujar capa
+        // e) Dibujar capa
         const layer = L.geoJSON(filtered, {
-      style: { color:'#000000', weight:1.2, fillOpacity:0.15 },
-      onEachFeature: (feat, lyr) => {
-        const p = feat.properties || {};
-        const muni = p[FIELD_KEYS.mun] ?? '—';
-        const dl   = p[FIELD_KEYS.dl]  ?? '—';
-        const df   = p[FIELD_KEYS.df]  ?? '—';
-        lyr.bindPopup(`<b>Sección</b>: ${p.SECCION ?? '—'}<br><b>Mun</b>: ${muni}<br><b>DL</b>: ${dl}<br><b>DF</b>: ${df}`);
-        lyr.on('mouseover', () => lyr.setStyle({weight:2}));
-        lyr.on('mouseout',  () => lyr.setStyle({weight:1.2}));
-      }
-    }).addTo(atMap);
+          style: { color: "#000000", weight: 1.2, fillOpacity: 0.15 },
+          onEachFeature: (feat, lyr) => {
+            const p = feat.properties || {};
+            const muni = p[FIELD_KEYS.mun] ?? "—";
+            const dl = p[FIELD_KEYS.dl] ?? "—";
+            const df = p[FIELD_KEYS.df] ?? "—";
+            lyr.bindPopup(
+              `<b>Sección</b>: ${
+                p.SECCION ?? "—"
+              }<br><b>Mun</b>: ${muni}<br><b>DL</b>: ${dl}<br><b>DF</b>: ${df}`
+            );
+            lyr.on("mouseover", () => lyr.setStyle({ weight: 2 }));
+            lyr.on("mouseout", () => lyr.setStyle({ weight: 1.2 }));
+          },
+        }).addTo(atMap);
 
-    try { atMap.fitBounds(layer.getBounds(), { padding:[20,20] }); } catch(e){}
-    window.AT_CTX = { universe: u, paths, map: atMap, layer };
+        try {
+          atMap.fitBounds(layer.getBounds(), { padding: [20, 20] });
+        } catch (e) {}
+        window.AT_CTX = { universe: u, paths, map: atMap, layer };
 
-    function getMunNameFromCatalog(code){
-  const cat = window.AT_CATALOG;
-  if (!cat?.municipios) return String(code ?? '');
-  return cat.municipios[String(code)] || String(code ?? '');
-}
-function getDfListFromCatalog(feats){
-  return (window.AT_CATALOG?.distritos_federales && window.AT_CATALOG.distritos_federales.length)
-    ? window.AT_CATALOG.distritos_federales
-    : uniqSorted(feats.map(f => f.properties?.[FIELD_KEYS.df]));
-}
-function getDlListFromCatalog(feats){
-  return (window.AT_CATALOG?.distritos_locales && window.AT_CATALOG.distritos_locales.length)
-    ? window.AT_CATALOG.distritos_locales
-    : uniqSorted(feats.map(f => f.properties?.[FIELD_KEYS.dl]));
-}
-    initMiniSelector(raw, u);
-    initSectionSearch(window.AT_DATA || raw, u);
-
-  });
-
-  (function wireATHotkeys(){
-      if (window.__AT_HOTKEYS) return;
-      window.__AT_HOTKEYS = true;
-
-      window.addEventListener('keydown', (e)=>{
-        // Esc: cerrar panel
-        if (e.key === 'Escape'){
-          if (document.getElementById('sec-info')?.style.display !== 'none'){
-            e.preventDefault();
-            closeSecInfoPanel();
-          }
+        function getMunNameFromCatalog(code) {
+          const cat = window.AT_CATALOG;
+          if (!cat?.municipios) return String(code ?? "");
+          return cat.municipios[String(code)] || String(code ?? "");
         }
-        // Ctrl+K (o Cmd+K en Mac): enfocar buscador de secciones
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){
-          e.preventDefault();
-          document.getElementById('sec-q')?.focus();
+        function getDfListFromCatalog(feats) {
+          return window.AT_CATALOG?.distritos_federales &&
+            window.AT_CATALOG.distritos_federales.length
+            ? window.AT_CATALOG.distritos_federales
+            : uniqSorted(feats.map((f) => f.properties?.[FIELD_KEYS.df]));
         }
+        function getDlListFromCatalog(feats) {
+          return window.AT_CATALOG?.distritos_locales &&
+            window.AT_CATALOG.distritos_locales.length
+            ? window.AT_CATALOG.distritos_locales
+            : uniqSorted(feats.map((f) => f.properties?.[FIELD_KEYS.dl]));
+        }
+        initMiniSelector(raw, u);
+        initSectionSearch(window.AT_DATA || raw, u);
       });
-    })();
 
+      (function wireATHotkeys() {
+        if (window.__AT_HOTKEYS) return;
+        window.__AT_HOTKEYS = true;
 
-  </script>
-  <div id="sec-info">
+        window.addEventListener("keydown", (e) => {
+          // Esc: cerrar panel
+          if (e.key === "Escape") {
+            if (document.getElementById("sec-info")?.style.display !== "none") {
+              e.preventDefault();
+              closeSecInfoPanel();
+            }
+          }
+          // Ctrl+K (o Cmd+K en Mac): enfocar buscador de secciones
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+            e.preventDefault();
+            document.getElementById("sec-q")?.focus();
+          }
+        });
+      })();
+    </script>
+    <div id="sec-info">
       <div class="hdr">
-      <span class="ttl">Sección</span>
-      <button id="sec-close" class="btn-close" aria-label="Cerrar">×</button>
+        <span class="ttl">Sección</span>
+        <button id="sec-close" class="btn-close" aria-label="Cerrar">×</button>
+      </div>
+      <div class="body">
+        <div class="row">
+          <span class="k">Sección</span> <span class="v" id="si-sec">—</span>
+        </div>
+        <div class="row">
+          <span class="k">Distrito Federal</span
+          ><span class="v" id="si-df">—</span>
+        </div>
+        <div class="row">
+          <span class="k">Distrito Local</span>
+          <span class="v" id="si-dl">—</span>
+        </div>
+        <div class="row">
+          <span class="k">LN (2024)</span> <span class="v" id="si-ln">—</span>
+        </div>
+      </div>
     </div>
-    <div class="body">
-      <div class="row"><span class="k">Sección</span>        <span class="v" id="si-sec">—</span></div>
-      <div class="row"><span class="k">Distrito Federal</span><span class="v" id="si-df">—</span></div>
-      <div class="row"><span class="k">Distrito Local</span>  <span class="v" id="si-dl">—</span></div>
-      <div class="row"><span class="k">LN (2024)</span>    <span class="v" id="si-ln">—</span></div>
-    </div>
-  </div>
 
     <!-- === ESTRATEGICO CAMPO: LAUNCHER === -->
-  <div id="estrategico-campo-launcher" class="ec-launcher" title="Módulo CAMPO">
-    <span>CAMPO</span>
-  </div>
 
-  <!-- === ESTRATEGICO CAMPO: PANEL === -->
-  <div id="estrategico-campo-panel" class="ec-panel ec-hidden">
-    <div class="ec-header">
-      <strong>Módulo CAMPO · AT 27–30</strong>
-      <button id="ec-btn-cerrar" class="ec-icon">✕</button>
+    <!-- === ESTRATEGICO CAMPO: PANEL === -->
+    <div id="estrategico-campo-panel" class="ec-panel ec-hidden">
+      <div class="ec-header">
+        <strong>Módulo CAMPO · AT 27–30</strong>
+        <button id="ec-btn-cerrar" class="ec-icon">✕</button>
+      </div>
+
+      <div class="ec-counter">
+        <span id="ec-contador">0</span> registros locales
+      </div>
+      <div
+        id="ec-kpis"
+        style="display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px 0"
+      ></div>
+
+      <div class="ec-tabs">
+        <button class="ec-tab ec-tab-active" data-tab="captura">
+          Promotor
+        </button>
+        <button class="ec-tab" data-tab="admin">Administrador</button>
+      </div>
+
+      <!-- Placeholder visual para KPIs (tiene clase para evitar id duplicado) -->
+      <div
+        class="ec-kpis"
+        style="display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px 0"
+      ></div>
+
+      <!-- TAB: CAPTURA -->
+      <div class="ec-tabview" id="ec-tab-captura">
+        <div class="ec-field">
+          <label>Tipo asignación</label>
+          <select id="ec-tipo">
+            <option value="SIMPATIZANTE">SIMPATIZANTE</option>
+            <option value="LIDER">LÍDER</option>
+            <option value="ADVERSARIO">ADVERSARIO</option>
+            <option value="REP_CASILLA">REPRESENTANTE DE CASILLA</option>
+            <option value="REP_GENERAL">REPRESENTANTE GENERAL</option>
+            <option value="OBSERVADOR">OBSERVADOR</option>
+          </select>
+        </div>
+
+        <div class="ec-grid2">
+          <div class="ec-field">
+            <label>Nombre</label>
+            <input id="ec-nombre" placeholder="Nombre completo" />
+          </div>
+
+        </div>
+
+        <div class="ec-grid2">
+          <div class="ec-field">
+            <label>Sección</label>
+            <input id="ec-seccion" placeholder="Se autollenará por mapa/GPS" />
+          </div>
+          <div class="ec-field">
+            <label>Ámbito</label>
+            <input id="ec-ambito" placeholder="MUN / DF / DL (opcional)" />
+          </div>
+        </div>
+
+        <div class="ec-captura-modos">
+          <button id="ec-gps" class="ec-btn">📍 GPS</button>
+          <button id="ec-mapa" class="ec-btn">🗺️ Selección en mapa</button>
+          <div class="ec-field ec-grow">
+            <input
+              id="ec-dom"
+              placeholder="Domicilio (calle, número, colonia, municipio)"
+            />
+          </div>
+          <button id="ec-geocode" class="ec-btn">🔎</button>
+        </div>
+
+        <div class="ec-field">
+          <label>Observaciones</label>
+          <textarea id="ec-obs" rows="2" placeholder="Notas rápidas"></textarea>
+        </div>
+
+        <div class="ec-actions">
+          <button id="ec-guardar" class="ec-primary">Guardar registro</button>
+          <button id="ec-export" class="ec-secondary">Enviar</button>
+          <button id="ec-copiar" class="ec-secondary">
+            Descargar Capturas
+          </button>
+          <button id="ec-limpiar" class="ec-tertiary">
+            Limpiar formulario
+          </button>
+        </div>
+
+        <div class="ec-counter">
+          <span class="ec-contador">0</span> registros locales
+        </div>
+      </div>
+
+      <!-- TAB: ADMIN -->
+      <div class="ec-tabview ec-hidden" id="ec-tab-admin">
+        <div class="ec-field">
+          <label>URL GeoJSON (GitHub RAW)</label>
+          <input
+            id="ec-admin-url"
+            placeholder="https://.../puntos_campo.geojson"
+          />
+        </div>
+        <div class="ec-actions">
+          <button id="ec-admin-cargar" class="ec-primary">Cargar puntos</button>
+          <button id="ec-admin-limpiar" class="ec-tertiary">Quitar capa</button>
+        </div>
+        <small
+          >Tip: publica <code>puntos_campo.geojson</code> en tu repo y pega aquí
+          la URL RAW.</small
+        >
+      </div>
+      <input type="hidden" id="ec-dl" />
+      <input type="hidden" id="ec-df" />
+      <input type="hidden" id="ec-muni" />
     </div>
 
-    <div class="ec-tabs">
-      <button class="ec-tab ec-tab-active" data-tab="captura">Promotor</button>
-      <button class="ec-tab" data-tab="admin">Administrador</button>
-    </div>
+    <script>
+      // Cache de elementos del formulario CAMPO (ajusta los IDs si difieren)
+      // ✅ Cache de elementos del formulario CAMPO
+      const el = {
+        // Campos de captura rápida
+        tipo: document.getElementById("ec-tipo"),
+        nombre: document.getElementById("ec-nombre"),
+        telefono: document.getElementById("ec-telefono"),
+        seccion:
+          document.getElementById("ec-seccion") ||
+          document.getElementById("si-sec") ||
+          document.querySelector('[name="seccion"]'),
+        ambito:
+          document.getElementById("ec-ambito") ||
+          document.getElementById("si-ambito") ||
+          document.querySelector('[name="ambito"]'),
+        dom:
+          document.getElementById("ec-domicilio") ||
+          document.getElementById("ec-dom") ||
+          document.querySelector('[name="domicilio"]'),
+        obs: document.getElementById("ec-obs"),
 
-    <!-- TAB: CAPTURA -->
-    <div class="ec-tabview" id="ec-tab-captura">
-      <div class="ec-field">
-        <label>Tipo asignación</label>
-        <select id="ec-tipo">
-          <option value="SIMPATIZANTE">SIMPATIZANTE</option>
-          <option value="LIDER">LÍDER</option>
-          <option value="ADVERSARIO">ADVERSARIO</option>
-          <option value="REP_CASILLA">REPRESENTANTE DE CASILLA</option>
-          <option value="REP_GENERAL">REPRESENTANTE GENERAL</option>
-          <option value="OBSERVADOR">OBSERVADOR</option>
-        </select>
-      </div>
+        // Botones de interacción
+        gps: document.getElementById("ec-gps"),
+        mapa: document.getElementById("ec-mapa"),
+        geocode: document.getElementById("ec-geocode"),
+        guardar: document.getElementById("ec-guardar"),
+        exportar: document.getElementById("ec-export"),
+        copiar: document.getElementById("ec-copiar"),
+        limpiar: document.getElementById("ec-limpiar"),
 
-      <div class="ec-grid2">
-        <div class="ec-field">
-          <label>Nombre</label>
-          <input id="ec-nombre" placeholder="Nombre completo" />
-        </div>
-        <div class="ec-field">
-          <label>Teléfono</label>
-          <input id="ec-telefono" placeholder="10 dígitos" />
-        </div>
-      </div>
+        // Panel administrativo
+        adminUrl: document.getElementById("ec-admin-url"),
+        adminCargar: document.getElementById("ec-admin-cargar"),
+        adminLimpiar: document.getElementById("ec-admin-limpiar"),
 
-      <div class="ec-grid2">
-        <div class="ec-field">
-          <label>Sección</label>
-          <input id="ec-seccion" placeholder="Se autollenará por mapa/GPS" />
-        </div>
-        <div class="ec-field">
-          <label>Ámbito</label>
-          <input id="ec-ambito" placeholder="MUN / DF / DL (opcional)" />
-        </div>
-      </div>
+        // Contador / KPIs
+        contador: document.getElementById("ec-contador") ||
+          document.getElementById("ct-contador") || { textContent: "" },
+      };
 
-      <div class="ec-captura-modos">
-        <button id="ec-gps" class="ec-btn">📍 GPS</button>
-        <button id="ec-mapa" class="ec-btn">🗺️ Selección en mapa</button>
-        <div class="ec-field ec-grow">
-          <input id="ec-dom" placeholder="Domicilio (calle, número, colonia, municipio)" />
-        </div>
-        <button id="ec-geocode" class="ec-btn">🔎</button>
-      </div>
-
-      <div class="ec-field">
-        <label>Observaciones</label>
-        <textarea id="ec-obs" rows="2" placeholder="Notas rápidas"></textarea>
-      </div>
-
-      <div class="ec-actions">
-        <button id="ec-guardar" class="ec-primary">Guardar registro</button>
-        <button id="ec-export" class="ec-secondary">Exportar GeoJSON</button>
-        <button id="ec-copiar" class="ec-secondary">Copiar JSON</button>
-        <button id="ec-limpiar" class="ec-tertiary">Limpiar formulario</button>
-      </div>
-
-      <div class="ec-counter"><span id="ec-contador">0</span> registros locales</div>
-    </div>
-
-    <!-- TAB: ADMIN -->
-    <div class="ec-tabview ec-hidden" id="ec-tab-admin">
-      <div class="ec-field">
-        <label>URL GeoJSON (GitHub RAW)</label>
-        <input id="ec-admin-url" placeholder="https://.../puntos_campo.geojson" />
-      </div>
-      <div class="ec-actions">
-        <button id="ec-admin-cargar" class="ec-primary">Cargar puntos</button>
-        <button id="ec-admin-limpiar" class="ec-tertiary">Quitar capa</button>
-      </div>
-      <small>Tip: publica <code>puntos_campo.geojson</code> en tu repo y pega aquí la URL RAW.</small>
-    </div>
-  </div>
-
-  <script>
-  /* =======================
+      /* =======================
     ESTRATEGICO · Módulo CAMPO
     Namespace: E27Campo
     ======================= */
-  const E27Campo = (() => {
-    // --- Config ---
-    const STORAGE_KEY = 'estrategico_campo_registros_v1';
-    const LAYER_ID = 'estrategico-campo-layer';
-    const colorByTipo = {
-      'SIMPATIZANTE': '#2e7d32',
-      'LIDER': '#1565c0',
-      'ADVERSARIO': '#c62828',
-      'REPRESENTANTE DE CASILLA': '#6a1b9a',
-      'REPRESENTANTE GENERAL': '#ad1457',
-      'REP_CASILLA': '#6a1b9a',
-      'REP_GENERAL': '#ad1457',
-      'OBSERVADOR': '#ef6c00'
-    };
+      const E27Campo = (() => {
+        // --- Config ---
+        const STORAGE_KEY = "estrategico_campo_registros_v1";
+        const LAYER_ID = "estrategico-campo-layer";
+        const colorByTipo = {
+          SIMPATIZANTE: "#1e88e5", // azul
+          LIDER: "#2e7d32", // verde
+          ADVERSARIO: "#e53935", // rojo
+          "REPRESENTANTE DE CASILLA": "#8e24aa", // morado
+          "REPRESENTANTE GENERAL": "#fdd835", // amarillo
+          REP_CASILLA: "#8e24aa", // alias
+          REP_GENERAL: "#fdd835", // alias
+          OBSERVADOR: "#9e9e9e", // gris
+          OTRO: "#000000", // negro
+        };
 
-    // --- Estado ---
-    let registros = loadLocal();
-    let pickingOnMap = false;
-    const layerGroup = L.layerGroup().addTo(map);
-    layerGroup._estrategicoId = LAYER_ID;
+        // --- Estado ---
+        let registros = loadLocal();
+        let pickingOnMap = false;
+        const layerGroup = L.layerGroup().addTo(atMap());
+        layerGroup._estrategicoId = LAYER_ID;
 
-    // --- UI refs ---
-    const $ = (sel) => document.querySelector(sel);
-    const launcher = $('#estrategico-campo-launcher');
-    const panel = $('#estrategico-campo-panel');
-    const btnCerrar = $('#ec-btn-cerrar');
-    const tabs = document.querySelectorAll('.ec-tab');
-    const tabCaptura = $('#ec-tab-captura');
-    const tabAdmin = $('#ec-tab-admin');
+        // --- UI refs ---
+        const $ = (sel) => document.querySelector(sel);
+        const launcher = $("#estrategico-campo-launcher");
+        const panel = $("#estrategico-campo-panel");
+        const btnCerrar = $("#ec-btn-cerrar");
+        const tabs = document.querySelectorAll(".ec-tab");
+        const tabCaptura = $("#ec-tab-captura");
+        const tabAdmin = $("#ec-tab-admin");
 
-    const el = {
-      tipo: $('#ec-tipo'),
-      nombre: $('#ec-nombre'),
-      telefono: $('#ec-telefono'),
-      seccion: $('#ec-seccion'),
-      ambito: $('#ec-ambito'),
-      obs: $('#ec-obs'),
-      gps: $('#ec-gps'),
-      mapa: $('#ec-mapa'),
-      dom: $('#ec-dom'),
-      geocode: $('#ec-geocode'),
-      guardar: $('#ec-guardar'),
-      exportar: $('#ec-export'),
-      copiar: $('#ec-copiar'),
-      limpiar: $('#ec-limpiar'),
-      contador: $('#ec-contador'),
-      adminUrl: $('#ec-admin-url'),
-      adminCargar: $('#ec-admin-cargar'),
-      adminLimpiar: $('#ec-admin-limpiar'),
-    };
+        // --- Init ---
+        updateCounter();
+        redrawLayer();
+        wireUI();
 
-    // --- Init ---
-    updateCounter();
-    redrawLayer();
-    wireUI();
+        function renderKpis() {
+          const box = document.getElementById("ec-kpis");
+          if (!box) return;
 
-    // --- Functions ---
-    function wireUI(){
-      launcher.addEventListener('click', () => panel.classList.toggle('ec-hidden'));
-      btnCerrar.addEventListener('click', () => panel.classList.add('ec-hidden'));
+          const byTipo = {};
+          (window.registros || []).forEach((f) => {
+            const t = (f.properties?.TIPO || "OTRO").toUpperCase();
+            byTipo[t] = (byTipo[t] || 0) + 1;
+          });
 
-      tabs.forEach(t => t.addEventListener('click', () => {
-        tabs.forEach(x => x.classList.remove('ec-tab-active'));
-        t.classList.add('ec-tab-active');
-        const tab = t.dataset.tab;
-        tabCaptura.classList.toggle('ec-hidden', tab !== 'captura');
-        tabAdmin.classList.toggle('ec-hidden', tab !== 'admin');
-      }));
+          const ultimos = (window.registros || [])
+            .slice(-5)
+            .reverse()
+            .map((f) => {
+              const p = f.properties || {};
+              return `${(p.TIPO || "-").slice(0, 12)} · ${p.SECCION || "-"}`;
+            });
 
-      el.mapa.addEventListener('click', activarPickEnMapa);
-      el.gps.addEventListener('click', captureByGPS);
-      el.geocode.addEventListener('click', geocodeAddressStub);
+          const pill = (label, n) => `
+    <span style="padding:4px 8px;border-radius:999px;border:1px solid #ddd;background:#fafafa">
+      <b>${label}</b>: ${n}
+    </span>`;
 
-      el.guardar.addEventListener('click', onGuardar);
-      el.exportar.addEventListener('click', onExportar);
-      el.copiar.addEventListener('click', onCopiar);
-      el.limpiar.addEventListener('click', limpiarForm);
+          box.innerHTML = `
+    ${Object.entries(byTipo)
+      .map(([k, v]) => pill(k, v))
+      .join(" ")}
+    <div style="flex-basis:100%;height:0"></div>
+    <small style="color:#666">Últimos: ${ultimos.join(" · ")}</small>
+  `;
+        }
 
-      el.adminCargar.addEventListener('click', adminCargarGeoJSON);
-      el.adminLimpiar.addEventListener('click', () => { layerGroup.clearLayers(); redrawLayer(); });
-    }
+        // === HELPERS: localizar la sección por coordenada y llenar el form ===
+        function findSectionFeatureForPoint(lat, lng) {
+          const raw = window.AT_DATA;
+          if (!raw?.features?.length || !window.turf) return null;
+          const pt = turf.point([lng, lat]);
+          // Usa el universo filtrado si existe; si no, recorre todo el geojson
+          const feats =
+            window.AT_CTX?.layer?.toGeoJSON?.()?.features || raw.features;
+          for (const f of feats) {
+            try {
+              if (turf.booleanPointInPolygon(pt, f)) return f;
+            } catch (_) {}
+          }
+          return null;
+        }
 
-    // Captura por clic en mapa
-    function activarPickEnMapa(){
-      pickingOnMap = true;
-      launcher.title = 'Haz clic en el mapa para fijar la ubicación';
-      map.once('click', async (e) => {
-        pickingOnMap = false;
-        const {lat, lng} = e.latlng;
-        const seccion = inferirSeccionDesdeMapa(lat, lng); // usa tu lógica/índice actual
-        setUbicacionForm({lat, lng, seccion});
-        dibujarPuntoTemporal(lat, lng);
-      });
-    }
+        function setUbicacionFormAuto({ lat, lng }) {
+          const $seccion = document.getElementById("ec-seccion");
+          const $ambito = document.getElementById("ec-ambito");
+          const $dl = document.getElementById("ec-dl");
+          const $df = document.getElementById("ec-df");
+          const $muni = document.getElementById("ec-muni");
+          if (!$seccion || !$ambito) return null;
 
-    // Captura por GPS
-    function captureByGPS(){
-      if(!navigator.geolocation){
-        alert('Este dispositivo no permite GPS.');
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(pos => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        const seccion = inferirSeccionDesdeMapa(lat, lng);
-        setUbicacionForm({lat, lng, seccion});
-        dibujarPuntoTemporal(lat, lng);
-        map.setView([lat,lng], 18);
-      }, err => alert('No fue posible obtener GPS: ' + err.message), {enableHighAccuracy:true, timeout:10000});
-    }
+          const feat = findSectionFeatureForPoint(lat, lng);
+          if (feat) {
+            const p = feat.properties || {};
+            const muni = p.MUNICIPIO ?? p.MUN ?? "";
+            const dl = p.DISTRITO_L ?? p.DL ?? "";
+            const df = p.DISTRITO_F ?? p.DF ?? "";
 
-    // Geocodificar domicilio (STUB) -> reemplaza por tu servicio real
-    async function geocodeAddressStub(){
-      const q = el.dom.value?.trim();
-      if(!q){ alert('Escribe un domicilio.'); return; }
-      // TODO: integra tu geocoder (Nominatim / API propia). Por ahora, mostramos aviso.
-      alert('Geocoder pendiente de integrar. Usa GPS o Mapa por ahora.');
-    }
+            $seccion.value = p.SECCION ?? "";
+            $seccion.dataset.lat = lat;
+            $seccion.dataset.lng = lng;
+            $ambito.value = `MUN:${muni} · DL:${dl} · DF:${df}`;
+            if ($dl) $dl.value = dl;
+            if ($df) $df.value = df;
+            if ($muni) $muni.value = muni;
+            return { p, feat };
+          } else {
+            $seccion.dataset.lat = lat;
+            $seccion.dataset.lng = lng;
+            $ambito.value = "";
+            if ($dl) $dl.value = "";
+            if ($df) $df.value = "";
+            if ($muni) $muni.value = "";
+            return null;
+          }
+        }
 
-    // Dibuja punto temporal (sólo vista)
-    function dibujarPuntoTemporal(lat, lng){
-      L.circleMarker([lat,lng], {radius:7, color:'#444', weight:1, fillOpacity:.8}).addTo(layerGroup);
-    }
+        (function wireCampoButton() {
+          function start() {
+            const btn = document.getElementById("btn-campo");
+            if (!btn) {
+              console.warn("[CT-27] No encontré #btn-campo");
+              return;
+            }
+            const sel =
+              btn.getAttribute("data-target") || "#estrategico-campo-panel";
+            const panel = document.querySelector(sel);
+            if (!panel) {
+              console.warn("[CT-27] No encontré panel", sel);
+              return;
+            }
 
-    // Inferir sección (ajusta con tu índice espacial/prop ya existente)
-    function inferirSeccionDesdeMapa(lat, lng){
-      // Sugerencia: si ya tienes 'capasPorSeccion' o una spatial index, úsala aquí.
-      // De momento, devolvemos vacío para no romper flujo:
-      try {
-        // Ejemplo (si tienes un layer de secciones con pointInPolygon):
-        // const sec = buscarSeccionPorPunto(lat, lng); return sec?.props?.SECCION || '';
-        return '';
-      } catch { return ''; }
-    }
+            // si antes usabas window.launcher, reasígnalo para no romper otros códigos
+            window.launcher = btn;
 
-    function setUbicacionForm({lat, lng, seccion}){
-      el.seccion.value = seccion || el.seccion.value || '';
-      el.seccion.dataset.lat = lat;
-      el.seccion.dataset.lng = lng;
-    }
+            btn.addEventListener("click", (e) => {
+              e.preventDefault();
+              const hidden = panel.classList.toggle("ec-hidden"); // necesita .ec-hidden {display:none}
+              btn.setAttribute("aria-expanded", String(!hidden));
+            });
+          }
+          if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", start, {
+              once: true,
+            });
+          } else {
+            start();
+          }
+        })();
 
-    function onGuardar(){
-      const tipo = (el.tipo.value || '').toUpperCase();
-      const nombre = (el.nombre.value || '').trim();
-      const telefono = (el.telefono.value || '').trim();
-      const seccion = (el.seccion.value || '').trim();
-      const ambito = (el.ambito.value || '').trim();
-      const lat = parseFloat(el.seccion.dataset.lat || '');
-      const lng = parseFloat(el.seccion.dataset.lng || '');
-      const obs = (el.obs.value || '').trim();
+        // --- Functions ---
+        function wireUI() {
+          // Utilidad para agregar listeners de forma segura
+          const safeOn = (el, evt, fn) => {
+            if (el) {
+              el.addEventListener(evt, fn);
+            } else {
+              console.warn(`Elemento no encontrado para evento '${evt}'`);
+            }
+          };
 
-      if(!tipo || Number.isNaN(lat) || Number.isNaN(lng)){
-        alert('Falta tipo y/o ubicación (GPS/Mapa/Domicilio).');
-        return;
-      }
+          // Botones principales
+          safeOn(launcher, "click", () => panel.classList.toggle("ec-hidden"));
+          safeOn(btnCerrar, "click", () => panel.classList.add("ec-hidden"));
 
-      const now = new Date().toISOString();
-      const feature = {
-        type: 'Feature',
-        properties: {
-          TIPO: tipo,
-          NOMBRE: nombre,
-          TELEFONO: telefono,
-          SECCION: seccion,
-          AMBITO: ambito,
-          OBS: obs,
-          CREATED_AT: now
-        },
-        geometry: { type: 'Point', coordinates: [lng, lat] }
-      };
+          // Tabs
+          if (tabs && Array.isArray(tabs)) {
+            tabs.forEach((t) =>
+              safeOn(t, "click", () => {
+                tabs.forEach((x) => x.classList.remove("ec-tab-active"));
+                t.classList.add("ec-tab-active");
+                const tab = t.dataset.tab;
+                tabCaptura?.classList.toggle("ec-hidden", tab !== "captura");
+                tabAdmin?.classList.toggle("ec-hidden", tab !== "admin");
+              })
+            );
+          } else {
+            console.warn("No se encontraron tabs");
+          }
 
-      registros.push(feature);
-      saveLocal(registros);
-      updateCounter();
-      redrawLayer();
-      // Reset ubicación para evitar duplicados por error:
-      delete el.seccion.dataset.lat; delete el.seccion.dataset.lng;
-      toast('Registro guardado localmente.');
-    }
+          // Acciones del formulario
+          safeOn(el.mapa, "click", activarPickEnMapa);
+          safeOn(el.gps, "click", captureByGPS);
+          safeOn(el.geocode, "click", geocodeAddressStub);
 
-    function redrawLayer(){
-      // Limpia sólo los marcadores "nuestros" (dejamos otros layers intactos).
-      layerGroup.clearLayers();
-      // Dibuja locales:
-      registros.forEach(f => {
-        const [lng, lat] = f.geometry.coordinates;
-        const tipo = f.properties.TIPO;
-        const color = colorByTipo[tipo] || '#37474f';
-        L.circleMarker([lat, lng], {
-          radius: 7, color, weight:1, fillOpacity:.9
-        }).bindPopup(popupHtml(f)).addTo(layerGroup);
-      });
-    }
+          safeOn(el.guardar, "click", onGuardar);
+          safeOn(el.exportar, "click", onExportar);
+          safeOn(el.copiar, "click", onCopiar);
+          safeOn(el.limpiar, "click", limpiarForm);
 
-    function popupHtml(f){
-      const p = f.properties || {};
-      return `
+          // Panel administrativo
+          safeOn(el.adminCargar, "click", adminCargarGeoJSON);
+          safeOn(el.adminLimpiar, "click", () => {
+            layerGroup?.clearLayers();
+            redrawLayer?.();
+          });
+        }
+
+        function activarPickEnMapa() {
+          pickingOnMap = true;
+          launcher.title = "Haz clic en el mapa para fijar la ubicación";
+          atMap().once("click", async (e) => {
+            pickingOnMap = false;
+            const { lat, lng } = e.latlng;
+            setUbicacionFormAuto({ lat, lng });
+            dibujarPuntoTemporal(lat, lng);
+          });
+        }
+
+        // GPS
+        function captureByGPS() {
+          if (!navigator.geolocation) {
+            alert("Este dispositivo no permite GPS.");
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              const lat = pos.coords.latitude;
+              const lng = pos.coords.longitude;
+              setUbicacionFormAuto({ lat, lng });
+              dibujarPuntoTemporal(lat, lng);
+              atMap().setView([lat, lng], 18);
+            },
+            (err) => alert("No fue posible obtener GPS: " + err.message),
+            { enableHighAccuracy: true, timeout: 10000 }
+          );
+        }
+
+        // Geocodificar domicilio (STUB) -> reemplaza por tu servicio real
+        async function geocodeAddressStub() {
+          const q = el.dom.value?.trim();
+          if (!q) {
+            alert("Escribe un domicilio.");
+            return;
+          }
+
+          const prefer = ""; // ej. ', León, Guanajuato, México'
+          const url =
+            "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=" +
+            encodeURIComponent(q + prefer);
+          try {
+            const r = await fetch(url, {
+              headers: { "Accept-Language": "es" },
+            });
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            const arr = await r.json();
+            if (!arr.length) {
+              alert("No se encontró el domicilio.");
+              return;
+            }
+            const best = arr[0];
+            const lat = parseFloat(best.lat),
+              lng = parseFloat(best.lon);
+            setUbicacionFormAuto({ lat, lng });
+            dibujarPuntoTemporal(lat, lng);
+            atMap().setView([lat, lng], 18);
+          } catch (e) {
+            alert("Geocodificador no disponible: " + e.message);
+          }
+        }
+
+        // Dibuja punto temporal (sólo vista)
+        function dibujarPuntoTemporal(lat, lng) {
+          L.circleMarker([lat, lng], {
+            radius: 7,
+            color: "#444",
+            weight: 1,
+            fillOpacity: 0.8,
+          }).addTo(layerGroup);
+        }
+
+        // Inferir sección (ajusta con tu índice espacial/prop ya existente)
+        function inferirSeccionDesdeMapa(lat, lng) {
+          // Sugerencia: si ya tienes 'capasPorSeccion' o una spatial index, úsala aquí.
+          // De momento, devolvemos vacío para no romper flujo:
+          try {
+            // Ejemplo (si tienes un layer de secciones con pointInPolygon):
+            // const sec = buscarSeccionPorPunto(lat, lng); return sec?.props?.SECCION || '';
+            return "";
+          } catch {
+            return "";
+          }
+        }
+
+        function setUbicacionForm({ lat, lng, seccion }) {
+          el.seccion.value = seccion || el.seccion.value || "";
+          el.seccion.dataset.lat = lat;
+          el.seccion.dataset.lng = lng;
+        }
+
+        function buildFeatureFromForm() {
+          const lat = parseFloat(
+            document.getElementById("ec-seccion")?.dataset.lat || ""
+          );
+          const lng = parseFloat(
+            document.getElementById("ec-seccion")?.dataset.lng || ""
+          );
+          const tipo = (
+            document.getElementById("ec-tipo")?.value || "OTRO"
+          ).toUpperCase();
+
+          const seccion = document.getElementById("ec-seccion")?.value || "";
+          const dl = document.getElementById("ec-dl")?.value || "";
+          const df = document.getElementById("ec-df")?.value || "";
+          const muni = document.getElementById("ec-muni")?.value || "";
+
+          const nombres = document.getElementById("ec-nombres")?.value || "";
+          const apellidos =
+            document.getElementById("ec-apellidos")?.value || "";
+          const calle = document.getElementById("ec-calle")?.value || "";
+          const numero = document.getElementById("ec-numero")?.value || "";
+          const colonia = document.getElementById("ec-colonia")?.value || "";
+          const ciudad = document.getElementById("ec-ciudad")?.value || "";
+          const cp = document.getElementById("ec-cp")?.value || "";
+
+          const props = {
+            ID: crypto.randomUUID(),
+            TS: new Date().toISOString(),
+            TIPO: tipo, // SIMPATIZANTE/LIDER/...
+            SECCION: seccion,
+            DISTRITO_L: dl,
+            DISTRITO_F: df,
+            MUNICIPIO: muni,
+
+            NOMBRES: nombres,
+            APELLIDOS: apellidos,
+            CALLE: calle,
+            NUMERO: numero,
+            COLONIA: colonia,
+            CIUDAD: ciudad,
+            CP: cp,
+
+            ORIGEN: "CT-27",
+            ESTATUS: "ACTIVO",
+          };
+
+          const geom =
+            isFinite(lat) && isFinite(lng)
+              ? {
+                  type: "Point",
+                  coordinates: [lng, lat],
+                }
+              : null;
+
+          return { type: "Feature", geometry: geom, properties: props };
+        }
+
+        function onGuardar() {
+          const tipo = (el.tipo.value || "").toUpperCase();
+          const seccion = (el.seccion.value || "").trim();
+          const ambito = (el.ambito.value || "").trim();
+          const lat = parseFloat(el.seccion.dataset.lat || "");
+          const lng = parseFloat(el.seccion.dataset.lng || "");
+          const obs = (el.obs.value || "").trim();
+
+          // Nuevos campos (ocultos o visibles)
+          const dl = (document.getElementById("ec-dl")?.value || "").trim();
+          const df = (document.getElementById("ec-df")?.value || "").trim();
+          const muni = (document.getElementById("ec-muni")?.value || "").trim();
+
+          // Dirección (si ya tienes estos IDs; si cambian, dime y lo ajusto)
+          const nombres = (
+            document.getElementById("ec-nombres")?.value || ""
+          ).trim();
+          const apellidos = (
+            document.getElementById("ec-apellidos")?.value || ""
+          ).trim();
+          const calle = (
+            document.getElementById("ec-calle")?.value || ""
+          ).trim();
+          const numero = (
+            document.getElementById("ec-numero")?.value || ""
+          ).trim();
+          const colonia = (
+            document.getElementById("ec-colonia")?.value || ""
+          ).trim();
+          const ciudad = (
+            document.getElementById("ec-ciudad")?.value || ""
+          ).trim();
+          const cp = (document.getElementById("ec-cp")?.value || "").trim();
+
+          if (!tipo || Number.isNaN(lat) || Number.isNaN(lng)) {
+            alert("Falta tipo y/o ubicación (GPS/Mapa/Domicilio).");
+            return;
+          }
+
+          const now = new Date().toISOString();
+          const feature = {
+            type: "Feature",
+            properties: {
+              ID: crypto.randomUUID(),
+              TS: now,
+              ORIGEN: "CT-27",
+              ESTATUS: "ACTIVO",
+
+              // Rol y datos básicos del ciudadano
+              TIPO: tipo, // SIMPATIZANTE/LIDER/ADVERSARIO/RC/RG/OBS/OTRO
+              NOMBRES: nombres,
+              APELLIDOS: apellidos,
+              TELEFONO: telefono,
+
+              // Ubicación administrativa para ET-27
+              SECCION: seccion,
+              DISTRITO_L: dl,
+              DISTRITO_F: df,
+              MUNICIPIO: muni,
+              AMBITO: ambito, // si lo usas como display “MUN:… · DL:… · DF:…”
+
+              // Dirección opcional (si la capturó el promotor)
+              CALLE: calle,
+              NUMERO: numero,
+              COLONIA: colonia,
+              CIUDAD: ciudad,
+              CP: cp,
+
+              // Observaciones
+              OBS: obs,
+            },
+
+            geometry: { type: "Point", coordinates: [lng, lat] },
+          };
+
+          registros.push(feature);
+          saveLocal(registros);
+          updateCounter();
+          redrawLayer();
+
+          // Notificar a ET-27 si está abierto (o para QA en tiempo real)
+          window.dispatchEvent(
+            new CustomEvent("ct27:recordSaved", { detail: feature })
+          );
+
+          // Reset ubicación para evitar duplicados por error:
+          delete el.seccion.dataset.lat;
+          delete el.seccion.dataset.lng;
+          toast("Registro guardado localmente.");
+          window.dispatchEvent(
+            new CustomEvent("ct27:recordSaved", { detail: feature })
+          );
+        }
+
+        function renderKpis() {
+          const box = document.getElementById("ec-kpis");
+          if (!box) return;
+          const byTipo = {};
+          registros.forEach((f) => {
+            const t = f.properties?.TIPO || "OTRO";
+            byTipo[t] = (byTipo[t] || 0) + 1;
+          });
+
+          const ultimos = registros
+            .slice(-5)
+            .reverse()
+            .map((f) => {
+              const p = f.properties || {};
+              return `${(p.TIPO || "-").slice(0, 12)} · ${p.SECCION || "-"}`;
+            });
+
+          const pill = (
+            label,
+            n,
+            color = "#eee"
+          ) => `<span style="padding:4px 8px;border-radius:999px;border:1px solid #ddd;background:#fafafa">
+          <b>${label}</b>: ${n}</span>`;
+
+          box.innerHTML = `
+          ${Object.entries(byTipo)
+            .map(([k, v]) => pill(k, v))
+            .join(" ")}
+          <div style="flex-basis:100%;height:0"></div>
+          <small style="color:#666">Últimos: ${ultimos.join(" · ")}</small>
+        `;
+        }
+
+        function updateCounter() {
+          const elTotal = document.getElementById("ec-contador");
+          if (elTotal) elTotal.textContent = (window.registros || []).length;
+          renderKpis();
+        }
+
+        function redrawLayer() {
+          // Limpia sólo los marcadores "nuestros" (dejamos otros layers intactos).
+          layerGroup.clearLayers();
+          // Dibuja locales:
+          registros.forEach((f) => {
+            const [lng, lat] = f.geometry.coordinates;
+            const tipo = f.properties.TIPO;
+            const color = colorByTipo[tipo] || "#37474f";
+            L.circleMarker([lat, lng], {
+              radius: 7,
+              color,
+              weight: 1,
+              fillOpacity: 0.9,
+            })
+              .bindPopup(popupHtml(f))
+              .addTo(layerGroup);
+          });
+        }
+
+        function popupHtml(f) {
+          const p = f.properties || {};
+          return `
         <div style="min-width:220px">
-          <div><strong>${p.TIPO || '-'}</strong></div>
-          <div>${p.NOMBRE || ''}</div>
-          <div>${p.TELEFONO || ''}</div>
-          <div>Sección: ${p.SECCION || '-'}</div>
-          <div>Ámbito: ${p.AMBITO || '-'}</div>
-          <div style="color:#666">${p.OBS || ''}</div>
-          <div style="font-size:11px;color:#888">Creado: ${p.CREATED_AT || ''}</div>
+          <div><strong>${p.TIPO || "-"}</strong></div>
+          <div>${p.NOMBRE || ""}</div>
+          <div>${p.TELEFONO || ""}</div>
+          <div>Sección: ${p.SECCION || "-"}</div>
+          <div>Ámbito: ${p.AMBITO || "-"}</div>
+          <div style="color:#666">${p.OBS || ""}</div>
+          <div style="font-size:11px;color:#888">Creado: ${
+            p.CREATED_AT || ""
+          }</div>
         </div>
       `;
-    }
+        }
 
-    function onExportar(){
-      const fc = { type:'FeatureCollection', features: registros };
-      const blob = new Blob([JSON.stringify(fc, null, 2)], {type:'application/geo+json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.download = 'puntos_campo.geojson';
-      a.href = url; a.click();
-      URL.revokeObjectURL(url);
-    }
+        function onExportar() {
+          const fc = { type: "FeatureCollection", features: registros };
+          const blob = new Blob([JSON.stringify(fc, null, 2)], {
+            type: "application/geo+json",
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.download = "puntos_campo.geojson";
+          a.href = url;
+          a.click();
+          URL.revokeObjectURL(url);
+        }
 
-    function onCopiar(){
-      const fc = { type:'FeatureCollection', features: registros };
-      navigator.clipboard.writeText(JSON.stringify(fc))
-        .then(() => toast('GeoJSON copiado al portapapeles.'))
-        .catch(() => alert('No se pudo copiar.'));
-    }
+        function onCopiar() {
+          const fc = { type: "FeatureCollection", features: registros };
+          navigator.clipboard
+            .writeText(JSON.stringify(fc))
+            .then(() => toast("GeoJSON copiado al portapapeles."))
+            .catch(() => alert("No se pudo copiar."));
+        }
 
-    function limpiarForm(){
-      ['nombre','telefono','seccion','ambito','obs','dom'].forEach(id => { el[id].value = ''; });
-      delete el.seccion.dataset.lat; delete el.seccion.dataset.lng;
-    }
+        function limpiarForm() {
+          ["nombre", "telefono", "seccion", "ambito", "obs", "dom"].forEach(
+            (id) => {
+              el[id].value = "";
+            }
+          );
+          delete el.seccion.dataset.lat;
+          delete el.seccion.dataset.lng;
+        }
 
-    async function adminCargarGeoJSON(){
-      const url = el.adminUrl.value?.trim();
-      if(!url){ alert('Pega una URL RAW de GeoJSON.'); return; }
-      try {
-        const resp = await fetch(url, {cache:'no-store'});
-        const data = await resp.json();
-        // dibuja capa externa
-        L.geoJSON(data, {
-          pointToLayer: (feat, latlng) => {
-            const t = feat.properties?.TIPO || '';
-            const color = colorByTipo[t] || '#37474f';
-            return L.circleMarker(latlng, {radius:6, color, weight:1, fillOpacity:.8});
+        async function adminCargarGeoJSON() {
+          const url = el.adminUrl.value?.trim();
+          if (!url) {
+            alert("Pega una URL RAW de GeoJSON.");
+            return;
+          }
+          try {
+            const resp = await fetch(url, { cache: "no-store" });
+            const data = await resp.json();
+            // dibuja capa externa
+            L.geoJSON(data, {
+              pointToLayer: (feat, latlng) => {
+                const t = feat.properties?.TIPO || "";
+                const color = colorByTipo[t] || "#37474f";
+                return L.circleMarker(latlng, {
+                  radius: 6,
+                  color,
+                  weight: 1,
+                  fillOpacity: 0.8,
+                });
+              },
+              onEachFeature: (feat, layer) => layer.bindPopup(popupHtml(feat)),
+            }).addTo(layerGroup);
+            toast("Capa cargada.");
+          } catch (e) {
+            alert("No se pudo cargar el GeoJSON: " + e.message);
+          }
+        }
+
+        // --- Persistencia ---
+        function loadLocal() {
+          try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+          } catch {
+            return [];
+          }
+        }
+        function saveLocal(arr) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+        }
+        function updateCounter() {
+          el.contador.textContent = registros.length;
+        }
+
+        // --- Helpers ---
+        function toast(msg) {
+          console.log("[CAMPO]", msg);
+        }
+
+        // API pública opcional
+        return {
+          getRegistros: () => [...registros],
+          setRegistros: (arr) => {
+            registros = Array.isArray(arr) ? arr : [];
+            saveLocal(registros);
+            redrawLayer();
+            updateCounter();
           },
-          onEachFeature: (feat, layer) => layer.bindPopup(popupHtml(feat))
-        }).addTo(layerGroup);
-        toast('Capa cargada.');
-      } catch(e){
-        alert('No se pudo cargar el GeoJSON: ' + e.message);
+        };
+      })();
+
+      (function pinGateSafe() {
+        // Ejecuta cuando el DOM esté listo (por si el script está en <head> o antes del modal)
+        function start() {
+          const modal = document.getElementById("ct-pin");
+          const inp = document.getElementById("ct-pin-i");
+          const ok = document.getElementById("ct-pin-ok");
+
+          // Si falta el modal, no hacemos nada (evita el error de .style)
+          if (!modal || !inp || !ok) {
+            console.warn("[CT-27] PIN modal no encontrado; se omite pinGate.");
+            return;
+          }
+
+          const PIN = localStorage.getItem("CT27_PIN") || "2701";
+
+          // Mostrar sólo si no hay sesión validada
+          if (!sessionStorage.getItem("CT27_UNLOCK")) {
+            modal.style.display = "flex";
+            setTimeout(() => inp.focus(), 50);
+          }
+
+          ok.addEventListener(
+            "click",
+            () => {
+              if (inp.value === PIN) {
+                sessionStorage.setItem("CT27_UNLOCK", "1");
+                modal.style.display = "none";
+              } else {
+                alert("PIN incorrecto");
+              }
+            },
+            { once: false }
+          );
+        }
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", start, { once: true });
+        } else {
+          start();
+        }
+      })();
+
+      const launcher = document.getElementById("btn-campo");
+      launcher.addEventListener("click", togglePanelCampo);
+
+      // === Drag del panel CT (por header) ===
+      function enableDragPanel(
+        panelSel = "#estrategico-campo-panel",
+        handleSel = ".ec-header"
+      ) {
+        const panel = document.querySelector(panelSel);
+        const handle = panel?.querySelector(handleSel);
+        if (!panel || !handle) return;
+
+        let sx = 0,
+          sy = 0,
+          px = panel.offsetLeft,
+          py = panel.offsetTop,
+          dragging = false;
+
+        function onDown(e) {
+          dragging = true;
+          const p = "touches" in e ? e.touches[0] : e;
+          sx = p.clientX - panel.offsetLeft;
+          sy = p.clientY - panel.offsetTop;
+          document.addEventListener("mousemove", onMove);
+          document.addEventListener("mouseup", onUp);
+          document.addEventListener("touchmove", onMove, { passive: false });
+          document.addEventListener("touchend", onUp);
+        }
+
+        function updateCampoBadge() {
+          const n = (window.registros || []).length;
+          const btn = document.getElementById("btn-campo");
+          if (!btn) return;
+          btn.innerHTML = `<i class="fa fa-map-marker-alt"></i>  Módulo CAMPO
+        ${
+          n > 0
+            ? `<span style="
+          background:#fff;color:#7b1b2b;font-weight:700;
+          margin-left:6px;padding:2px 8px;border-radius:10px;
+          font-size:13px;">${n}</span>`
+            : ""
+        }`;
+        }
+        // Llama esta función después de cada guardado:
+        updateCampoBadge();
+
+        function onMove(e) {
+          if (!dragging) return;
+          const p = "touches" in e ? e.touches[0] : e;
+          px = p.clientX - sx;
+          py = p.clientY - sy;
+          // límites simples para no perder el panel
+          const W = window.innerWidth,
+            H = window.innerHeight;
+          const w = panel.offsetWidth,
+            h = panel.offsetHeight;
+          px = Math.max(8, Math.min(px, W - w - 8));
+          py = Math.max(8, Math.min(py, H - h - 8));
+          panel.style.left = px + "px";
+          panel.style.top = py + "px";
+          panel.style.right = "auto";
+          panel.style.bottom = "auto";
+          e.preventDefault?.();
+        }
+        function onUp() {
+          dragging = false;
+          document.removeEventListener("mousemove", onMove);
+          document.removeEventListener("mouseup", onUp);
+          document.removeEventListener("touchmove", onMove);
+          document.removeEventListener("touchend", onUp);
+        }
+        handle.addEventListener("mousedown", onDown);
+        handle.addEventListener("touchstart", onDown, { passive: false });
       }
-    }
+      // Llamada
+      enableDragPanel();
+    </script>
 
-    // --- Persistencia ---
-    function loadLocal(){
-      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-      catch{ return []; }
-    }
-    function saveLocal(arr){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-    }
-    function updateCounter(){
-      el.contador.textContent = registros.length;
-    }
+    <div
+      id="ct-pin"
+      style="
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 20000;
+      "
+    >
+      <div
+        style="
+          background: #fff;
+          padding: 14px 16px;
+          border-radius: 14px;
+          min-width: 260px;
+          box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+        "
+      >
+        <div style="font-weight: 700; margin-bottom: 8px">Acceso CAMPO</div>
+        <input
+          id="ct-pin-i"
+          type="password"
+          placeholder="PIN"
+          style="
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 10px;
+          "
+        />
+        <div style="display: flex; gap: 8px; justify-content: flex-end">
+          <button
+            id="ct-pin-ok"
+            class="ec-primary"
+            style="
+              padding: 6px 10px;
+              border: none;
+              border-radius: 10px;
+              color: #fff;
+              background: #7b1b2b;
+            "
+          >
+            Entrar
+          </button>
+        </div>
+      </div>
+    </div>
 
-    // --- Helpers ---
-    function toast(msg){
-      console.log('[CAMPO]', msg);
-    }
-
-    // API pública opcional
-    return {
-      getRegistros: () => [...registros],
-      setRegistros: (arr) => { registros = Array.isArray(arr)? arr: []; saveLocal(registros); redrawLayer(); updateCounter(); }
-    };
-  })();
-</script>
-
-
-</body>
+    <!-- Segundo modal PIN eliminado (duplicado). Se mantiene el modal funcional con input más arriba. -->
+  </body>
 </html>
