@@ -2148,6 +2148,12 @@
           const nombre = v("ec-nombre"); // un solo campo
           const telefono = normalizePhone(telefonoRaw);
 
+          // Validación: si el usuario escribió algo pero la normalización no
+          // produjo al menos 10 dígitos, no permitimos guardar.
+          if (telefonoRaw && !telefono) {
+            alert("Teléfono inválido: escribe al menos 10 dígitos numéricos.");
+            return;
+          }
           const seccion = v("ec-seccion");
           const ambito = v("ec-ambito");
           const dl = v("ec-dl");
