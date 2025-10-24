@@ -621,20 +621,15 @@
       function matches(props, u) {
         if (u.scope === "ALL") return true;
         const keyField =
-          u.scope === "MUN"
-            ? FIELD_KEYS.mun
-            : u.scope === "DL"
-            ? FIELD_KEYS.dl
-            : FIELD_KEYS.df;
+          u.scope === "MUN" ? FIELD_KEYS.mun : u.scope === "DL" ? FIELD_KEYS.dl : FIELD_KEYS.df;
         return toComp(props?.[keyField]) === toComp(u.key);
       }
       function filterGeojson(geojson, u) {
         if (u.scope === "ALL") return geojson;
-        const features = (geojson.features || []).filter((f) =>
-          matches(f.properties, u)
-        );
+        const features = (geojson.features || []).filter((f) => matches(f.properties, u));
         return { ...geojson, features };
       }
+
 
       // ====== CARGA ELECTORAL (para obtener 24DL_LN) ======
       function getPaths() {
@@ -1700,6 +1695,15 @@
           <button id="ec-admin-cargar" class="ec-primary">Cargar puntos</button>
           <button id="ec-admin-limpiar" class="ec-tertiary">Quitar capa</button>
         </div>
+        <hr />
+        <div class="ec-field">
+          <label>PINs (separados por coma)</label>
+          <input id="ec-admin-pins" placeholder="2701,1234" />
+        </div>
+        <div class="ec-actions">
+          <button id="ec-admin-save-pins" class="ec-primary">Guardar PINs</button>
+        </div>
+        <small>Escribe uno o varios PINs separados por coma. El PIN con el que se ingrese se registrará en cada punto como <code>PROMOTOR_PIN</code>.</small>
         <small
           >Tip: publica <code>puntos_campo.geojson</code> en tu repo y pega aquí
           la URL RAW.</small
@@ -1743,6 +1747,8 @@
         adminUrl: document.getElementById("ec-admin-url"),
         adminCargar: document.getElementById("ec-admin-cargar"),
         adminLimpiar: document.getElementById("ec-admin-limpiar"),
+    adminPins: document.getElementById("ec-admin-pins"),
+    adminSavePins: document.getElementById("ec-admin-save-pins"),
 
         // Contador / KPIs
         contador: document.getElementById("ec-contador") ||
@@ -1769,8 +1775,10 @@
           OTRO: "#000000", // negro
         };
 
-        // --- Estado ---
-        let registros = loadLocal();
+  // --- Estado ---
+  let registros = loadLocal();
+  // Mantener referencia global para herramientas externas y debugging
+  window.registros = registros;
         let pickingOnMap = false;
         const layerGroup = L.layerGroup().addTo(atMap());
         layerGroup._estrategicoId = LAYER_ID;
@@ -1806,37 +1814,7 @@
           startCampoModule();
         }
 
-        function renderKpis() {
-          const box = document.getElementById("ec-kpis");
-          if (!box) return;
-
-          const byTipo = {};
-          (window.registros || []).forEach((f) => {
-            const t = (f.properties?.TIPO || "OTRO").toUpperCase();
-            byTipo[t] = (byTipo[t] || 0) + 1;
-          });
-
-          const ultimos = (window.registros || [])
-            .slice(-5)
-            .reverse()
-            .map((f) => {
-              const p = f.properties || {};
-              return `${(p.TIPO || "-").slice(0, 12)} · ${p.SECCION || "-"}`;
-            });
-
-          const pill = (label, n) => `
-    <span style="padding:4px 8px;border-radius:999px;border:1px solid #ddd;background:#fafafa">
-      <b>${label}</b>: ${n}
-    </span>`;
-
-          box.innerHTML = `
-    ${Object.entries(byTipo)
-      .map(([k, v]) => pill(k, v))
-      .join(" ")}
-    <div style="flex-basis:100%;height:0"></div>
-    <small style="color:#666">Últimos: ${ultimos.join(" · ")}</small>
-  `;
-        }
+        // renderKpis definida más abajo (usa la variable interna `registros`)
 
         // === HELPERS: localizar la sección por coordenada y llenar el form ===
         function findSectionFeatureForPoint(lat, lng) {
@@ -1967,6 +1945,17 @@
           safeOn(el.adminLimpiar, "click", () => {
             layerGroup?.clearLayers();
             redrawLayer?.();
+          });
+          // Guardar PINs (admin)
+          safeOn(el.adminSavePins, "click", () => {
+            const v = el.adminPins?.value?.trim() || "";
+            if (!v) {
+              alert("Escribe uno o varios PINs separados por coma.");
+              return;
+            }
+            // Guardamos tal cual; la lectura acepta lista separada por comas
+            localStorage.setItem("CT27_PIN", v);
+            toast("PINs guardados.");
           });
         }
 
@@ -2191,6 +2180,8 @@
               NOMBRE: nombre, // (singular, como tu UI)
               TELEFONO: telefono,
               DOMICILIO: dom,
+              // PIN del promotor que abrió el módulo (si existe)
+              PROMOTOR_PIN: sessionStorage.getItem("CT27_PROMOTOR_PIN") || window.CT27_PROMOTOR_PIN || null,
 
               // Ámbito para ET-27
               SECCION: seccion,
@@ -2206,8 +2197,10 @@
           };
 
           // Persistir y refrescar
-          (window.registros = window.registros || []).push(feature);
-          saveLocal(window.registros);
+          registros.push(feature);
+          // mantener la referencia global para otras utilidades
+          window.registros = registros;
+          saveLocal(registros);
           redrawLayer();
           updateCounter();
 
@@ -2262,7 +2255,9 @@
           const elTotal =
             document.querySelector(".ec-contador") ||
             document.getElementById("ec-contador");
-          if (elTotal) elTotal.textContent = (window.registros || []).length;
+          if (elTotal) elTotal.textContent = (registros || []).length;
+          // sincronizar referencia global para herramientas externas
+          window.registros = registros;
           if (typeof renderKpis === "function") renderKpis();
         }
 
@@ -2404,7 +2399,13 @@
             return;
           }
 
-          const PIN = localStorage.getItem("CT27_PIN") || "2701";
+          // Leemos PINs desde localStorage. Puede ser un solo PIN o una lista
+          // separada por comas. Por compatibilidad, si no hay nada, usamos '2701'.
+          const pinsStr = localStorage.getItem("CT27_PIN") || "2701";
+          const pins = pinsStr
+            .split(",")
+            .map((s) => String(s || "").trim())
+            .filter(Boolean);
 
           // Mostrar sólo si no hay sesión validada
           if (!sessionStorage.getItem("CT27_UNLOCK")) {
@@ -2415,9 +2416,15 @@
           ok.addEventListener(
             "click",
             () => {
-              if (inp.value === PIN) {
+              const val = String(inp.value || "").trim();
+              const matched = pins.find((p) => p === val);
+              if (matched) {
+                // Guardamos el PIN usado para que pueda asociarse a los registros
+                window.CT27_PROMOTOR_PIN = matched;
+                sessionStorage.setItem("CT27_PROMOTOR_PIN", matched);
                 sessionStorage.setItem("CT27_UNLOCK", "1");
                 modal.style.display = "none";
+                toast("Acceso concedido.");
               } else {
                 alert("PIN incorrecto");
               }
