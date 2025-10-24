@@ -2399,8 +2399,13 @@
             return;
           }
 
-          // Leemos PINs desde localStorage. Puede ser un solo PIN o una lista
-          // separada por comas. Por compatibilidad, si no hay nada, usamos '2701'.
+          // Si no hay PINs configurados, pre-populamos localStorage con dos PINs
+          // para facilitar pruebas (2701 y 1234). Esto solo establece el valor
+          // si la clave no existe todavía.
+          if (!localStorage.getItem("CT27_PIN")) {
+            localStorage.setItem("CT27_PIN", "2701,1234");
+          }
+          // Leemos PINs desde localStorage. Puede ser un solo PIN o una lista separada por comas.
           const pinsStr = localStorage.getItem("CT27_PIN") || "2701";
           const pins = pinsStr
             .split(",")
