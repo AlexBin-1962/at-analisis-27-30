@@ -1,0 +1,285 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "99404271-5ac3-41fe-82dd-ddfd4b38f313",
+        "TS": "2025-10-29T03:16:53.294Z",
+        "ORIGEN": "CT-27",
+        "ESTATUS": "ACTIVO",
+        "TIPO": "SIMPATIZANTE",
+        "NOMBRE": "ZOTA PEREZ",
+        "TELEFONO": "4771234567",
+        "DOMICILIO": "COLINA JADE 101 LEON",
+        "PROMOTOR_PIN": "2701",
+        "SECCION": "1481",
+        "DISTRITO_L": "3",
+        "DISTRITO_F": "3",
+        "MUNICIPIO": "20",
+        "MUNICIPIO_NOMBRE": "Leon de los Aldama",
+        "AMBITO": "",
+        "OBS": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -101.6318039,
+          21.1642518
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "18ff78d6-2d91-4080-b9cd-8dc3e35d73ff",
+        "TS": "2025-10-29T03:18:11.086Z",
+        "ORIGEN": "CT-27",
+        "ESTATUS": "ACTIVO",
+        "TIPO": "SIMPATIZANTE",
+        "NOMBRE": "RAUL FRIAS",
+        "TELEFONO": "4775888657",
+        "DOMICILIO": "COLINA TURMALINA 102 LEON",
+        "PROMOTOR_PIN": "2701",
+        "SECCION": "1481",
+        "DISTRITO_L": "3",
+        "DISTRITO_F": "3",
+        "MUNICIPIO": "20",
+        "MUNICIPIO_NOMBRE": "Leon de los Aldama",
+        "AMBITO": "MUN:20 · DL:3 · DF:3",
+        "OBS": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -101.6322602,
+          21.163487
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "118d3af8-e277-415f-a312-0ce752109e66",
+        "TS": "2025-10-29T03:19:33.054Z",
+        "ORIGEN": "CT-27",
+        "ESTATUS": "ACTIVO",
+        "TIPO": "LIDER",
+        "NOMBRE": "HUMBERTO CARBAJAL",
+        "TELEFONO": "4793264589",
+        "DOMICILIO": "CALLE DEL ONIX 102 LEON",
+        "PROMOTOR_PIN": "2701",
+        "SECCION": "1481",
+        "DISTRITO_L": "3",
+        "DISTRITO_F": "3",
+        "MUNICIPIO": "20",
+        "MUNICIPIO_NOMBRE": "Leon de los Aldama",
+        "AMBITO": "MUN:20 · DL:3 · DF:3",
+        "OBS": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -101.6317161,
+          21.1629508
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "06c46c04-d10a-4805-8b76-8c5f5d6f0d97",
+        "TS": "2025-10-29T03:21:13.576Z",
+        "ORIGEN": "CT-27",
+        "ESTATUS": "ACTIVO",
+        "TIPO": "LIDER",
+        "NOMBRE": "LUIS EDUARDO SANCHEZ",
+        "TELEFONO": "4776492317",
+        "DOMICILIO": "COLINA AGATA 106A LEON",
+        "PROMOTOR_PIN": "2701",
+        "SECCION": "1481",
+        "DISTRITO_L": "3",
+        "DISTRITO_F": "3",
+        "MUNICIPIO": "20",
+        "MUNICIPIO_NOMBRE": "Leon de los Aldama",
+        "AMBITO": "MUN:20 · DL:3 · DF:3",
+        "OBS": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -101.6325807,
+          21.1636183
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "9d85711f-7bb7-4d5f-8734-948d09263a68",
+        "TS": "2025-10-29T03:23:57.188Z",
+        "ORIGEN": "CT-27",
+        "ESTATUS": "ACTIVO",
+        "TIPO": "ADVERSARIO",
+        "NOMBRE": "ANA PEREZ SANCHEZ",
+        "TELEFONO": "4791341165",
+        "DOMICILIO": "COLINA JADE 127 LEON",
+        "PROMOTOR_PIN": "2701",
+        "SECCION": "1481",
+        "DISTRITO_L": "3",
+        "DISTRITO_F": "3",
+        "MUNICIPIO": "20",
+        "MUNICIPIO_NOMBRE": "Leon de los Aldama",
+        "AMBITO": "MUN:20 · DL:3 · DF:3",
+        "OBS": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -101.631229,
+          21.1636789
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "33168256-6917-43ca-878d-2c783837bcb8",
+        "TS": "2025-10-29T03:25:26.275Z",
+        "ORIGEN": "CT-27",
+        "ESTATUS": "ACTIVO",
+        "TIPO": "ADVERSARIO",
+        "NOMBRE": "MARIA CEDILLO LOPEZ",
+        "TELEFONO": "4794789162",
+        "DOMICILIO": "COLINA CUARZO 220 LEON",
+        "PROMOTOR_PIN": "2701",
+        "SECCION": "1481",
+        "DISTRITO_L": "3",
+        "DISTRITO_F": "3",
+        "MUNICIPIO": "20",
+        "MUNICIPIO_NOMBRE": "Leon de los Aldama",
+        "AMBITO": "MUN:20 · DL:3 · DF:3",
+        "OBS": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -101.6321011,
+          21.1658247
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "959fc346-057c-4f82-9a03-6fe14958f72a",
+        "TS": "2025-10-29T03:26:35.330Z",
+        "ORIGEN": "CT-27",
+        "ESTATUS": "ACTIVO",
+        "TIPO": "REP_CASILLA",
+        "NOMBRE": "ARMANDO MUÑOZ",
+        "TELEFONO": "4792569317",
+        "DOMICILIO": "COLINA TOPACIO 210 LEON",
+        "PROMOTOR_PIN": "2701",
+        "SECCION": "1481",
+        "DISTRITO_L": "3",
+        "DISTRITO_F": "3",
+        "MUNICIPIO": "20",
+        "MUNICIPIO_NOMBRE": "Leon de los Aldama",
+        "AMBITO": "MUN:20 · DL:3 · DF:3",
+        "OBS": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -101.6311124,
+          21.1672597
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "d265a5db-9e76-464f-bbdd-85969b2932dd",
+        "TS": "2025-10-29T03:28:31.212Z",
+        "ORIGEN": "CT-27",
+        "ESTATUS": "ACTIVO",
+        "TIPO": "REP_GENERAL",
+        "NOMBRE": "ROSA OLMOS",
+        "TELEFONO": "4795874125",
+        "DOMICILIO": "COLINA VENTURINA 120A LEON",
+        "PROMOTOR_PIN": "2701",
+        "SECCION": "1481",
+        "DISTRITO_L": "3",
+        "DISTRITO_F": "3",
+        "MUNICIPIO": "20",
+        "MUNICIPIO_NOMBRE": "Leon de los Aldama",
+        "AMBITO": "MUN:20 · DL:3 · DF:3",
+        "OBS": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -101.6318667,
+          21.1681598
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "ee05b1de-55b3-4758-aa1c-4fc47afe7761",
+        "TS": "2025-10-29T03:29:40.332Z",
+        "ORIGEN": "CT-27",
+        "ESTATUS": "ACTIVO",
+        "TIPO": "REP_GENERAL",
+        "NOMBRE": "MARIA ELENA GUTIERREZ",
+        "TELEFONO": "4793257894",
+        "DOMICILIO": "COLINA ZAFIRO 112 LEON",
+        "PROMOTOR_PIN": "2701",
+        "SECCION": "1481",
+        "DISTRITO_L": "3",
+        "DISTRITO_F": "3",
+        "MUNICIPIO": "20",
+        "MUNICIPIO_NOMBRE": "Leon de los Aldama",
+        "AMBITO": "MUN:20 · DL:3 · DF:3",
+        "OBS": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -101.6307901,
+          21.167678
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "ae6e079b-e6e9-4d5e-9b47-c8aedfb42230",
+        "TS": "2025-10-29T03:30:39.531Z",
+        "ORIGEN": "CT-27",
+        "ESTATUS": "ACTIVO",
+        "TIPO": "OBSERVADOR",
+        "NOMBRE": "JULIA MATA",
+        "TELEFONO": "4772198564",
+        "DOMICILIO": "COLINA OPALO 140 LEON",
+        "PROMOTOR_PIN": "2701",
+        "SECCION": "1481",
+        "DISTRITO_L": "3",
+        "DISTRITO_F": "3",
+        "MUNICIPIO": "20",
+        "MUNICIPIO_NOMBRE": "Leon de los Aldama",
+        "AMBITO": "MUN:20 · DL:3 · DF:3",
+        "OBS": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -101.6307859,
+          21.1659755
+        ]
+      }
+    }
+  ]
+}
