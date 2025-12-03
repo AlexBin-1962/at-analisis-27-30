@@ -23,6 +23,45 @@
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 
     <style>
+      /* === Resaltado ET-27: halo + ping tipo radar === */
+      .et27-hl-wrapper {
+        pointer-events: none; /* que no bloquee clics en el mapa */
+      }
+
+      .et27-hl-ping {
+        position: relative;
+        width: 26px;
+        height: 26px;
+        border-radius: 9999px;
+        border: 3px solid rgba(220, 38, 38, 0.95); /* rojo intenso */
+        box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.4),
+          0 0 18px rgba(239, 68, 68, 0.9);
+        background: radial-gradient(
+          circle,
+          rgba(248, 250, 252, 0.95) 0%,
+          rgba(248, 250, 252, 0.1) 55%,
+          rgba(248, 250, 252, 0) 100%
+        );
+
+        transform: translate(-50%, -50%) scale(0.6);
+        animation: et27-hl-pulse 1.4s ease-out infinite;
+      }
+
+      @keyframes et27-hl-pulse {
+        0% {
+          transform: translate(-50%, -50%) scale(0.4);
+          opacity: 1;
+        }
+        60% {
+          transform: translate(-50%, -50%) scale(1.3);
+          opacity: 0.4;
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(1.8);
+          opacity: 0;
+        }
+      }
+
       #et27-sec-panel {
         position: fixed;
         right: 16px;
@@ -1111,24 +1150,40 @@
         if (!marker) return;
 
         const latlng = marker.getLatLng();
-        map.setView(latlng, Math.max(map.getZoom(), 19), { animate: true });
 
-        // Resaltar visualmente el marcador con un halo rojo temporal
+        // 🔍 Zoom más cercano (tipo puerta de casa)
+        map.setView(latlng, 19, { animate: true });
+
+        // 🔆 Overlay de resaltado con halo / ping
         try {
-          const iconEl = marker.getElement ? marker.getElement() : marker._icon;
-          if (iconEl) {
-            const originalBoxShadow = iconEl.style.boxShadow || "";
-            iconEl.style.transition = "box-shadow 0.25s ease";
-            iconEl.style.boxShadow = "0 0 0 6px rgba(220, 38, 38, 0.7)";
-
-            setTimeout(() => {
-              iconEl.style.boxShadow = originalBoxShadow;
-            }, 1200);
+          // quitar resaltado anterior si existe
+          if (window.ET27_HL) {
+            map.removeLayer(window.ET27_HL);
           }
+
+          window.ET27_HL = L.marker(latlng, {
+            icon: L.divIcon({
+              className: "et27-hl-wrapper",
+              html: '<div class="et27-hl-ping"></div>',
+              iconSize: [40, 40],
+              iconAnchor: [20, 20],
+            }),
+            interactive: false,
+            pane: "markerPane", // arriba de los puntos normales
+          }).addTo(map);
+        } catch (e) {
+          console.warn("[ET] No se pudo dibujar resaltado de persona:", e);
+        }
+
+        // 5) Feedback visual normal
+        marker.openPopup?.();
+        try {
+          document
+            .querySelectorAll(".pers-item.pers-active")
+            .forEach((el) => el.classList.remove("pers-active"));
+          if (li) li.classList.add("pers-active");
         } catch (_) {}
 
-        // 5) Feedback visual
-        marker.openPopup?.();
         try {
           document
             .querySelectorAll(".pers-item.pers-active")
@@ -4186,12 +4241,11 @@
             if (typeof gotoSection === "function") {
               gotoSection({ SECCION: r.sec }); // tu helper existente
             }
+
             openETPanelForSection(r.sec);
           };
           tb.appendChild(tr);
         });
-        tbl.appendChild(tb);
-
         tbl.appendChild(tb);
 
         // Habilita botón CSV para exportar las filas mostradas (usa la variable `take` local)

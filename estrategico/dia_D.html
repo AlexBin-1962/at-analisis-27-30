@@ -1,576 +1,2035 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dia "D"</title>
-  <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet"/>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dia "D"</title>
+    <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
 
-  <style>
-    html, body { margin:0; padding:0; height:100%; width:100%; font-family:'Segoe UI', Arial, sans-serif; background:#f4f4f4; }
-    :root{ --sidebar-w:320px; }
-    #panel-lateral{
-      position:absolute;
-      left:0; top:0; bottom:0; width:var(--sidebar-w); height:100%;
-      background: linear-gradient(180deg, #8ea3ad 0%, #dfe6e9 100%);
-      color:#2c3e50; border-right:1px solid #b2bec3;
-      display:flex; flex-direction:column; 
-      box-shadow:2px 0 5px rgba(0,0,0,0.1); box-sizing:border-box; align-items:stretch;
-      z-index:2000;
-    }
-    #panel-header{ background:#b2bec3; color:#2c3e50; padding:12px 15px; display:flex; align-items:center; font-size:18px; font-weight:bold; }
-    #panel-header img{ height:32px; margin-right:10px; }
-    #map{ position:absolute; top:0; left:var(--sidebar-w); width:calc(100% - var(--sidebar-w)); height:100%; }
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #f4f4f4;
+      }
+      :root {
+        --sidebar-w: 320px;
+      }
+      #panel-lateral {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: var(--sidebar-w);
+        height: 100%;
+        background: linear-gradient(180deg, #8ea3ad 0%, #dfe6e9 100%);
+        color: #2c3e50;
+        border-right: 1px solid #b2bec3;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+        align-items: stretch;
+        z-index: 2000;
+      }
+      #panel-header {
+        background: #b2bec3;
+        color: #2c3e50;
+        padding: 12px 15px;
+        display: flex;
+        align-items: center;
+        font-size: 18px;
+        font-weight: bold;
+      }
+      #panel-header img {
+        height: 32px;
+        margin-right: 10px;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        left: var(--sidebar-w);
+        width: calc(100% - var(--sidebar-w));
+        height: 100%;
+      }
 
-    #sec-search    { position: relative; }                /* contenedor del buscador */
-    #sec-suggest   { z-index: 3000; } 
-    #sec-suggest {
-      position: absolute;
-      left: 12px; right: 12px;
-      top: 46px;           /* ajusta según tu input */
-      max-height: 220px;
-      overflow: auto;
-    }
+      #sec-search {
+        position: relative;
+      } /* contenedor del buscador */
+      #sec-suggest {
+        z-index: 3000;
+      }
+      #sec-suggest {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        top: 46px; /* ajusta según tu input */
+        max-height: 220px;
+        overflow: auto;
+      }
       /* la lista queda clickeable */
 
-/* Etiqueta de la SECCIÓN seleccionada (rosa tenue) */
-.sec-label{
-  background: rgba(255, 235, 238, 0.96);  /* #ffebee */
-  border: 1px solid #e91e63;
-  color: #880e4f;
-  padding: 2px 6px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  pointer-events: none;
-  white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(0,0,0,.15);
-}
+      /* Etiqueta de la SECCIÓN seleccionada (rosa tenue) */
+      .sec-label {
+        background: rgba(255, 235, 238, 0.96); /* #ffebee */
+        border: 1px solid #e91e63;
+        color: #880e4f;
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        pointer-events: none;
+        white-space: nowrap;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      }
 
-/* Etiquetas de SECCIONES ADYACENTES (azul/gris tenue) */
-.sec-label-adj{
-  background: rgba(227, 242, 253, 0.94);  /* #e3f2fd */
-  border: 1px solid #64b5f6;
-  color: #0d47a1;
-  padding: 1px 5px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  pointer-events: none;
-  white-space: nowrap;
-  box-shadow: 0 1px 4px rgba(0,0,0,.12);
-}
+      /* Etiquetas de SECCIONES ADYACENTES (azul/gris tenue) */
+      .sec-label-adj {
+        background: rgba(227, 242, 253, 0.94); /* #e3f2fd */
+        border: 1px solid #64b5f6;
+        color: #0d47a1;
+        padding: 1px 5px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        pointer-events: none;
+        white-space: nowrap;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+      }
+
+      /* Panel flotante sección */
+      #sec-info {
+        position: absolute;
+        left: 12px;
+        bottom: 380px;
+        width: 300px;
+        max-width: 38vw;
+        min-width: 260px;
+        background: #ffffff;
+        border: 1px solid #cfd8dc;
+        border-radius: 10px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+        resize: both;
+        overflow: auto;
+        z-index: 4000;
+        display: none;
+        pointer-events: auto;
+      }
+      #sec-info .hdr {
+        cursor: move;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(180deg, #eceff1, #e3f2fd);
+        padding: 8px 12px;
+        border-bottom: 1px solid #cfd8dc;
+        font-weight: 700;
+        color: #263238;
+      }
+
+      #sec-info .hdr .btn-close {
+        cursor: pointer;
+        border: none;
+        outline: none;
+        background: #ffcdd2; /* rosa tenue */
+        color: #880e4f;
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 800;
+      }
+      #sec-info .hdr .btn-close:hover {
+        background: #ef9a9a;
+      }
+      #sec-info .body {
+        padding: 10px 12px;
+        color: #37474f;
+      }
+      #sec-info .row {
+        display: flex;
+        justify-content: space-between;
+        margin: 6px 0;
+      }
+      #sec-info .k {
+        color: #607d8b;
+      }
+      #sec-info .v {
+        font-weight: 600;
+      }
+
+      .diaD-menu {
+      position: absolute;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+      padding: 6px 0;
+      width: 180px;
+      z-index: 4500;
+      
+    }
+
+    .diaD-menu div {
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .diaD-menu div:hover {
+      background: #eef2ff;
+    }
+
+    .diaD-menu.hidden {
+      display: none;
+    }
 
 
-/* Panel flotante sección */
-#sec-info {
-  position: absolute;
-  right: 16px; bottom: 16px;
-  width: 320px; max-width: 38vw; min-width: 260px;
-  background: #ffffff;
-  border: 1px solid #cfd8dc;
-  border-radius: 10px;
-  box-shadow: 0 10px 24px rgba(0,0,0,.15);
-  resize: both; overflow: auto; z-index: 4000;
-  display: none;
-  pointer-events: auto;
-}
-#sec-info .hdr {
-  cursor: move;
-  display:flex; align-items:center; justify-content:space-between;
-  background: linear-gradient(180deg,#eceff1,#e3f2fd);
-  padding: 8px 12px;
-  border-bottom: 1px solid #cfd8dc;
-  font-weight: 700; color: #263238;
-}
+      /* ===== Panel Día D (sección → casillas) ===== */
+      #diaD-panel {
+        position: absolute;
+        top: 70px;          /* ajústalo si quieres más arriba / abajo */
+        right: 20px;
+        width: 460px;
+        height: 800px;      /* 👈 más alto que antes */
+        max-height: 80vh;   /* no pasa del 80% de la pantalla */
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+        display: none;
+        overflow: hidden;   /* el scroll lo lleva el interior */
+        z-index: 4500;
+      }
 
-#sec-info .hdr .btn-close{
-  cursor: pointer;
-  border: none; outline: none;
-  background: #ffcdd2;         /* rosa tenue */
-  color: #880e4f;
-  width: 24px; height: 24px; line-height: 24px;
-  border-radius: 6px;
-  font-size: 16px; font-weight: 800;
-}
-#sec-info .hdr .btn-close:hover{ background:#ef9a9a; }
-#sec-info .body { padding: 10px 12px; color: #37474f; }
-#sec-info .row  { display:flex; justify-content:space-between; margin:6px 0; }
-#sec-info .k    { color:#607d8b; }
-#sec-info .v    { font-weight:600; }
- 
+  
+
+      #diaD-resize-handle {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        right: 4px;
+        bottom: 4px;
+        cursor: se-resize;
+        background: linear-gradient(135deg, #cbd5f5 0%, #64748b 100%);
+        border-radius: 4px;
+      }
+
+      #diaD-panel .d1-body {
+        padding: 8px 12px 10px;
+        height: calc(100% - 50px);  /* ajusta resto del panel */
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #diaD-panel .d1-table-wrap {
+        margin-top: 6px;
+        flex: 1 1 auto;
+        max-height: none;          /* dejamos que lo limite .d1-body */
+        overflow-y: auto;
+      }
+
+      #diaD-panel .hdr {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: linear-gradient(180deg, #f8fafc, #eef2f7);
+        border-bottom: 1px solid #e5e7eb;
+        cursor: move; /* para indicar que se puede arrastrar */
+      }
+
+      #diaD-panel .ttl {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      #diaD-panel .ttl-main {
+        font-weight: 700;
+        color: #111827;
+      }
+
+      #diaD-panel .ttl-sub {
+        font-size: 11px;
+        color: #64748b;
+      }
+
+      #diaD-panel .btn-close {
+        border: none;
+        background: #ffe7ea;
+        color: #7f1d1d;
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      #diaD-panel .btn-close:hover {
+        background: #fecaca;
+      }
+
+      #diaD-panel .body {
+        padding: 8px 12px 10px;
+        max-height: calc(80vh - 48px);
+        overflow: auto;
+      }
+
+      /* KPIs */
+      #diaD-panel .kpis {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      #diaD-panel .kpi {
+        flex: 1 1 120px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 6px 8px;
+        background: #fbfdff;
+      }
+      #diaD-panel .kpi .t {
+        font-size: 11px;
+        color: #64748b;
+      }
+      #diaD-panel .kpi .v {
+        font-size: 18px;
+        font-weight: 700;
+        color: #111827;
+      }
+
+      /* Barra de tareas Día D */
+      #diaD-toolbar {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        z-index: 4600;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+      }
+
+      #diaD-toolbar #btn-diaD-status {
+        padding: 6px 10px;
+        font-size: 12px;
+        border-radius: 999px;
+        border: 1px solid #cbd5f5;
+        background: #ffffff;
+        box-shadow: 0 4px 10px rgba(15,23,42,0.15);
+        cursor: pointer;
+      }
+
+      #diaD-toolbar #btn-diaD-status:hover {
+        background: #eef2ff;
+      }
+
+      .diaD-toolbar-menu {
+        margin-top: 4px;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 10px 24px rgba(15,23,42,0.18);
+        padding: 4px 0;
+        min-width: 190px;
+      }
+
+      .diaD-toolbar-menu div {
+        padding: 6px 10px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      .diaD-toolbar-menu div:hover {
+        background: #eef2ff;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      /* Panel global de estatus */
+      .diaD-status-panel {
+        position: absolute;
+        top: 70px;
+        right: 20px;
+        width: 520px;
+        max-height: 70vh;
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 18px 45px rgba(15,23,42,0.22);
+        overflow: hidden;
+        z-index: 4550;
+      }
+
+      .diaD-status-panel .body {
+        padding: 8px 12px 10px;
+        max-height: calc(70vh - 48px);
+        overflow: hidden;
+      }
+
+      .d2-table-wrap {
+        margin-top: 6px;
+        max-height: calc(70vh - 80px);
+        overflow-y: auto;
+      }
+
+      #diaD-status-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+
+      #diaD-status-table th,
+      #diaD-status-table td {
+        border-bottom: 1px solid #f1f5f9;
+        padding: 5px 6px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      #diaD-status-table tbody tr:hover {
+        background: #f1f5f9;
+        cursor: pointer;
+      }
+
+
+      /* Tabla de casillas */
+      #diaD-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+      #diaD-table th,
+      #diaD-table td {
+        border-bottom: 1px solid #f1f5f9;
+        padding: 6px 6px;
+        text-align: left;
+        vertical-align: top;
+      }
+      #diaD-table th {
+        position: sticky;
+        top: 0;
+        background: #ffffff;
+        z-index: 1;
+      }
+
+      #diaD-table tbody tr.d1-row-selected {
+        background: #fef3c7;
+      }
+
+      #diaD-table tbody tr.d1-row-selected td {
+        border-bottom-color: #fbbf24;
+      }
+
+      /* Chips de estatus */
+      .d1-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 6px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        border: 1px solid transparent;
+      }
+      .d1-chip.ok {
+        background: #dcfce7;
+        color: #166534;
+        border-color: #bbf7d0;
+      }
+      .d1-chip.mid {
+        background: #fef9c3;
+        color: #854d0e;
+        border-color: #fef3c7;
+      }
+      .d1-chip.bad {
+        background: #fee2e2;
+        color: #991b1b;
+        border-color: #fecaca;
+      }
+
+      .d1-chip.gray {
+        background: #e5e7eb;
+        color: #111827;
+        border-color: #d1d5db;
+      }
+
+      /* Contenedor del cuerpo del panel Día D (tabla) */
+      #diaD-panel .d1-table-wrap {
+        max-height: 420px;      /* antes seguro está más chico, tipo 260px */
+        overflow-y: auto;       /* scroll vertical interno */
+        padding-right: 4px;     /* deja espacio para el scrollbar */
+      }
+
+      /* Opcional: que se note el área de scroll */
+      #diaD-panel .d1-table-wrap::-webkit-scrollbar {
+        width: 6px;
+      }
+      #diaD-panel .d1-table-wrap::-webkit-scrollbar-thumb {
+        background: #cbd5f5;
+        border-radius: 999px;
+      }
+
+      /* Responsive móvil */
+      @media (max-width: 640px) {
+        #diaD-panel {
+          right: 8px;
+          left: 8px;
+          width: auto;
+          max-width: none;
+          top: 72px;
+          max-height: 78vh;
+        }
+      }
+
+      .d1-status {
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: white;
+      }
+
+      .d1-status.red { background: #e11d48; }
+      .d1-status.yellow { background: #eab308; color: #000; }
+      .d1-status.orange { background: #f97316; }
+      .d1-status.green { background: #22c55e; }
+      .d1-status.gray { background: #6b7280; }
 
 
 
-  </style>
-</head>
-<body>
-  <div id="panel-lateral">
-    <div id="panel-header">
-      <!-- <img src="assets/img/logo.png" alt="Logo"/> -->
-      <span>Dia "D"</span>
-    </div>
-    <!-- Aquí va el contenido del panel lateral -->
-
-    <!-- Buscador de secciones -->
-    <div id="sec-search" style="padding:10px 12px; border-top:1px solid #cbd5e1; background:#eef2f7">
-      <div style="display:flex; gap:8px; align-items:center;">
-        <input id="sec-q" type="text" placeholder="Buscar sección (ej. 1234 o '1234 León')" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search"
-              style="flex:1; padding:6px 8px; border:1px solid #94a3b8; border-radius:6px;">
-        <label style="white-space:nowrap; font-size:12px;">
-          <input id="sec-global" type="checkbox"> Todo el estado
-        </label>
+    </style>
+  </head>
+  <body>
+    <div id="sec-info">
+      <div class="hdr">
+        <span class="ttl">Sección</span>
+        <button id="sec-close" class="btn-close" aria-label="Cerrar">×</button>
       </div>
-      <ul id="sec-suggest" style="margin:8px 0 0 0; padding:0; list-style:none; max-height:180px; overflow:auto;
-                                  border:1px solid #cbd5e1; border-radius:6px; background:#fff; display:none;"></ul>
+      <div class="body">
+        <div class="row">
+          <span class="k">Sección</span> <span class="v" id="si-sec">—</span>
+        </div>
+        <div class="row">
+          <span class="k">Distrito Federal</span
+          ><span class="v" id="si-df">—</span>
+        </div>
+        <div class="row">
+          <span class="k">Distrito Local</span>
+          <span class="v" id="si-dl">—</span>
+        </div>
+        <div class="row">
+          <span class="k">LN (2024)</span> <span class="v" id="si-ln">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel Día D: Sección → Casillas -->
+    <div id="diaD-panel">
+      <div class="hdr">
+        <div class="ttl">
+          <div class="ttl-main">
+            Día "D" · Sección <span id="d1-sec">—</span>
+          </div>
+          <div class="ttl-sub" id="d1-sub">
+            Casillas: — · Reps asignados: — · Faltantes: —
+          </div>
+        </div>
+        <button id="d1-close" class="btn-close" aria-label="Cerrar">×</button>
+      </div>
+      <div class="body">
+        <div class="kpis">
+          <div class="kpi">
+            <div class="t">Casillas en la sección</div>
+            <div class="v" id="d1-kpi-casillas">—</div>
+          </div>
+          <div class="kpi"></div>
+            <div class="t">Reps asignados</div>
+            <div class="v" id="d1-kpi-reps">—</div>
+          </div>
+          <div class="kpi">
+            <div class="t">Casillas sin cobertura</div>
+            <div class="v" id="d1-kpi-sin">—</div>
+          </div>
+        </div>
+
+        <table id="diaD-table">
+          <thead>
+            <tr>
+              <th>Casilla</th>
+              <th>Domicilio</th>
+              <th>Rep. / Teléfono</th>
+              <th>Estatus</th>
+            </tr>
+          </thead>
+          <tbody id="d1-tbody">
+            <!-- Se rellena desde JS -->
+          </tbody>
+        </table>
+      </div>
+      
+    </div>
+
+    <!-- Barra de tareas Día D -->
+    <div id="diaD-toolbar">
+      <button id="btn-diaD-status">Estatus Día "D" ▾</button>
+      <div id="diaD-toolbar-menu" class="diaD-toolbar-menu hidden">
+        <div data-est="todos">📋 Todas las casillas</div>
+        <div data-est="sin_rep">❌ Sin representante</div>
+        <div data-est="instalada">🟡 Casilla instalada</div>
+        <div data-est="incidencia">⚠️ Incidencia</div>
+        <div data-est="acta_recibida">🟢 Acta recibida</div>
+        <div data-est="cerrada">⬛ Casilla cerrada</div>
+      </div>
+    </div>
+
+    <!-- Panel global de estatus Día D -->
+    <div id="diaD-status-panel" class="diaD-status-panel hidden">
+      <div class="hdr">
+        <div class="ttl">
+          <div class="ttl-main">
+            Filtro Día "D": <span id="d2-label">—</span>
+          </div>
+          <div class="ttl-sub" id="d2-sub">Casillas: —</div>
+        </div>
+        <button id="d2-close" class="btn-close" aria-label="Cerrar">×</button>
+      </div>
+      <div class="body">
+        <div style="font-size:12px; color:#64748b; margin-bottom:6px;">
+          Haz clic en una fila para ir al punto de la casilla en el mapa.
+        </div>
+        <div class="d2-table-wrap">
+          <table id="diaD-status-table">
+            <thead>
+              <tr>
+                <th>Sección</th>
+                <th>Casilla</th>
+                <th>Domicilio</th>
+                <th>Estatus</th>
+              </tr>
+            </thead>
+            <tbody id="d2-tbody">
+              <!-- Se rellena desde JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
 
-
-    <div id="mini-universe" style="padding:12px 12px 6px 12px; background:#eef2f7; border-top:1px solid #cbd5e1">
-        <div class="row" style="margin-bottom:8px">
-            <label><input type="checkbox" id="mini-all-state"> Estado completo</label>
-        </div>
-        <div class="row" style="margin-bottom:8px">
-            <label>Municipio</label>
-            <select id="mini-sel-mun" style="width:100%;padding:6px"><option value="">— Ninguno —</option></select>
-        </div>
-        <div class="row" style="margin-bottom:8px">
-            <label>Distrito Federal</label>
-            <select id="mini-sel-df" style="width:100%;padding:6px"><option value="">— Ninguno —</option></select>
-        </div>
-        <div class="row" style="margin-bottom:8px">
-            <label>Distrito Local</label>
-            <select id="mini-sel-dl" style="width:100%;padding:6px"><option value="">— Ninguno —</option></select>
-        </div>
-        <div class="hint" style="font-size:12px;color:#64748b">Elige solo uno. Al cambiar, el mapa se actualiza.</div>
+    <div class="d1-table-wrap">
+      <table id="diaD-table">
+        <thead>...</thead>
+        <tbody id="d1-tbody"></tbody>
+      </table>
     </div>
 
-  </div>
-  <div id="map"></div>
 
-  <!-- === SCRIPT ÚNICO === -->
-  <script>
-  // ===== 0) Campos (ajusta si tus nombres son distintos) =====
-  // DL = Distrito Local, DF = Distrito Federal
-  const FIELD_KEYS = { mun: 'MUNICIPIO', dl: 'DISTRITO_L', df: 'DISTRITO_F' };
+    <div id="panel-lateral">
+      <div id="panel-header">
+        <!-- <img src="assets/img/logo.png" alt="Logo"/> -->
+        <span>Dia "D"</span>
+      </div>
+      <!-- Aquí va el contenido del panel lateral -->
 
+      <!-- Buscador de secciones -->
+      <div
+        id="sec-search"
+        style="
+          padding: 10px 12px;
+          border-top: 1px solid #cbd5e1;
+          background: #eef2f7;
+        "
+      >
+        <div style="display: flex; gap: 8px; align-items: center">
+          <input
+            id="sec-q"
+            type="text"
+            placeholder="Buscar sección (ej. 1234 o '1234 León')"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+            enterkeyhint="search"
+            style="
+              flex: 1;
+              padding: 6px 8px;
+              border: 1px solid #94a3b8;
+              border-radius: 6px;
+            "
+          />
+          <label style="white-space: nowrap; font-size: 12px">
+            <input id="sec-global" type="checkbox" /> Todo el estado
+          </label>
+        </div>
+        <ul
+          id="sec-suggest"
+          style="
+            margin: 8px 0 0 0;
+            padding: 0;
+            list-style: none;
+            max-height: 180px;
+            overflow: auto;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #fff;
+            display: none;
+          "
+        ></ul>
+      </div>
 
-    const paths = JSON.parse(localStorage.getItem('AT_PATHS')||'{}');
-    const urlGeo = paths.geo || 'data/geo/secciones.geojson';
-    const catUrl = paths.catalog || 'data/catalogo_territorial.json';
-    const ELP = paths.electoral?.P || 'data/electoral/P.json';
-// ...
+      <div
+        id="mini-universe"
+        style="
+          padding: 12px 12px 6px 12px;
+          background: #eef2f7;
+          border-top: 1px solid #cbd5e1;
+        "
+      >
+        <div class="row" style="margin-bottom: 8px">
+          <label
+            ><input type="checkbox" id="mini-all-state" /> Estado
+            completo</label
+          >
+        </div>
+        <div class="row" style="margin-bottom: 8px">
+          <label>Municipio</label>
+          <select id="mini-sel-mun" style="width: 100%; padding: 6px">
+            <option value="">— Ninguno —</option>
+          </select>
+        </div>
+        <div class="row" style="margin-bottom: 8px">
+          <label>Distrito Federal</label>
+          <select id="mini-sel-df" style="width: 100%; padding: 6px">
+            <option value="">— Ninguno —</option>
+          </select>
+        </div>
+        <div class="row" style="margin-bottom: 8px">
+          <label>Distrito Local</label>
+          <select id="mini-sel-dl" style="width: 100%; padding: 6px">
+            <option value="">— Ninguno —</option>
+          </select>
+        </div>
+        <div class="hint" style="font-size: 12px; color: #64748b">
+          Elige solo uno. Al cambiar, el mapa se actualiza.
+        </div>
+      </div>
+    </div>
+    <div id="map"></div>
 
+    <!-- === SCRIPT ÚNICO === -->
+    <script>
+      // ===== 0) Campos (ajusta si tus nombres son distintos) =====
+      // DL = Distrito Local, DF = Distrito Federal
+      const FIELD_KEYS = {
+        mun: "MUNICIPIO",
+        dl: "DISTRITO_L",
+        df: "DISTRITO_F",
+      };
 
+      const paths = JSON.parse(localStorage.getItem("AT_PATHS") || "{}");
+      const urlGeo = paths.geo || "data/geo/secciones.geojson";
+      const catUrl = paths.catalog || "data/catalogo_territorial.json";
+      const ELP = paths.electoral?.P || "data/electoral/P.json";
+      // ...
 
-  // ===== 1) Mapa único y chequeo =====
-  function ensureLeafletMap() {
-    if (window.__AT_MAP && window.__AT_MAP instanceof L.Map) return window.__AT_MAP;
-    const m = L.map('map', { zoomControl:true }).setView([21.0, -101.3], 7);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OSM' }).addTo(m);
-    window.__AT_MAP = m;
-    return m;
-  }
-  function assertIsLeafletMap(m) {
-    if (!(m instanceof L.Map) || typeof m.addLayer !== 'function') {
-      throw new Error('[AT] addTo(): destino no es un Leaflet Map. Revisa variables llamadas "map" o dobles inicializaciones.');
-    }
-  }
+      // ===== Día D: rutas y caché =====
+      function getDiaDPath(){
+        // Si algún día configuramos otra ruta en AT_PATHS, se respeta
+        try{
+          const paths = JSON.parse(localStorage.getItem('AT_PATHS') || '{}');
+          if (paths.diaD) return paths.diaD;
+        }catch(_){}
 
-  function closeSecInfoPanel(){
-    const box = document.getElementById('sec-info');
-    if (box) box.style.display = 'none';
-    // Si quieres limpiar resaltado y etiquetas al cerrar:
-    if (typeof clearSectionOverlays === 'function') clearSectionOverlays();
-  }
+        // Por ahora, Día D usa el mismo archivo que ESTRUCTURA (versión enriquecida)
+        return 'data/casillas/casillas_min_por_seccion_enriquecido.json';
+      }
 
+      // === ESTADO DEL DÍA D ===
+      let diaDState = {};       // memoria temporal
+      let diaDStateLoaded = false;
 
-  function ensureSecInfoPanelWired(){
-  const box = document.getElementById('sec-info');
-  const hdr = box?.querySelector('.hdr');
-  if (!box || !hdr || box.__wired) return;
+      // Ruta del archivo (ajusta si tu estructura difiere)
+      const DIA_D_STATE_PATH = "data/dia_d/dia_d_estado.json";
 
-  // Bloquear propagación al mapa (no “parpadea” al arrastrar)
-  if (window.L && L.DomEvent){
-    L.DomEvent.disableClickPropagation(box);
-    L.DomEvent.disableScrollPropagation(box);
-  }
+      // Leer archivo de estado
+      async function loadDiaDState(){
+        if (diaDStateLoaded) return diaDState;
 
-  // Drag del panel
-  let dragging = false, sx=0, sy=0, bx=0, by=0;
-  hdr.addEventListener('mousedown', (e)=>{
-    if (e.target.closest('.btn-close')) return; // no iniciar drag si clic en "×"
-    e.preventDefault(); e.stopPropagation();
-    dragging = true;
-    const r = box.getBoundingClientRect();
-    sx = e.clientX; sy = e.clientY; bx = r.left; by = r.top;
-    box.style.position = 'absolute'; box.style.right='auto'; box.style.bottom='auto';
-    document.body.style.userSelect = 'none';
-  });
-  window.addEventListener('mousemove', (e)=>{
-    if (!dragging) return;
-    e.preventDefault(); e.stopPropagation();
-    const dx = e.clientX - sx, dy = e.clientY - sy;
-    box.style.left = (bx + dx) + 'px';
-    box.style.top  = (by + dy) + 'px';
-  });
-  window.addEventListener('mouseup', ()=>{
-    if (!dragging) return;
-    dragging = false; document.body.style.userSelect = '';
-  });
-
-  // Botón “×”
-  const btn = document.getElementById('sec-close');
-  if (btn && !btn.__wired){
-    btn.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); closeSecInfoPanel(); });
-    btn.__wired = true;
-  }
-
-  box.__wired = true;
-}
-
-
-
-  // ===== 2) Filtrado por universo =====
-  function toComp(v){ if(v==null) return ''; const s=String(v).trim(); return (isFinite(s) && s!=='') ? Number(s) : s.toUpperCase(); }
-  function matches(props, u){
-    if(u.scope==='ALL') return true;
-    const keyField = u.scope==='MUN' ? FIELD_KEYS.mun : (u.scope==='DL' ? FIELD_KEYS.dl : FIELD_KEYS.df);
-    return toComp(props?.[keyField]) === toComp(u.key);
-  }
-  function filterGeojson(geojson, u){
-    if(u.scope==='ALL') return geojson;
-    const features = (geojson.features || []).filter(f => matches(f.properties, u));
-    return { ...geojson, features };
-  }
-
-
-  // ====== CARGA ELECTORAL (para obtener 24DL_LN) ======
-  function getPaths(){ try{ return JSON.parse(localStorage.getItem('AT_PATHS')||'{}'); }catch{ return {}; } }
-  function getPuestoPath(p){ const paths = getPaths(); return paths?.electoral?.[p] || `data/electoral/${p}.json`; }
-
-  window.AT_ELECT = window.AT_ELECT || {};
-  async function getElectData(puesto){
-    if (window.AT_ELECT[puesto]) return window.AT_ELECT[puesto];
-    const res = await fetch(getPuestoPath(puesto));
-    if (!res.ok) throw new Error(`HTTP ${res.status} en ${puesto}`);
-    const js = await res.json();
-    window.AT_ELECT[puesto] = js;
-    return js;
-  }
-  // LN para 2024 desde DL; si no hay, intenta P (fallback)
-  async function getLN24DL(sec){
-    const key = String(sec);
-    try {
-      const dl = await getElectData('DL');
-      const ln = dl?.secciones?.[key]?.["2024"]?.LN;
-      if (typeof ln === 'number') return ln;
-    } catch(_){}
-    try {
-      const p = await getElectData('P');
-      const ln = p?.secciones?.[key]?.["2024"]?.LN;
-      if (typeof ln === 'number') return ln;
-    } catch(_){}
-    return null;
-  }
-
-  // ====== ADYACENCIAS (Turf) ======
-  function bboxIntersects(b1, b2){
-    return !(b2[0] > b1[2] || b2[2] < b1[0] || b2[1] > b1[3] || b2[3] < b1[1]);
-  }
-  function getAdjacents(feat){
-    const all = (window.AT_DATA?.features)
-            || (window.AT_CTX?.layer?.toGeoJSON?.()?.features)
-            || [];
-    if (!all.length) return [];
-    const b1 = turf.bbox(feat);
-    const out = [];
-    const sec1 = feat.properties?.SECCION;
-    for (const f of all){
-      const p = f.properties || {};
-      if (p.SECCION === sec1) continue;
-      const b2 = turf.bbox(f);
-      if (!bboxIntersects(b1,b2)) continue;
-      try {
-        if (turf.booleanTouches(feat, f) || turf.booleanOverlap(feat, f) || turf.booleanIntersects(feat, f)){
-          out.push(f);
+        try{
+          const res = await fetch(DIA_D_STATE_PATH);
+          if (!res.ok) throw new Error("No se pudo cargar dia_d_estado.json");
+          diaDState = await res.json();
+          diaDStateLoaded = true;
+          console.log("[Día D] Estado cargado:", diaDState);
+        }catch(err){
+          console.error("[Día D] Error cargando estado:", err);
+          diaDState = {};
         }
-      } catch(_){}
-    }
-    return out.slice(0, 25); // cota de seguridad
-  }
+        return diaDState;
+      }
 
-  // ====== LABELS SOBRE EL MAPA ======
-  function addLabelForFeature(feat, className, text){
-    try {
-      const c = turf.centerOfMass(feat).geometry.coordinates; // [lon, lat]
-      const m = L.marker([c[1], c[0]], { icon: L.divIcon({ className, html: text, iconSize:[0,0] }) });
-      window.__SEC_LABELS = window.__SEC_LABELS || L.layerGroup().addTo(ensureLeafletMap());
-      window.__SEC_LABELS.addLayer(m);
-      return m;
-    } catch(_){}
-    return null;
-  }
+      // Guardar estado (solo modo local)
+      async function saveDiaDState(){
+        console.warn("⚠ saveDiaDState(): Solo funciona en entorno backend real. En local NO guarda.");
+      }
 
-  function clearSectionOverlays(){
-    const atMap = ensureLeafletMap();
-    if (window.__SEC_HL){ try{ atMap.removeLayer(__SEC_HL); }catch(_){ } window.__SEC_HL = null; }
-    if (window.__SEC_ADJ){ try{ atMap.removeLayer(__SEC_ADJ); }catch(_){ } window.__SEC_ADJ = null; }
-    if (window.__SEC_LABELS){ try{ atMap.removeLayer(__SEC_LABELS); }catch(_){ } window.__SEC_LABELS = null; }
-  }
+      // Obtener estatus de casilla
+      function getDiaDEstatus(sec, casilla){
+        const s = diaDState[String(sec)]?.[String(casilla)];
+        return s?.estatus || "sin_rep";
+      }
 
-  // Dibuja selección + adyacentes + labels
-  function paintSelectionAndAdj(feat){
-    const atMap = ensureLeafletMap();
-    clearSectionOverlays();
+      // Actualizar estatus en memoria (usando localStorage)
+      function setDiaDEstatus(sec, casilla, estatus){
+        const key = diaDKey(sec, casilla);           // "SECCION|CASILLA_ID"
+        diaDEstado[key] = { ...(diaDEstado[key] || {}), estatus };
+        guardarDiaDEstado();                         // persiste en localStorage
+        console.log("[Día D] Nuevo estatus (LS)", key, diaDEstado[key]);
+      }
 
-    // resaltado principal
-    window.__SEC_HL = L.geoJSON(feat, { style:{ color:'#e91e63', weight:3, fillOpacity:0.25 } }).addTo(atMap);
-    try { atMap.fitBounds(window.__SEC_HL.getBounds(), { padding:[28,28] }); } catch(_){}
+      let DIA_D_RAW = null; // JSON bruto
+      let DIA_D_BY_SEC = new Map(); // sec -> array de casillas
 
-    // adyacentes
-    const adj = getAdjacents(feat);
-    if (adj.length){
-      window.__SEC_ADJ = L.geoJSON({type:'FeatureCollection', features:adj}, { style:{ color:'#90a4ae', weight:1.2, dashArray:'4,4', fillOpacity:0.05 } }).addTo(atMap);
-    }
+    async function ensureDiaDDataLoaded(){
+      if (DIA_D_RAW && DIA_D_BY_SEC.size) return;
 
-    // labels
-    const sec = feat.properties?.SECCION ?? '—';
-    addLabelForFeature(feat, 'sec-label', `Sección ${sec}`);
-    for (const f of adj){
-      const s2 = f.properties?.SECCION ?? '—';
-      addLabelForFeature(f, 'sec-label-adj', s2);
-    }
-  }
+      const url = getDiaDPath();
+      try{
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status} en Día D`);
+        const data = await res.json();
+        DIA_D_RAW = data;
 
-  // ====== PANEL FLOTANTE (drag + datos) ======
-  (function wireSecInfoPanel(){
-    const box = document.getElementById('sec-info');
-    const hdr = box?.querySelector('.hdr');
-    if (!box || !hdr || box.__wired) return;
-    let dragging = false, sx=0, sy=0, bx=0, by=0;
-    hdr.addEventListener('mousedown', (e)=>{
-      dragging=true; sx=e.clientX; sy=e.clientY;
-      const r = box.getBoundingClientRect(); bx=r.left; by=r.top;
-      document.body.style.userSelect='none';
-    });
-    window.addEventListener('mousemove', (e)=>{
-      if (!dragging) return;
-      const dx = e.clientX - sx, dy = e.clientY - sy;
-      box.style.left = (bx + dx) + 'px';
-      box.style.top  = (by + dy) + 'px';
-      box.style.right = 'auto'; box.style.bottom='auto';
-      box.style.position = 'absolute';
-    });
-    window.addEventListener('mouseup', ()=>{ dragging=false; document.body.style.userSelect=''; });
-    box.__wired = true;
-  })();
+        const bySec = new Map();
 
-  async function showSectionInfo(feat){
-    ensureSecInfoPanelWired();
-    const p = feat.properties || {};
-    const sec = p.SECCION ?? '—';
-    const df  = p[FIELD_KEYS.df] ?? '—';
-    const dl  = p[FIELD_KEYS.dl] ?? '—';
+        // Caso 1: un solo arreglo plano de casillas
+        if (Array.isArray(data.casillas)){
+          for (const c of data.casillas){
+            const sec = String(c.SECCION ?? c.seccion ?? '').trim();
+            if (!sec) continue;
+            if (!bySec.has(sec)) bySec.set(sec, []);
+            bySec.get(sec).push(c);
+          }
 
-    // LN 24DL_LN
-    let ln = await getLN24DL(sec);
-    if (ln==null) ln = '—';
+        // Caso 2: objeto por sección { secciones: { "1481": { casillas:[...] } } }
+        } else if (data.secciones && typeof data.secciones === 'object'){
+          for (const [sec, payload] of Object.entries(data.secciones)){
+            const arr = Array.isArray(payload.casillas) ? payload.casillas : [];
+            bySec.set(String(sec).trim(), arr);
+          }
 
-    // Pintar
-    const box = document.getElementById('sec-info');
-    box.querySelector('.hdr').textContent = `Sección ${sec}`;
-    document.getElementById('si-sec').textContent = sec;
-    document.getElementById('si-df').textContent  = df;
-    document.getElementById('si-dl').textContent  = dl;
-    document.getElementById('si-ln').textContent  = ln;
-    box.style.display = 'block';
-  }
-
-
-
-  // ENTER + CLIC + ULTIMO TOKEN
-
-    function currentNeedle(q){
-      if (!q) return '';
-      const parts = String(q).split(/[,;\s]+/).filter(Boolean);
-      return parts.length ? parts[parts.length-1] : '';
-    }
-
-// ===== Mini-selector de universo dentro del módulo =====
-    let __mini = { selMun:null, selDf:null, selDl:null, all:null };
-
-    function uniqueSorted(values){
-    const arr = values.map(v => String(v ?? '').trim()).filter(Boolean);
-    const set = Array.from(new Set(arr));
-    return set.sort((a,b) => (isFinite(a)&&isFinite(b)) ? Number(a)-Number(b) : a.localeCompare(b,'es'));
-    }
-    function buildMiniOptions(raw){
-    const feats = raw.features || [];
-    const grab = k => uniqueSorted(feats.map(f => f.properties?.[k]));
-    return { mun: grab(FIELD_KEYS.mun), df: grab(FIELD_KEYS.df), dl: grab(FIELD_KEYS.dl) };
-    }
-    function fillSelect(sel, arr){
-    sel.innerHTML = '<option value="">— Ninguno —</option>' + arr.map(v=>`<option value="${v}">${v}</option>`).join('');
-    }
-    function getMiniUniverse(){
-    const { selMun, selDf, selDl, all } = __mini;
-    if(all.checked) return { scope:'ALL', key:null, label:'Estado completo' };
-    if(selMun.value) return { scope:'MUN', key: selMun.value, label:`Municipio ${selMun.options[selMun.selectedIndex].text}` };
-    if(selDf.value)  return { scope:'DF',  key: selDf.value,  label:`Distrito Federal ${selDf.value}` };
-    if(selDl.value)  return { scope:'DL',  key: selDl.value,  label:`Distrito Local ${selDl.value}` };
-    return null;
-    }
-    function miniExclusivity(which){
-    const { selMun, selDf, selDl, all } = __mini;
-    if(which==='ALL'){ selMun.value=''; selDf.value=''; selDl.value=''; }
-    if(which==='MUN'){ selDf.value=''; selDl.value=''; all.checked=false; }
-    if(which==='DF'){  selMun.value=''; selDl.value=''; all.checked=false; }
-    if(which==='DL'){  selMun.value=''; selDf.value=''; all.checked=false; }
-    applyMiniUniverse();
-    }
-    function applyMiniUniverse(){
-    const u2 = getMiniUniverse();
-    if(!u2) return;
-    // 1) Persistir
-    localStorage.setItem('AT_UNIVERSE', JSON.stringify({ ...u2, ts:Date.now() }));
-    // 2) Redibujar con el nuevo universo usando el raw ya cargado
-    const atMap = ensureLeafletMap();
-    const filtered2 = filterGeojson(window.AT_DATA, u2);
-    if (window.AT_CTX?.layer) { atMap.removeLayer(AT_CTX.layer); }
-    const layer2 = L.geoJSON(filtered2, { style:{ color:'#7d0025', weight:1.2, fillOpacity:0.15 } }).addTo(atMap);
-    try { atMap.fitBounds(layer2.getBounds(), { padding:[20,20] }); } catch(e){}
-    window.AT_CTX = { ...(window.AT_CTX||{}), universe: u2, layer: layer2 };
-    // 3) Header
-    const hdr = document.querySelector('#panel-header span');
-    if(hdr){ hdr.textContent = `Análisis Territorial · ${u2.label}`; }
-      refreshSectionSearch(u2);
-    }
-    function initMiniSelector(raw, u){
-    // Guardar el geojson bruto para futuros re-filtros
-    window.AT_DATA = raw;
-
-    __mini.selMun = document.getElementById('mini-sel-mun');
-    labelMunicipiosFromCatalog('#mini-sel-mun');
-
-    __mini.selDf  = document.getElementById('mini-sel-df');
-    __mini.selDl  = document.getElementById('mini-sel-dl');
-    __mini.all    = document.getElementById('mini-all-state');
-
-    const opt = buildMiniOptions(raw);
-    fillSelect(__mini.selMun, opt.mun);
-    fillSelect(__mini.selDf,  opt.df);
-    fillSelect(__mini.selDl,  opt.dl);
-
-    // Reflejar el universo actual
-    if(u.scope==='ALL'){ __mini.all.checked = true; }
-    if(u.scope==='MUN'){ __mini.selMun.value = String(u.key); }
-    if(u.scope==='DF'){  __mini.selDf.value  = String(u.key); }
-    if(u.scope==='DL'){  __mini.selDl.value  = String(u.key); }
-
-
-    
-        async function labelMunicipiosFromCatalog(selectId){
-        const sel = document.querySelector(selectId);
-        if (!sel) return;
-
-        // 1) Ruta del catálogo desde el Portal (AT_PATHS) o fallback
-        let catUrl = 'data/catalogo_territorial.json';
-        try {
-            const paths = JSON.parse(localStorage.getItem('AT_PATHS') || '{}');
-            if (paths?.catalog) catUrl = paths.catalog;
-        } catch {}
-
-        // 2) Cargar catálogo
-        let cat = null;
-        try {
-            const r = await fetch(catUrl);
-            if (!r.ok) throw new Error('HTTP '+r.status);
-            cat = await r.json();
-        } catch (e) {
-            console.warn('[AT] No se pudo cargar el catálogo:', e);
-            return; // salimos sin tocar etiquetas
+        // ✅ Caso 3: LO TUYO → arreglo de secciones [{ SECCION: "...", casillas:[...] }, ...]
+        } else if (Array.isArray(data)){
+          for (const row of data){
+            const sec = String(row.SECCION ?? row.seccion ?? '').trim();
+            const arr = Array.isArray(row.casillas) ? row.casillas : [];
+            if (!sec) continue;
+            bySec.set(sec, arr);
+          }
         }
 
-        const mapa = cat?.municipios || {};
-        // helper: si el catálogo trae ceros a la izquierda en las llaves
-        const getName = (code) => {
-            const s = String(code);
-            return mapa[s] || mapa[s.padStart(2,'0')] || mapa[s.padStart(3,'0')] || s;
+        DIA_D_BY_SEC = bySec;
+      }catch(err){
+        console.error('[Día D] Error cargando datos Día D:', err);
+        DIA_D_RAW = null;
+        DIA_D_BY_SEC = new Map();
+      }
+    }
+
+    function normalizarEstatusDiaD(raw){
+      const s = (raw || '').toString().toLowerCase().trim();
+      if (!s) return 'sin_rep';
+
+      // Nuevos códigos
+      if (s === 'sin_rep' || s === 'sin representante') return 'sin_rep';
+      if (s.startsWith('instal'))   return 'instalada';
+      if (s.startsWith('inci'))     return 'incidencia';
+      if (s === 'acta_recibida' || s.startsWith('acta')) return 'acta_recibida';
+      if (s.startsWith('cerr'))     return 'cerrada';
+
+      // Soporte a estatus viejos (por si los traes en el JSON)
+      if (s === 'cubierta')                       return 'acta_recibida';
+      if (s === 'parcial')                        return 'instalada';
+      if (s === 'sin_cobertura' || s === 'sin cobertura') return 'sin_rep';
+
+      return s;
+    }
+
+    function diaDStatusChip(c){
+      // Estatus: primero lo que venga del objeto (ya mezclado con lo guardado),
+      // en minúsculas para comparar fácil.
+        const rawInput = c.ESTATUS ?? c.estatus ?? '';
+      // 🔹 Aquí sí usamos el normalizador
+        const raw = normalizarEstatusDiaD(rawInput);
+
+      let label = '';
+      let cls   = 'bad';  // color por defecto (rojo)
+
+      switch (raw){
+        case 'instalada':
+          label = 'Instalada';
+          cls   = 'mid';      // amarillo
+          break;
+        case 'incidencia':
+          label = 'Incidencia';
+          cls   = 'mid';      // también amarillo / ámbar
+          break;
+        case 'acta_recibida':
+          label = 'Acta recibida';
+          cls   = 'ok';       // verde
+          break;
+        case 'cerrada':
+          label = 'Cerrada';
+          cls   = 'gray';     // gris
+          break;
+        case 'sin_rep':
+          label = 'Sin representante';
+          cls   = 'bad';      // rojo
+          break;
+        default:
+          // Si no hay estatus pero sí rep → chip verde
+          const rep = (
+            c.REP_NOMBRE ??
+            c.REPRESENTANTE ??
+            c.NOMBRE_REP ??
+            c.REP ??
+            c.NOMBRE ??
+            ''
+          ).toString().trim();
+
+          if (rep){
+            label = 'Cubierta';
+            cls   = 'ok';
+          } else {
+            label = 'Sin dato';
+            cls   = 'bad';
+          }
+          break;
+      }
+
+      return `<span class="d1-chip ${cls}">${label}</span>`;
+    }
+
+      async function updateDiaDPanelForSection(sec, casillaId){
+          const panel = document.getElementById('diaD-panel');
+          if (!panel) return;
+
+          await ensureDiaDDataLoaded();
+
+          const secKey   = String(sec ?? '').trim();
+          const casillas = DIA_D_BY_SEC.get(secKey) || [];
+
+          // ===== KPI básicos =====
+          const totalCas = casillas.length;
+          let repsAsig   = 0;
+          let sinCob     = 0;
+
+          for (const c of casillas){
+            // Representante base desde datos
+            const repBase = (
+              c.REP_NOMBRE ??
+              c.REPRESENTANTE ??
+              c.NOMBRE_REP ??
+              c.REP ??
+              c.NOMBRE ??
+              ''
+            ).toString().trim();
+
+            const casillaIdLocal = (c.CASILLA_ID ?? c.CLAVE ?? c.CASILLA ?? '').toString();
+            const key            = diaDKey(secKey, casillaIdLocal);
+            const saved          = diaDEstado[key] || {};
+
+            // Estatus: lo que esté guardado tiene prioridad, si no, el del JSON
+            const estRaw   = saved.estatus ?? c.ESTATUS ?? c.estatus ?? '';
+            const estNorm  = normalizarEstatusDiaD(estRaw); // ← usamos tu normalizador
+
+            const tieneRep = !!repBase;
+
+            if (tieneRep) repsAsig += 1;
+
+            // Consideramos "sin cobertura" cuando está en sin_rep
+            if (estNorm === 'sin_rep'){
+              sinCob += 1;
+            }
+          }
+
+          // KPIs en el encabezado
+          const elSec  = document.getElementById('d1-sec');
+          const elCas  = document.getElementById('d1-kpi-casillas');
+          const elReps = document.getElementById('d1-kpi-reps');
+          const elSin  = document.getElementById('d1-kpi-sin');
+
+          if (elSec)  elSec.textContent  = secKey || '—';
+          if (elCas)  elCas.textContent  = totalCas || '0';
+          if (elReps) elReps.textContent = repsAsig || '0';
+          if (elSin)  elSin.textContent  = sinCob || '0';
+
+          const sub = document.getElementById('d1-sub');
+          if (sub){
+            sub.textContent = `Casillas: ${totalCas || 0} · Reps asignados: ${repsAsig || 0} · Casillas sin cobertura: ${sinCob || 0}`;
+          }
+
+          // ===== Tabla =====
+          const tbody = document.getElementById('d1-tbody');
+
+          if (!tbody) {
+            panel.style.display = 'block';
+            return;
+          }
+
+          if (!casillas.length){
+            tbody.innerHTML = `
+              <tr><td colspan="4" style="padding:10px 6px; color:#64748b;">
+                No hay información de casillas Día D para la sección ${secKey}.
+              </td></tr>`;
+          } else {
+            tbody.innerHTML = casillas.map(c => {
+              const casilla = (c.CASILLA ?? c.CLAVE ?? '').toString();
+              const tipo    = (c.TIPO ?? '').toString();
+              const dom     = (c.DOMICILIO ?? '').toString();
+
+              const rep = (
+                c.REP_NOMBRE ??
+                c.REPRESENTANTE ??
+                c.NOMBRE_REP ??
+                c.REP ??
+                c.NOMBRE ??
+                ''
+              ).toString();
+
+              const tel = (
+                c.REP_TEL ??
+                c.TELEFONO ??
+                c.CELULAR ??
+                c.TEL ??
+                ''
+              ).toString();
+
+              const casillaLabel = [casilla, tipo].filter(Boolean).join(' · ');
+
+              const repBlock = (rep || tel)
+                ? `<div>${rep || '—'}</div><div style="color:#64748b;font-size:11px">${tel || ''}</div>`
+                : '<span style="color:#9ca3af">Sin representante asignado</span>';
+
+              const idAttr = (c.CASILLA_ID ?? c.CLAVE ?? c.CASILLA ?? '').toString();
+              const key    = diaDKey(secKey, idAttr);
+              const saved  = diaDEstado[key] || {};
+
+              // Mezclamos estatus guardado con el del JSON y lo normalizamos
+              const estRaw   = saved.estatus ?? c.ESTATUS ?? c.estatus ?? '';
+              const estNorm  = normalizarEstatusDiaD(estRaw);
+
+              const cExtendida = { ...c, ESTATUS: estNorm };
+
+              let statusHtml;
+              try {
+                statusHtml = diaDStatusChip(cExtendida);
+              } catch (e) {
+                console.error('[Día D] Error en diaDStatusChip:', e, cExtendida);
+                statusHtml = '<span style="color:#9ca3af">—</span>';
+              }
+
+              return `
+                <tr data-seccion="${secKey}" data-casilla-id="${idAttr}">
+                  <td>${casillaLabel || '—'}</td>
+                  <td>${dom || '—'}</td>
+                  <td>${repBlock}</td>
+                  <td>${statusHtml}</td>
+                </tr>
+              `;
+            }).join('');
+          }
+
+          // Log de control
+          console.log(
+            '[Día D] Sección', secKey,
+            'casillas en datos:', casillas.length,
+            'filas renderizadas:', tbody.querySelectorAll('tr').length
+          );
+
+          // Aseguramos que las filas estén visibles
+          const rows = tbody.querySelectorAll('tr');
+          rows.forEach(tr => {
+            tr.style.display = 'table-row';
+          });
+
+          const wrapper = tbody.parentElement;
+          if (wrapper) {
+            const scrollHost = wrapper.parentElement || wrapper;
+            scrollHost.style.maxHeight = '420px';
+            scrollHost.style.overflowY = 'auto';
+            scrollHost.style.display   = 'block';
+          }
+
+          // Resaltar casilla específica si viene desde el mapa
+          if (casillaId){
+            const idNorm  = String(casillaId).trim();
+            const allRows = tbody.querySelectorAll('tr[data-casilla-id]');
+            let targetRow = null;
+
+            allRows.forEach(tr => {
+              tr.classList.remove('d1-row-selected');
+              const val = String(tr.getAttribute('data-casilla-id') || '').trim();
+              if (!targetRow && idNorm && val === idNorm){
+                targetRow = tr;
+              }
+            });
+
+            if (targetRow){
+              targetRow.classList.add('d1-row-selected');
+              targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }
+
+          // Eventos en filas (click + menú contextual)
+          const filas = tbody.querySelectorAll('tr[data-casilla-id]');
+          filas.forEach(tr => {
+            tr.addEventListener('click', () => {
+              const cidRow  = tr.getAttribute('data-casilla-id') || '';
+              const cidNorm = cidRow.toString().trim();
+              if (!cidNorm) return;
+
+              filas.forEach(f => f.classList.remove('d1-row-selected'));
+              tr.classList.add('d1-row-selected');
+
+              enfocarCasillaEnMapaDiaD(secKey, cidNorm);
+            });
+
+            tr.addEventListener('contextmenu', (evt) => {
+              evt.preventDefault();
+
+              const cidRow  = tr.getAttribute('data-casilla-id') || '';
+              const cidNorm = cidRow.toString().trim();
+              if (!cidNorm) return;
+
+              console.log("➡ CLICK DERECHO detectado en", secKey, cidNorm);
+              mostrarDiaDMenu(evt.pageX, evt.pageY, secKey, cidNorm);
+            });
+          });
+
+          panel.style.display = 'block';
+        }
+
+      let diaDMenu = null;
+      let diaDMenuSec = null;
+      let diaDMenuCas = null;
+
+      // Inicializar menú
+      function initDiaDMenu(){
+        diaDMenu = document.getElementById('diaD-menu-estatus');
+
+        // Cuando haces clic en una opción del menú
+        diaDMenu.addEventListener('click', evt=>{
+          const item = evt.target.closest('[data-est]');
+          if (!item) return;
+
+          const nuevoEst = item.dataset.est;
+
+          console.log("➡ Cambiar estatus:", diaDMenuSec, diaDMenuCas, nuevoEst);
+
+          // Guardar en memoria
+          setDiaDEstatus(diaDMenuSec, diaDMenuCas, nuevoEst);
+
+          // Refrescar panel
+          updateDiaDPanelForSection(diaDMenuSec, diaDMenuCas);
+
+          // Refrescar el color del marcador
+          enfocarCasillaEnMapaDiaD(diaDMenuSec, diaDMenuCas);
+
+          ocultarDiaDMenu();
+        });
+
+        // Cerrar menú si das clic fuera
+        document.addEventListener('click', evt=>{
+          if (!diaDMenu.contains(evt.target)) ocultarDiaDMenu();
+        });
+      }
+
+      function mostrarDiaDMenu(x, y, sec, cas){
+        diaDMenu.style.left = x + "px";
+        diaDMenu.style.top  = y + "px";
+        diaDMenuSec = sec;
+        diaDMenuCas = cas;
+        diaDMenu.classList.remove("hidden");
+        diaDMenu.style.display = "block";   // 👈 fuerza que se vea
+      }
+
+      function ocultarDiaDMenu(){
+        diaDMenu.classList.add("hidden");
+        diaDMenu.style.display = "none";    // 👈 y aquí lo escondemos
+      }
+
+      document.addEventListener("DOMContentLoaded", initDiaDMenu);
+
+      // Wire botón de cierre del panel Día D
+      // Wire botón de cierre + movimiento del panel Día D
+      (function wireDiaDPanel() {
+        const panel = document.getElementById("diaD-panel");
+        const btn = document.getElementById("d1-close");
+        const handle = panel ? panel.querySelector(".hdr") : null;
+        if (!panel || !btn || !handle) return;
+
+        // Cerrar panel
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          panel.style.display = "none";
+        });
+
+        // --- Arrastrar panel ---
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let startLeft = 0;
+        let startTop = 0;
+
+        function onPointerDown(e) {
+          // Sólo botón izquierdo del mouse / toque principal
+          if (e.button !== undefined && e.button !== 0) return;
+
+          // Si el click fue sobre el botón de cerrar, no arrastrar
+          if (e.target.closest(".btn-close")) return;
+
+          isDragging = true;
+          const rect = panel.getBoundingClientRect();
+
+          startX = e.clientX;
+          startY = e.clientY;
+          startLeft = rect.left;
+          startTop = rect.top;
+
+          // Pasamos de usar "right" a usar "left" al primer drag
+          panel.style.right = "auto";
+          panel.style.left = rect.left + "px";
+          panel.style.top = rect.top + "px";
+
+          document.addEventListener("pointermove", onPointerMove);
+          document.addEventListener("pointerup", onPointerUp);
+        }
+
+        function onPointerMove(e) {
+          if (!isDragging) return;
+
+          const dx = e.clientX - startX;
+          const dy = e.clientY - startY;
+
+          let newLeft = startLeft + dx;
+          let newTop = startTop + dy;
+
+          // Límites dentro de la ventana
+          const margin = 8;
+          const maxLeft = window.innerWidth - panel.offsetWidth - margin;
+          const maxTop = window.innerHeight - panel.offsetHeight - margin;
+
+          if (newLeft < margin) newLeft = margin;
+          if (newTop < margin) newTop = margin;
+          if (newLeft > maxLeft) newLeft = maxLeft;
+          if (newTop > maxTop) newTop = maxTop;
+
+          panel.style.left = newLeft + "px";
+          panel.style.top = newTop + "px";
+        }
+
+        function onPointerUp() {
+          if (!isDragging) return;
+          isDragging = false;
+          document.removeEventListener("pointermove", onPointerMove);
+          document.removeEventListener("pointerup", onPointerUp);
+        }
+
+        handle.addEventListener("pointerdown", onPointerDown);
+      })();
+
+      // ===== 1) Mapa único y chequeo =====
+      function ensureLeafletMap() {
+        if (window.__AT_MAP && window.__AT_MAP instanceof L.Map)
+          return window.__AT_MAP;
+        const m = L.map("map", { zoomControl: true }).setView(
+          [21.0, -101.3],
+          7
+        );
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OSM",
+        }).addTo(m);
+        window.__AT_MAP = m;
+        return m;
+      }
+      function assertIsLeafletMap(m) {
+        if (!(m instanceof L.Map) || typeof m.addLayer !== "function") {
+          throw new Error(
+            '[AT] addTo(): destino no es un Leaflet Map. Revisa variables llamadas "map" o dobles inicializaciones.'
+          );
+        }
+      }
+
+      let capaCasillasDiaD = null;
+      let ultimoMarkerDiaD = null;
+
+      // ===== Día D: estado persistente en localStorage =====
+        const DIA_D_STORAGE_KEY = 'AT27_DIA_D_ESTADO_2027';
+        let diaDEstado = {};  // { "1481|B1": { estatus: "instalada" }, ... }
+
+        function cargarDiaDEstado(){
+          try{
+            const raw = localStorage.getItem(DIA_D_STORAGE_KEY);
+            diaDEstado = raw ? JSON.parse(raw) : {};
+          }catch(e){
+            console.error('[Día D] Error leyendo localStorage Día D:', e);
+            diaDEstado = {};
+          }
+        }
+
+        function guardarDiaDEstado(){
+          try{
+            localStorage.setItem(DIA_D_STORAGE_KEY, JSON.stringify(diaDEstado));
+          }catch(e){
+            console.error('[Día D] Error guardando localStorage Día D:', e);
+          }
+        }
+
+        // Helper para clave única sección+casilla
+        function diaDKey(sec, casId){
+          return `${sec}|${casId}`;
+        }
+
+
+      // key: "SECCION|CASILLA_ID" → valor: layer de Leaflet
+      const DIA_D_MARKERS = new Map();
+
+      function getRepFromProps(p){
+        return (
+          p.REP_NOMBRE ??
+          p.REPRESENTANTE ??
+          p.NOMBRE_REP ??
+          p.REP ??
+          p.NOMBRE ??
+          ''
+        );
+      }
+
+      function getColorCasillaDiaD(p){
+        const sec = String(p.SECCION ?? '').trim();
+        const cid = String(p.CASILLA_ID ?? p.CASILLA ?? '').trim();
+
+        // 1) Representante
+        const rep = (getRepFromProps(p) || '').toString().trim();
+
+        // 2) Estatus: primero lo guardado en localStorage, luego el del GeoJSON
+        let est = '';
+        if (sec && cid && diaDEstado){
+          const saved = diaDEstado[diaDKey(sec, cid)];
+          if (saved && saved.estatus){
+            est = String(saved.estatus).toLowerCase();
+          }
+        }
+        if (!est){
+          est = String(p.ESTATUS ?? p.estatus ?? '').toLowerCase();
+        }
+
+        // 3) PRIORIDAD DE COLOR
+        // 3.1 Estatus explícito
+        switch (est){
+          case 'instalada':
+            return { border: '#eab308', fill: '#fef9c3' };  // amarillo
+          case 'incidencia':
+            return { border: '#f97316', fill: '#ffedd5' };  // naranja
+          case 'acta_recibida':
+            return { border: '#16a34a', fill: '#dcfce7' };  // verde fuerte
+          case 'cerrada':
+            return { border: '#6b7280', fill: '#e5e7eb' };  // gris
+          case 'sin_rep':
+            // la tratamos abajo igual que "sin rep"
+            break;
+        }
+
+        // 3.2 Sin estatus “especial”: usamos REP / SIN REP
+        if (rep){
+          // casilla cubierta aunque no tenga estatus asignado
+          return { border: '#15803d', fill: '#bbf7d0' };   // verde (cubierta)
+        } else {
+          // sin representante, sin estatus importante
+          return { border: '#b91c1c', fill: '#fee2e2' };   // rojo (sin cobertura)
+        }
+      }
+
+      async function cargarCapaCasillasDiaD(){
+        const url = 'data/casillas/puntos_casillas.geojson';  // ajusta si usas otro nombre
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Error cargando casillas Día D: ${res.status}`);
+        const data = await res.json();
+
+        const atMap = ensureLeafletMap();
+        assertIsLeafletMap(atMap);
+
+        capaCasillasDiaD = L.geoJSON(data, {
+          pointToLayer: (feat, latlng) => {
+            const p = feat.properties || {};
+            const colores = getColorCasillaDiaD(p);
+
+            return L.circleMarker(latlng, {
+              radius: 6,
+              weight: 1.5,
+              color: colores.border,
+              fillColor: colores.fill,
+              fillOpacity: 0.9
+            });
+          },
+          onEachFeature: (feat, layer) => {
+            const p = feat.properties || {};
+
+            const sec    = (p.SECCION    || '').toString().trim();
+            const cidRaw = (p.CASILLA_ID || '').toString().trim();
+            const casRaw = (p.CASILLA    || '').toString().trim();
+            const dom    = p.DOMICILIO || '';
+
+            // 🔑 Registramos el marcador con todas las llaves razonables
+            if (sec) {
+              if (cidRaw) {
+                DIA_D_MARKERS.set(`${sec}|${cidRaw}`, layer);
+              }
+              if (casRaw) {
+                DIA_D_MARKERS.set(`${sec}|${casRaw}`, layer);
+              }
+            }
+
+            const cas = casRaw || cidRaw || '';
+
+            // Pop-up sencillo de referencia
+            const title = `Sección ${sec || '—'} · Casilla ${cas || '—'}`;
+            layer.bindTooltip(title, { direction: 'top', offset: [0, -6], opacity: 0.9 });
+
+            layer.on('click', () => {
+              // Resaltar marcador anterior (si lo hay)
+              if (ultimoMarkerDiaD) {
+                const prevP   = ultimoMarkerDiaD.feature?.properties || {};
+                const colPrev = getColorCasillaDiaD(prevP);
+                ultimoMarkerDiaD.setStyle({
+                  radius: 6,
+                  weight: 1.5,
+                  color: colPrev.border,
+                  fillColor: colPrev.fill
+                });
+              }
+              ultimoMarkerDiaD = layer;
+
+              const colores = getColorCasillaDiaD(p);
+              layer.setStyle({
+                radius: 9,
+                weight: 2.5,
+                color: colores.border,
+                fillColor: colores.fill
+              });
+
+              // Centrar un poco el mapa en la casilla
+              atMap.panTo(layer.getLatLng());
+
+              // Abrir panel Día D y resaltar la casilla en la tabla
+              if (sec) {
+                // usamos CASILLA_ID si existe, si no CASILLA
+                const idForPanel = cidRaw || casRaw;
+                updateDiaDPanelForSection(sec, idForPanel);
+              }
+            });
+          }
+
+        }).addTo(atMap);
+      }
+
+      function enfocarCasillaEnMapaDiaD(sec, casillaId){
+        const secKey = String(sec ?? '').trim();
+        const cidKey = String(casillaId ?? '').trim();
+        if (!secKey || !cidKey) return;
+
+        const key = `${secKey}|${cidKey}`;
+        const layer = DIA_D_MARKERS.get(key);
+        if (!layer) {
+          console.warn('[Día D] No se encontró marcador para', key);
+          return;
+        }
+
+        const atMap = ensureLeafletMap();
+        assertIsLeafletMap(atMap);
+
+        // Quitar resaltado anterior
+        if (ultimoMarkerDiaD && ultimoMarkerDiaD !== layer){
+          const prevP   = ultimoMarkerDiaD.feature?.properties || {};
+          const colPrev = getColorCasillaDiaD(prevP);
+          ultimoMarkerDiaD.setStyle({
+            radius: 6,
+            weight: 1.5,
+            color: colPrev.border,
+            fillColor: colPrev.fill
+          });
+        }
+
+        ultimoMarkerDiaD = layer;
+
+        const p       = layer.feature?.properties || {};
+        const colores = getColorCasillaDiaD(p);
+
+        layer.setStyle({
+          radius: 9,
+          weight: 2.5,
+          color: colores.border,
+          fillColor: colores.fill
+        });
+
+        const latlng = layer.getLatLng();
+        const currZ  = (typeof atMap.getZoom === 'function') ? atMap.getZoom() : 10;
+
+        // 👇 Aquí la magia: si estás muy lejos, además de centrar, hacemos zoom
+        if (currZ < 12){
+          atMap.flyTo(latlng, 15, { duration: 0.5 });
+        } else {
+          atMap.panTo(latlng);
+        }
+      }
+
+
+      function closeSecInfoPanel() {
+        const box = document.getElementById("sec-info");
+        if (box) box.style.display = "none";
+        // Si quieres limpiar resaltado y etiquetas al cerrar:
+        if (typeof clearSectionOverlays === "function") clearSectionOverlays();
+      }
+
+      function ensureSecInfoPanelWired() {
+        const box = document.getElementById("sec-info");
+        const hdr = box?.querySelector(".hdr");
+        if (!box || !hdr || box.__wired) return;
+
+        // Bloquear propagación al mapa (no “parpadea” al arrastrar)
+        if (window.L && L.DomEvent) {
+          L.DomEvent.disableClickPropagation(box);
+          L.DomEvent.disableScrollPropagation(box);
+        }
+
+        // Drag del panel
+        let dragging = false,
+          sx = 0,
+          sy = 0,
+          bx = 0,
+          by = 0;
+        hdr.addEventListener("mousedown", (e) => {
+          if (e.target.closest(".btn-close")) return; // no iniciar drag si clic en "×"
+          e.preventDefault();
+          e.stopPropagation();
+          dragging = true;
+          const r = box.getBoundingClientRect();
+          sx = e.clientX;
+          sy = e.clientY;
+          bx = r.left;
+          by = r.top;
+          box.style.position = "absolute";
+          box.style.right = "auto";
+          box.style.bottom = "auto";
+          document.body.style.userSelect = "none";
+        });
+        window.addEventListener("mousemove", (e) => {
+          if (!dragging) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const dx = e.clientX - sx,
+            dy = e.clientY - sy;
+          box.style.left = bx + dx + "px";
+          box.style.top = by + dy + "px";
+        });
+        window.addEventListener("mouseup", () => {
+          if (!dragging) return;
+          dragging = false;
+          document.body.style.userSelect = "";
+        });
+
+        // Botón “×”
+        const btn = document.getElementById("sec-close");
+        if (btn && !btn.__wired) {
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeSecInfoPanel();
+          });
+          btn.__wired = true;
+        }
+
+        box.__wired = true;
+      }
+
+      // ===== 2) Filtrado por universo =====
+      function toComp(v) {
+        if (v == null) return "";
+        const s = String(v).trim();
+        return isFinite(s) && s !== "" ? Number(s) : s.toUpperCase();
+      }
+      function matches(props, u) {
+        if (u.scope === "ALL") return true;
+        const keyField =
+          u.scope === "MUN"
+            ? FIELD_KEYS.mun
+            : u.scope === "DL"
+            ? FIELD_KEYS.dl
+            : FIELD_KEYS.df;
+        return toComp(props?.[keyField]) === toComp(u.key);
+      }
+      function filterGeojson(geojson, u) {
+        if (u.scope === "ALL") return geojson;
+        const features = (geojson.features || []).filter((f) =>
+          matches(f.properties, u)
+        );
+        return { ...geojson, features };
+      }
+
+      // ====== CARGA ELECTORAL (para obtener 24DL_LN) ======
+      function getPaths() {
+        try {
+          return JSON.parse(localStorage.getItem("AT_PATHS") || "{}");
+        } catch {
+          return {};
+        }
+      }
+      function getPuestoPath(p) {
+        const paths = getPaths();
+        return paths?.electoral?.[p] || `data/electoral/${p}.json`;
+      }
+
+      window.AT_ELECT = window.AT_ELECT || {};
+      async function getElectData(puesto) {
+        if (window.AT_ELECT[puesto]) return window.AT_ELECT[puesto];
+        const res = await fetch(getPuestoPath(puesto));
+        if (!res.ok) throw new Error(`HTTP ${res.status} en ${puesto}`);
+        const js = await res.json();
+        window.AT_ELECT[puesto] = js;
+        return js;
+      }
+      // LN para 2024 desde DL; si no hay, intenta P (fallback)
+      async function getLN24DL(sec) {
+        const key = String(sec);
+        try {
+          const dl = await getElectData("DL");
+          const ln = dl?.secciones?.[key]?.["2024"]?.LN;
+          if (typeof ln === "number") return ln;
+        } catch (_) {}
+        try {
+          const p = await getElectData("P");
+          const ln = p?.secciones?.[key]?.["2024"]?.LN;
+          if (typeof ln === "number") return ln;
+        } catch (_) {}
+        return null;
+      }
+
+      // ====== ADYACENCIAS (Turf) ======
+      function bboxIntersects(b1, b2) {
+        return !(
+          b2[0] > b1[2] ||
+          b2[2] < b1[0] ||
+          b2[1] > b1[3] ||
+          b2[3] < b1[1]
+        );
+      }
+      function getAdjacents(feat) {
+        const all =
+          window.AT_DATA?.features ||
+          window.AT_CTX?.layer?.toGeoJSON?.()?.features ||
+          [];
+        if (!all.length) return [];
+        const b1 = turf.bbox(feat);
+        const out = [];
+        const sec1 = feat.properties?.SECCION;
+        for (const f of all) {
+          const p = f.properties || {};
+          if (p.SECCION === sec1) continue;
+          const b2 = turf.bbox(f);
+          if (!bboxIntersects(b1, b2)) continue;
+          try {
+            if (
+              turf.booleanTouches(feat, f) ||
+              turf.booleanOverlap(feat, f) ||
+              turf.booleanIntersects(feat, f)
+            ) {
+              out.push(f);
+            }
+          } catch (_) {}
+        }
+        return out.slice(0, 25); // cota de seguridad
+      }
+
+      // ====== LABELS SOBRE EL MAPA ======
+      function addLabelForFeature(feat, className, text) {
+        try {
+          const c = turf.centerOfMass(feat).geometry.coordinates; // [lon, lat]
+          const m = L.marker([c[1], c[0]], {
+            icon: L.divIcon({ className, html: text, iconSize: [0, 0] }),
+          });
+          window.__SEC_LABELS =
+            window.__SEC_LABELS || L.layerGroup().addTo(ensureLeafletMap());
+          window.__SEC_LABELS.addLayer(m);
+          return m;
+        } catch (_) {}
+        return null;
+      }
+
+      function clearSectionOverlays() {
+        const atMap = ensureLeafletMap();
+        if (window.__SEC_HL) {
+          try {
+            atMap.removeLayer(__SEC_HL);
+          } catch (_) {}
+          window.__SEC_HL = null;
+        }
+        if (window.__SEC_ADJ) {
+          try {
+            atMap.removeLayer(__SEC_ADJ);
+          } catch (_) {}
+          window.__SEC_ADJ = null;
+        }
+        if (window.__SEC_LABELS) {
+          try {
+            atMap.removeLayer(__SEC_LABELS);
+          } catch (_) {}
+          window.__SEC_LABELS = null;
+        }
+      }
+
+      // Dibuja selección + adyacentes + labels
+      function paintSelectionAndAdj(feat) {
+        const atMap = ensureLeafletMap();
+        clearSectionOverlays();
+
+        // resaltado principal
+        window.__SEC_HL = L.geoJSON(feat, {
+          style: { color: "#e91e63", weight: 3, fillOpacity: 0.25 },
+        }).addTo(atMap);
+        try {
+          atMap.fitBounds(window.__SEC_HL.getBounds(), { padding: [28, 28] });
+        } catch (_) {}
+
+        // adyacentes
+        const adj = getAdjacents(feat);
+        if (adj.length) {
+          window.__SEC_ADJ = L.geoJSON(
+            { type: "FeatureCollection", features: adj },
+            {
+              style: {
+                color: "#90a4ae",
+                weight: 1.2,
+                dashArray: "4,4",
+                fillOpacity: 0.05,
+              },
+            }
+          ).addTo(atMap);
+        }
+
+        // labels
+        const sec = feat.properties?.SECCION ?? "—";
+        addLabelForFeature(feat, "sec-label", `Sección ${sec}`);
+        for (const f of adj) {
+          const s2 = f.properties?.SECCION ?? "—";
+          addLabelForFeature(f, "sec-label-adj", s2);
+        }
+      }
+
+      // ====== PANEL FLOTANTE (drag + datos) ======
+
+      async function showSectionInfo(feat) {
+        ensureSecInfoPanelWired();
+        const p = feat.properties || {};
+        const sec = p.SECCION ?? "—";
+        const df = p[FIELD_KEYS.df] ?? "—";
+        const dl = p[FIELD_KEYS.dl] ?? "—";
+
+        // LN 24DL_LN
+        let ln = await getLN24DL(sec);
+        if (ln == null) ln = "—";
+
+        // Pintar panel pequeño
+        const box = document.getElementById("sec-info");
+        box.querySelector(".hdr").textContent = `Sección ${sec}`;
+        document.getElementById("si-sec").textContent = sec;
+        document.getElementById("si-df").textContent = df;
+        document.getElementById("si-dl").textContent = dl;
+        document.getElementById("si-ln").textContent = ln;
+        box.style.display = "block";
+
+        // >>> NUEVO: actualizar panel Día D con casillas de la sección
+        if (sec && sec !== "—") {
+          updateDiaDPanelForSection(sec);
+        }
+      }
+
+      // ENTER + CLIC + ULTIMO TOKEN
+
+      function currentNeedle(q) {
+        if (!q) return "";
+        const parts = String(q)
+          .split(/[,;\s]+/)
+          .filter(Boolean);
+        return parts.length ? parts[parts.length - 1] : "";
+      }
+
+      // ===== Mini-selector de universo dentro del módulo =====
+      let __mini = { selMun: null, selDf: null, selDl: null, all: null };
+
+      function uniqueSorted(values) {
+        const arr = values.map((v) => String(v ?? "").trim()).filter(Boolean);
+        const set = Array.from(new Set(arr));
+        return set.sort((a, b) =>
+          isFinite(a) && isFinite(b)
+            ? Number(a) - Number(b)
+            : a.localeCompare(b, "es")
+        );
+      }
+      function buildMiniOptions(raw) {
+        const feats = raw.features || [];
+        const grab = (k) => uniqueSorted(feats.map((f) => f.properties?.[k]));
+        return {
+          mun: grab(FIELD_KEYS.mun),
+          df: grab(FIELD_KEYS.df),
+          dl: grab(FIELD_KEYS.dl),
         };
+      }
+      function fillSelect(sel, arr) {
+        sel.innerHTML =
+          '<option value="">— Ninguno —</option>' +
+          arr.map((v) => `<option value="${v}">${v}</option>`).join("");
+      }
+      function getMiniUniverse() {
+        const { selMun, selDf, selDl, all } = __mini;
+        if (all.checked)
+          return { scope: "ALL", key: null, label: "Estado completo" };
+        if (selMun.value)
+          return {
+            scope: "MUN",
+            key: selMun.value,
+            label: `Municipio ${selMun.options[selMun.selectedIndex].text}`,
+          };
+        if (selDf.value)
+          return {
+            scope: "DF",
+            key: selDf.value,
+            label: `Distrito Federal ${selDf.value}`,
+          };
+        if (selDl.value)
+          return {
+            scope: "DL",
+            key: selDl.value,
+            label: `Distrito Local ${selDl.value}`,
+          };
+        return null;
+      }
+      function miniExclusivity(which) {
+        const { selMun, selDf, selDl, all } = __mini;
+        if (which === "ALL") {
+          selMun.value = "";
+          selDf.value = "";
+          selDl.value = "";
+        }
+        if (which === "MUN") {
+          selDf.value = "";
+          selDl.value = "";
+          all.checked = false;
+        }
+        if (which === "DF") {
+          selMun.value = "";
+          selDl.value = "";
+          all.checked = false;
+        }
+        if (which === "DL") {
+          selMun.value = "";
+          selDf.value = "";
+          all.checked = false;
+        }
+        applyMiniUniverse();
+      }
+      function applyMiniUniverse() {
+        const u2 = getMiniUniverse();
+        if (!u2) return;
+        // 1) Persistir
+        localStorage.setItem(
+          "AT_UNIVERSE",
+          JSON.stringify({ ...u2, ts: Date.now() })
+        );
+        // 2) Redibujar con el nuevo universo usando el raw ya cargado
+        const atMap = ensureLeafletMap();
+        const filtered2 = filterGeojson(window.AT_DATA, u2);
+        if (window.AT_CTX?.layer) {
+          atMap.removeLayer(AT_CTX.layer);
+        }
+        const layer2 = L.geoJSON(filtered2, {
+          style: { color: "#7d0025", weight: 1.2, fillOpacity: 0.15 },
+        }).addTo(atMap);
+        try {
+          atMap.fitBounds(layer2.getBounds(), { padding: [20, 20] });
+        } catch (e) {}
+        window.AT_CTX = {
+          ...(window.AT_CTX || {}),
+          universe: u2,
+          layer: layer2,
+        };
+        // 3) Header
+        const hdr = document.querySelector("#panel-header span");
+        if (hdr) {
+          hdr.textContent = `Análisis Territorial · ${u2.label}`;
+        }
+        refreshSectionSearch(u2);
+      }
+      function initMiniSelector(raw, u) {
+        // Guardar el geojson bruto para futuros re-filtros
+        window.AT_DATA = raw;
 
-        // 3) Reetiquetar opciones (sin cambiar value)
-        for (const opt of sel.options) {
+        __mini.selMun = document.getElementById("mini-sel-mun");
+        labelMunicipiosFromCatalog("#mini-sel-mun");
+
+        __mini.selDf = document.getElementById("mini-sel-df");
+        __mini.selDl = document.getElementById("mini-sel-dl");
+        __mini.all = document.getElementById("mini-all-state");
+
+        const opt = buildMiniOptions(raw);
+        fillSelect(__mini.selMun, opt.mun);
+        fillSelect(__mini.selDf, opt.df);
+        fillSelect(__mini.selDl, opt.dl);
+
+        // Reflejar el universo actual
+        if (u.scope === "ALL") {
+          __mini.all.checked = true;
+        }
+        if (u.scope === "MUN") {
+          __mini.selMun.value = String(u.key);
+        }
+        if (u.scope === "DF") {
+          __mini.selDf.value = String(u.key);
+        }
+        if (u.scope === "DL") {
+          __mini.selDl.value = String(u.key);
+        }
+
+        async function labelMunicipiosFromCatalog(selectId) {
+          const sel = document.querySelector(selectId);
+          if (!sel) return;
+
+          // 1) Ruta del catálogo desde el Portal (AT_PATHS) o fallback
+          let catUrl = "data/catalogo_territorial.json";
+          try {
+            const paths = JSON.parse(localStorage.getItem("AT_PATHS") || "{}");
+            if (paths?.catalog) catUrl = paths.catalog;
+          } catch {}
+
+          // 2) Cargar catálogo
+          let cat = null;
+          try {
+            const r = await fetch(catUrl);
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            cat = await r.json();
+          } catch (e) {
+            console.warn("[AT] No se pudo cargar el catálogo:", e);
+            return; // salimos sin tocar etiquetas
+          }
+
+          const mapa = cat?.municipios || {};
+          // helper: si el catálogo trae ceros a la izquierda en las llaves
+          const getName = (code) => {
+            const s = String(code);
+            return (
+              mapa[s] ||
+              mapa[s.padStart(2, "0")] ||
+              mapa[s.padStart(3, "0")] ||
+              s
+            );
+          };
+
+          // 3) Reetiquetar opciones (sin cambiar value)
+          for (const opt of sel.options) {
             if (!opt.value) continue; // deja "— Ninguno —"
             const name = getName(opt.value);
             opt.text = `${opt.value} — ${name}`;
+          }
         }
+
+        // Eventos (auto-ejecuta)
+        __mini.selMun.addEventListener("change", () => miniExclusivity("MUN"));
+        __mini.selDf.addEventListener("change", () => miniExclusivity("DF"));
+        __mini.selDl.addEventListener("change", () => miniExclusivity("DL"));
+        __mini.all.addEventListener("change", () => miniExclusivity("ALL"));
+      }
+
+      // Nombre fijo del campo (texto) del municipio
+      const MUN_NAME_KEY = "MUNICIPIO";
+
+      // Detecta automáticamente el campo de CÓDIGO de municipio (si no, usa el nombre)
+      function detectMunCodeKey(raw) {
+        const feats = raw.features || [];
+        const candidates = [
+          "MUN",
+          "CVE_MUN",
+          "CLV_MUN",
+          "ID_MUN",
+          "MUNICIPIO_ID",
+          "MUNICIPIO_CVE",
+          "CVE_MUNICIPIO",
+          "CVE_MPIO",
+        ];
+        for (const k of candidates) {
+          const ok = feats.some((f) => {
+            const v = f.properties?.[k];
+            return (
+              v != null &&
+              String(v).trim() !== "" &&
+              String(v).toUpperCase() !== "NULL"
+            );
+          });
+          if (ok) return k;
         }
-
-   
-
-    // Eventos (auto-ejecuta)
-    __mini.selMun.addEventListener('change', ()=> miniExclusivity('MUN'));
-    __mini.selDf .addEventListener('change', ()=> miniExclusivity('DF'));
-    __mini.selDl .addEventListener('change', ()=> miniExclusivity('DL'));
-    __mini.all   .addEventListener('change', ()=> miniExclusivity('ALL'));
-    }
-
-
-    // Nombre fijo del campo (texto) del municipio
-    const MUN_NAME_KEY = 'MUNICIPIO';
-
-    // Detecta automáticamente el campo de CÓDIGO de municipio (si no, usa el nombre)
-    function detectMunCodeKey(raw){
-    const feats = raw.features || [];
-    const candidates = ['MUN','CVE_MUN','CLV_MUN','ID_MUN','MUNICIPIO_ID','MUNICIPIO_CVE','CVE_MUNICIPIO','CVE_MPIO'];
-    for (const k of candidates) {
-        const ok = feats.some(f => {
-        const v = f.properties?.[k];
-        return v != null && String(v).trim() !== '' && String(v).toUpperCase() !== 'NULL';
-        });
-        if (ok) return k;
-    }
-    return null; // fallback será MUN_NAME_KEY
-    }
-
-
+        return null; // fallback será MUN_NAME_KEY
+      }
 
       // —— Utils de texto ——
-      function _norm(s){
-        if (s==null) return '';
-        return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+      function _norm(s) {
+        if (s == null) return "";
+        return String(s)
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toUpperCase()
+          .trim();
       }
-      function _isDigits(s){ return /^[0-9]+$/.test(String(s||'')); }
+      function _isDigits(s) {
+        return /^[0-9]+$/.test(String(s || ""));
+      }
 
       // —— Nombre de municipio desde catálogo (si existe) ——
-      function getMunNameFromCatalog(code){
+      function getMunNameFromCatalog(code) {
         const cat = window.AT_CATALOG;
-        if (!cat?.municipios) return String(code ?? '');
+        if (!cat?.municipios) return String(code ?? "");
         const s = String(code);
         // maneja posibles ceros a la izquierda
-        return cat.municipios[s] || cat.municipios[s.padStart(2,'0')] || cat.municipios[s.padStart(3,'0')] || s;
+        return (
+          cat.municipios[s] ||
+          cat.municipios[s.padStart(2, "0")] ||
+          cat.municipios[s.padStart(3, "0")] ||
+          s
+        );
       }
 
       // —— Índice de secciones ——
       let __SEC_INDEX = { items: [], global: false };
 
-      function buildSectionIndex(raw, universe, useGlobal){
-        const feats = (raw?.features || []);
-        const munKey = (window.AT_KEYS?.munCode) || FIELD_KEYS.mun;
+      function buildSectionIndex(raw, universe, useGlobal) {
+        const feats = raw?.features || [];
+        const munKey = window.AT_KEYS?.munCode || FIELD_KEYS.mun;
         const items = [];
 
         // dataset base: global = todas, local = filtradas por universo
-        const base = useGlobal ? feats : (filterGeojson(raw, universe).features || []);
+        const base = useGlobal
+          ? feats
+          : filterGeojson(raw, universe).features || [];
 
-        for(const f of base){
+        for (const f of base) {
           const p = f.properties || {};
           const sec = p.SECCION ?? p.Seccion ?? p.seccion ?? null;
           if (sec == null) continue;
@@ -581,23 +2040,31 @@
           const dl = p[FIELD_KEYS.dl];
 
           // texto para búsqueda
-          const text = `${sec} ${munCode ?? ''} ${munName ?? ''} ${df ?? ''} ${dl ?? ''}`;
+          const text = `${sec} ${munCode ?? ""} ${munName ?? ""} ${df ?? ""} ${
+            dl ?? ""
+          }`;
           // bounds (si multiparte, Leaflet lo resuelve)
           let bounds = null;
-          try { bounds = L.geoJSON(f).getBounds(); } catch(_){}
+          try {
+            bounds = L.geoJSON(f).getBounds();
+          } catch (_) {}
 
           items.push({
             sec: String(sec).trim(),
             munCode: munCode,
             munName: munName,
-            df, dl, feature: f, textNorm: _norm(text), bounds
+            df,
+            dl,
+            feature: f,
+            textNorm: _norm(text),
+            bounds,
           });
         }
 
         __SEC_INDEX = { items, global: !!useGlobal };
       }
 
-      function searchSections(query, limit=15){
+      function searchSections(query, limit = 15) {
         const q = _norm(query);
         if (!q) return [];
         const ds = __SEC_INDEX.items;
@@ -605,326 +2072,506 @@
         // Heurística sencilla:
         // - si es numérico puro: prioridad a SECCION que empiece con q
         // - si no: contiene tokens
-        if (_isDigits(q)){
-          const starts = ds.filter(it => _norm(it.sec).startsWith(q));
+        if (_isDigits(q)) {
+          const starts = ds.filter((it) => _norm(it.sec).startsWith(q));
           if (starts.length >= limit) return starts.slice(0, limit);
-          const contains = ds.filter(it => _norm(it.sec).includes(q));
+          const contains = ds.filter((it) => _norm(it.sec).includes(q));
           return [...starts, ...contains].slice(0, limit);
         } else {
           const tokens = q.split(/\s+/).filter(Boolean);
-          return ds.filter(it => tokens.every(t => it.textNorm.includes(t))).slice(0, limit);
+          return ds
+            .filter((it) => tokens.every((t) => it.textNorm.includes(t)))
+            .slice(0, limit);
         }
       }
 
       // —— UI de sugerencias ——
       let __SEC_HIGHLIGHT = null;
 
-      function renderSecSuggestions(list){
-        const ul = document.getElementById('sec-suggest');
+      function renderSecSuggestions(list) {
+        const ul = document.getElementById("sec-suggest");
         if (!ul) return;
-        if (!list.length){ ul.style.display='none'; ul.innerHTML=''; return; }
+        if (!list.length) {
+          ul.style.display = "none";
+          ul.innerHTML = "";
+          return;
+        }
 
-        ul.innerHTML = list.map(it => {
-          const label = `${it.sec} — ${it.munName || it.munCode || ''}`.replace(/\s+-\s+$/, '');
-          const meta  = [];
-          if (it.dl!=null) meta.push(`DL ${it.dl}`);
-          if (it.df!=null) meta.push(`DF ${it.df}`);
-          const sub = meta.length ? `<small style="color:#64748b">${meta.join(' · ')}</small>` : '';
-          return `<li data-sec="${it.sec}" style="padding:6px 8px; border-bottom:1px solid #e5e7eb; cursor:pointer">
+        ul.innerHTML = list
+          .map((it) => {
+            const label = `${it.sec} — ${
+              it.munName || it.munCode || ""
+            }`.replace(/\s+-\s+$/, "");
+            const meta = [];
+            if (it.dl != null) meta.push(`DL ${it.dl}`);
+            if (it.df != null) meta.push(`DF ${it.df}`);
+            const sub = meta.length
+              ? `<small style="color:#64748b">${meta.join(" · ")}</small>`
+              : "";
+            return `<li data-sec="${it.sec}" style="padding:6px 8px; border-bottom:1px solid #e5e7eb; cursor:pointer">
                     <div>${label}</div>${sub}
                   </li>`;
-        }).join('');
-        ul.style.display = 'block';
-
-
+          })
+          .join("");
+        ul.style.display = "block";
       }
 
-    function gotoSection(item){
-      const atMap = (window.AT_CTX?.map) || ensureLeafletMap();
+      function gotoSection(item) {
+        const atMap = window.AT_CTX?.map || ensureLeafletMap();
 
-      // 1) Resolver el feature de la sección
-      const sec = String(item.sec ?? item.SECCION ?? '');
-      let feat = item.feature;
+        // 1) Resolver el feature de la sección
+        const sec = String(item.sec ?? item.SECCION ?? "");
+        let feat = item.feature;
 
-      if (!feat) {
-        const feats =
-          (window.AT_CTX?.layer?.toGeoJSON?.().features) ||
-          (window.AT_DATA?.features) || [];
-        feat = feats.find(f => String(f.properties?.SECCION) === sec);
+        if (!feat) {
+          const feats =
+            window.AT_CTX?.layer?.toGeoJSON?.().features ||
+            window.AT_DATA?.features ||
+            [];
+          feat = feats.find((f) => String(f.properties?.SECCION) === sec);
+        }
+
+        if (!feat) {
+          console.warn(
+            "[AT] No encontré el feature para la sección",
+            sec,
+            item
+          );
+          return;
+        }
+
+        // 2) Pintar selección + adyacentes + labels (esto limpia overlays previos)
+        paintSelectionAndAdj(feat);
+
+        // 3) Mostrar panel con DF, DL y LN (24DL_LN)
+        showSectionInfo(feat);
+
+        // 4) Feedback visual (parpadeo leve sobre el highlight actual)
+        const hl = window.__SEC_HL;
+        if (hl && typeof hl.setStyle === "function") {
+          try {
+            hl.setStyle({ weight: 4 });
+            setTimeout(() => {
+              try {
+                hl.setStyle({ weight: 3 });
+              } catch (_) {}
+            }, 220);
+          } catch (_) {}
+        }
+
+        // 5) Oculta la lista de sugerencias (si está visible)
+        const ul = document.getElementById("sec-suggest");
+        if (ul) ul.style.display = "none";
       }
-
-      if (!feat) {
-        console.warn('[AT] No encontré el feature para la sección', sec, item);
-        return;
-      }
-
-      // 2) Pintar selección + adyacentes + labels (esto limpia overlays previos)
-      paintSelectionAndAdj(feat);
-
-      // 3) Mostrar panel con DF, DL y LN (24DL_LN)
-      showSectionInfo(feat);
-
-      // 4) Feedback visual (parpadeo leve sobre el highlight actual)
-      const hl = window.__SEC_HL;
-      if (hl && typeof hl.setStyle === 'function') {
-        try {
-          hl.setStyle({ weight: 4 });
-          setTimeout(() => { try { hl.setStyle({ weight: 3 }); } catch(_){} }, 220);
-        } catch(_){}
-      }
-
-      // 5) Oculta la lista de sugerencias (si está visible)
-      const ul = document.getElementById('sec-suggest');
-      if (ul) ul.style.display = 'none';
-    }
-
 
       // Delegación de clic en las sugerencias (una sola vez)
-    (function wireSectionSearchEventsOnce(){
-      const ul = document.getElementById('sec-suggest');
-      const input = document.getElementById('sec-q');
-      if (!ul || !input) return;
+      (function wireSectionSearchEventsOnce() {
+        const ul = document.getElementById("sec-suggest");
+        const input = document.getElementById("sec-q");
+        if (!ul || !input) return;
 
-       // Si está dentro de un form, evita submit al Enter
-      const form = input.closest('form');
-      form?.addEventListener('submit', e => e.preventDefault());
+        // Si está dentro de un form, evita submit al Enter
+        const form = input.closest("form");
+        form?.addEventListener("submit", (e) => e.preventDefault());
 
-      // Clic en cualquier <li data-sec="...">
-      if (!ul.__wiredClick){
-        ul.addEventListener('click', (ev)=>{
-          const li = ev.target.closest('li[data-sec]');
-          if (!li) return;
-          const sec = li.getAttribute('data-sec');
-          const item = (__SEC_INDEX?.items||[]).find(x => String(x.sec) === String(sec));
-          if (item) gotoSection(item);
-          ul.style.display = 'none';
-        });
-        ul.__wiredClick = true;
-      }
+        // Clic en cualquier <li data-sec="...">
+        if (!ul.__wiredClick) {
+          ul.addEventListener("click", (ev) => {
+            const li = ev.target.closest("li[data-sec]");
+            if (!li) return;
+            const sec = li.getAttribute("data-sec");
+            const item = (__SEC_INDEX?.items || []).find(
+              (x) => String(x.sec) === String(sec)
+            );
+            if (item) gotoSection(item);
+            ul.style.display = "none";
+          });
+          ul.__wiredClick = true;
+        }
 
-      // Enter en el input = ir al primer resultado
-      if (!input.__wiredKey){
-        input.addEventListener('keydown', (ev)=>{
-          if (ev.key === 'Enter'){
-            ev.preventDefault(); // <- evita submit/autocomplete
-            const results = searchSections(input.value, 1);
-        const needle = currentNeedle(input.value);
-        const [first] = searchSections(needle, 1);
-        if (first) gotoSection(first);
-        ul.style.display = 'none';
-       }
-          if (ev.key === 'Escape'){
-            ul.style.display = 'none';
-          }
-        });
-        input.__wiredKey = true;
-      }
+        // Enter en el input = ir al primer resultado
+        if (!input.__wiredKey) {
+          input.addEventListener("keydown", (ev) => {
+            if (ev.key === "Enter") {
+              ev.preventDefault(); // <- evita submit/autocomplete
+              const results = searchSections(input.value, 1);
+              const needle = currentNeedle(input.value);
+              const [first] = searchSections(needle, 1);
+              if (first) gotoSection(first);
+              ul.style.display = "none";
+            }
+            if (ev.key === "Escape") {
+              ul.style.display = "none";
+            }
+          });
+          input.__wiredKey = true;
+        }
 
-      // Input: recalcula sugerencias usando el "último token"
-      if (!input.__wiredInput){
-        input.addEventListener('input', ()=>{
-          const needle = currentNeedle(input.value);
-          renderSecSuggestions(searchSections(needle, 15));
-        });
-        input.__wiredInput = true;
-      }
-    })();
-
+        // Input: recalcula sugerencias usando el "último token"
+        if (!input.__wiredInput) {
+          input.addEventListener("input", () => {
+            const needle = currentNeedle(input.value);
+            renderSecSuggestions(searchSections(needle, 15));
+          });
+          input.__wiredInput = true;
+        }
+      })();
 
       // —— Inicializar Buscador en el módulo ——
-      function initSectionSearch(raw, universe){
-        const input   = document.getElementById('sec-q');
-        const list    = document.getElementById('sec-suggest');
-        const globalC = document.getElementById('sec-global');
+      function initSectionSearch(raw, universe) {
+        const input = document.getElementById("sec-q");
+        const list = document.getElementById("sec-suggest");
+        const globalC = document.getElementById("sec-global");
         if (!input || !list) return;
 
         // construir índice (por universo actual)
         buildSectionIndex(raw, universe, !!globalC?.checked);
 
-
-
         // Cambiar ámbito (global / universo actual)
-        globalC?.addEventListener('change', () => {
+        globalC?.addEventListener("change", () => {
           buildSectionIndex(raw, universe, !!globalC.checked);
           // refresca sugerencias con la query actual
-          if (input.value){
+          if (input.value) {
             renderSecSuggestions(searchSections(input.value, 15));
           }
         });
       }
 
       // —— Cuando cambies de universo con tu mini-selector, reindexa ——
-      function refreshSectionSearch(universe){
-        const input   = document.getElementById('sec-q');
-        const globalC = document.getElementById('sec-global');
+      function refreshSectionSearch(universe) {
+        const input = document.getElementById("sec-q");
+        const globalC = document.getElementById("sec-global");
         if (!window.AT_DATA || !input) return;
         buildSectionIndex(window.AT_DATA, universe, !!globalC?.checked);
-        if (input.value){
+        if (input.value) {
           renderSecSuggestions(searchSections(input.value, 15));
         }
       }
 
+      function getEffectiveStatusForCasilla(secKey, c){
+        const idAttr = (c.CASILLA_ID ?? c.CLAVE ?? c.CASILLA ?? '').toString();
+        const key    = diaDKey(secKey, idAttr);
+        const saved  = diaDEstado[key];
 
-      function getRawForIndex(){
+        const raw = (saved?.estatus ?? c.ESTATUS ?? c.estatus ?? '').toString();
+        return normalizarEstatusDiaD(raw);
+      }
+
+      async function buildDiaDStatusList(filterEst){
+        await ensureDiaDDataLoaded();
+        const rows = [];
+
+        for (const [secKey, arr] of DIA_D_BY_SEC.entries()){
+          for (const c of arr){
+            const est = getEffectiveStatusForCasilla(secKey, c);
+            if (filterEst !== 'todos' && est !== filterEst) continue;
+
+            const cas = (c.CASILLA ?? c.CLAVE ?? '').toString();
+            const dom = (c.DOMICILIO ?? '').toString();
+
+            rows.push({ sec: secKey, cas, dom, est });
+          }
+        }
+        return rows;
+      }
+
+      async function abrirDiaDStatusPanel(filterEst){
+        const panel   = document.getElementById('diaD-status-panel');
+        const tbody   = document.getElementById('d2-tbody');
+        const labelEl = document.getElementById('d2-label');
+        const subEl   = document.getElementById('d2-sub');
+        if (!panel || !tbody) return;
+
+        const labels = {
+          todos:        'Todas las casillas',
+          sin_rep:      'Sin representante',
+          instalada:    'Casilla instalada',
+          incidencia:   'Con incidencia',
+          acta_recibida:'Acta recibida',
+          cerrada:      'Casilla cerrada'
+        };
+
+        labelEl.textContent = labels[filterEst] || filterEst;
+
+        const rows = await buildDiaDStatusList(filterEst);
+        subEl.textContent = `Casillas encontradas: ${rows.length}`;
+
+        if (!rows.length){
+          tbody.innerHTML = `
+            <tr><td colspan="4" style="padding:8px; color:#64748b;">
+              No hay casillas con este estatus.
+            </td></tr>`;
+        } else {
+          tbody.innerHTML = rows.map(r => `
+            <tr data-sec="${r.sec}" data-cas="${r.cas}">
+              <td>${r.sec}</td>
+              <td>${r.cas}</td>
+              <td>${r.dom || '—'}</td>
+              <td>${diaDStatusChip(r.est)}</td>
+            </tr>
+          `).join('');
+        }
+
+        // Clic en fila → zoom al punto de la casilla
+        const trs = tbody.querySelectorAll('tr[data-sec][data-cas]');
+        trs.forEach(tr => {
+          tr.addEventListener('click', () => {
+            const sec = tr.getAttribute('data-sec');
+            const cas = tr.getAttribute('data-cas');
+            enfocarCasillaEnMapaDiaD(sec, cas);
+          });
+        });
+
+        panel.classList.remove('hidden');
+        panel.style.display = 'block';
+      }
+
+      function initDiaDToolbar(){
+        const btn   = document.getElementById('btn-diaD-status');
+        const menu  = document.getElementById('diaD-toolbar-menu');
+        const panel = document.getElementById('diaD-status-panel');
+        const btnClose = document.getElementById('d2-close');
+
+        if (!btn || !menu || !panel || !btnClose) return;
+
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const visible = !menu.classList.contains('hidden');
+          if (visible){
+            menu.classList.add('hidden');
+          } else {
+            menu.classList.remove('hidden');
+          }
+        });
+
+        // Clic en opción de menú
+        menu.addEventListener('click', (evt) => {
+          const item = evt.target.closest('[data-est]');
+          if (!item) return;
+          const est = item.dataset.est;
+          menu.classList.add('hidden');
+          abrirDiaDStatusPanel(est);
+        });
+
+        // Cerrar panel global
+        btnClose.addEventListener('click', () => {
+          panel.classList.add('hidden');
+        });
+
+        // Cerrar menú si haces clic fuera
+        document.addEventListener('click', (evt) => {
+          if (!menu.contains(evt.target) && evt.target !== btn){
+            menu.classList.add('hidden');
+          }
+        });
+      }
+
+      // Ya tienes otros DOMContentLoaded, puedes agregar este sin problema
+      document.addEventListener('DOMContentLoaded', () => {
+        initDiaDToolbar();
+      });
+
+      function getRawForIndex() {
         // Usa el dataset completo si ya lo cacheaste
         if (window.AT_DATA) return window.AT_DATA;
         // Si no, al menos usa lo ya pintado en el mapa
         const lyr = window.AT_CTX?.layer;
-        return (lyr && typeof lyr.toGeoJSON === 'function') ? lyr.toGeoJSON() : null;
-  }
+        return lyr && typeof lyr.toGeoJSON === "function"
+          ? lyr.toGeoJSON()
+          : null;
+      }
 
-
-  // ===== 3) Boot =====
-  document.addEventListener('DOMContentLoaded', async () => {
-    // a) Leer universo y rutas puestos en el PORTAL
-    const u     = JSON.parse(localStorage.getItem('AT_UNIVERSE') || 'null');
-    const paths = JSON.parse(localStorage.getItem('AT_PATHS') || '{"geo":""}');
-    if (!u) {
-      const hdr = document.querySelector('#panel-header span');
-      hdr && (hdr.textContent += ' · selecciona el universo en el Portal');
-      setTimeout(()=>{ location.href = 'portal.html'; }, 600);
-      return;
-    }
-
-    // b) Etiqueta del universo
-    const hdr = document.querySelector('#panel-header span');
-    hdr && (hdr.textContent += ` · ${u.label}`);
-
-    // c) Mapa único
-    const atMap = ensureLeafletMap();
-    assertIsLeafletMap(atMap);
-
-    // d) Cargar y filtrar GeoJSON
-    const url = paths.geo || 'data/geo/secciones.geojson'; // <-- ajusta si tu ruta difiere
-
-    // Cargar catálogo territorial (para nombres visibles)
-    const catUrl = (paths.catalog && paths.catalog.trim()) || '/data/catalogo_territorial.json';
-    let catalog = window.AT_CATALOG || null;
-    if (!catalog) {
-    try {
-        const rc = await fetch(catUrl);
-        if (!rc.ok) throw new Error(`HTTP ${rc.status} al cargar catálogo ${catUrl}`);
-        catalog = await rc.json();
-        window.AT_CATALOG = catalog;
-    } catch (err) {
-        console.warn('[AT] No se pudo cargar el catálogo de nombres:', err);
-        window.AT_CATALOG = catalog = null; // seguimos sin nombres amigables
-    }
-    }
-
-
- let raw = window.AT_DATA || null; // usa caché si ya existe
-if (!raw) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status} al cargar ${url}`);
-    raw = await res.json();       // ✅ solo una vez
-    window.AT_DATA = raw;         // ✅ guarda en caché aquí
-  } catch (err) {
-    console.error('[AT] Error cargando GeoJSON:', err);
-    alert('No se pudo cargar el GeoJSON');
-    return;
-  }
-}
-// a partir de aquí, usa 'raw'
-
-    const filtered = filterGeojson(raw, u);
-    console.log('[AT] Universo:', u, 'Total:', raw.features?.length||0, 'Filtradas:', filtered.features?.length||0);
-
-    if(!filtered.features || filtered.features.length===0){
-      console.warn('[AT] No hay geometrías para el universo seleccionado:', u);
-      alert('No hay datos para el universo seleccionado');
-    }
-
-    // Nombre fijo del campo (texto) del municipio
-        const MUN_NAME_KEY = 'MUNICIPIO';
-
-    // Detecta campo de CÓDIGO (si existe); si no, usa el de nombre
-        function detectMunCodeKey(raw){
-        const feats = raw.features || [];
-        const candidates = ['MUN','CVE_MUN','CLV_MUN','ID_MUN','MUNICIPIO_ID','MUNICIPIO_CVE','CVE_MUNICIPIO','CVE_MPIO'];
-        for (const k of candidates) {
-            if (feats.some(f => (f.properties?.[k] ?? '') !== '')) return k;
+      // ===== 3) Boot =====
+      document.addEventListener("DOMContentLoaded", async () => {
+        // a) Leer universo y rutas puestos en el PORTAL
+        const u = JSON.parse(localStorage.getItem("AT_UNIVERSE") || "null");
+        const paths = JSON.parse(
+          localStorage.getItem("AT_PATHS") || '{"geo":""}'
+        );
+        if (!u) {
+          const hdr = document.querySelector("#panel-header span");
+          hdr && (hdr.textContent += " · selecciona el universo en el Portal");
+          setTimeout(() => {
+            location.href = "portal.html";
+          }, 600);
+          return;
         }
-        return null;
+
+        // b) Etiqueta del universo
+        const hdr = document.querySelector("#panel-header span");
+        hdr && (hdr.textContent += ` · ${u.label}`);
+
+        // c) Mapa único
+        const atMap = ensureLeafletMap();
+        assertIsLeafletMap(atMap);
+
+        // d) Cargar y filtrar GeoJSON
+        const url = paths.geo || "data/geo/secciones.geojson"; // <-- ajusta si tu ruta difiere
+
+        // Cargar catálogo territorial (para nombres visibles)
+        const catUrl =
+          (paths.catalog && paths.catalog.trim()) ||
+          "/data/catalogo_territorial.json";
+        let catalog = window.AT_CATALOG || null;
+        if (!catalog) {
+          try {
+            const rc = await fetch(catUrl);
+            if (!rc.ok)
+              throw new Error(`HTTP ${rc.status} al cargar catálogo ${catUrl}`);
+            catalog = await rc.json();
+            window.AT_CATALOG = catalog;
+          } catch (err) {
+            console.warn("[AT] No se pudo cargar el catálogo de nombres:", err);
+            window.AT_CATALOG = catalog = null; // seguimos sin nombres amigables
+          }
+        }
+
+        let raw = window.AT_DATA || null; // usa caché si ya existe
+        if (!raw) {
+          try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status} al cargar ${url}`);
+            raw = await res.json(); // ✅ solo una vez
+            window.AT_DATA = raw; // ✅ guarda en caché aquí
+          } catch (err) {
+            console.error("[AT] Error cargando GeoJSON:", err);
+            alert("No se pudo cargar el GeoJSON");
+            return;
+          }
+        }
+        // a partir de aquí, usa 'raw'
+
+        const filtered = filterGeojson(raw, u);
+        console.log(
+          "[AT] Universo:",
+          u,
+          "Total:",
+          raw.features?.length || 0,
+          "Filtradas:",
+          filtered.features?.length || 0
+        );
+
+        if (!filtered.features || filtered.features.length === 0) {
+          console.warn(
+            "[AT] No hay geometrías para el universo seleccionado:",
+            u
+          );
+          alert("No hay datos para el universo seleccionado");
+        }
+
+        // Nombre fijo del campo (texto) del municipio
+        const MUN_NAME_KEY = "MUNICIPIO";
+
+        // Detecta campo de CÓDIGO (si existe); si no, usa el de nombre
+        function detectMunCodeKey(raw) {
+          const feats = raw.features || [];
+          const candidates = [
+            "MUN",
+            "CVE_MUN",
+            "CLV_MUN",
+            "ID_MUN",
+            "MUNICIPIO_ID",
+            "MUNICIPIO_CVE",
+            "CVE_MUNICIPIO",
+            "CVE_MPIO",
+          ];
+          for (const k of candidates) {
+            if (feats.some((f) => (f.properties?.[k] ?? "") !== "")) return k;
+          }
+          return null;
         }
 
         const munCodeKey = detectMunCodeKey(raw) || MUN_NAME_KEY; // fallback: nombre
         FIELD_KEYS.mun = munCodeKey;
         window.AT_KEYS = { munCode: munCodeKey, munName: MUN_NAME_KEY };
 
-
-    // e) Dibujar capa
+        // e) Dibujar capa
         const layer = L.geoJSON(filtered, {
-      style: { color:'#000000', weight:1.2, fillOpacity:0.15 },
-      onEachFeature: (feat, lyr) => {
-        const p = feat.properties || {};
-        const muni = p[FIELD_KEYS.mun] ?? '—';
-        const dl   = p[FIELD_KEYS.dl]  ?? '—';
-        const df   = p[FIELD_KEYS.df]  ?? '—';
-        lyr.bindPopup(`<b>Sección</b>: ${p.SECCION ?? '—'}<br><b>Mun</b>: ${muni}<br><b>DL</b>: ${dl}<br><b>DF</b>: ${df}`);
-        lyr.on('mouseover', () => lyr.setStyle({weight:2}));
-        lyr.on('mouseout',  () => lyr.setStyle({weight:1.2}));
-      }
-    }).addTo(atMap);
+          style: { color: "#000000", weight: 1.2, fillOpacity: 0.15 },
+          onEachFeature: (feat, lyr) => {
+            const p = feat.properties || {};
+            const muni = p[FIELD_KEYS.mun] ?? "—";
+            const dl = p[FIELD_KEYS.dl] ?? "—";
+            const df = p[FIELD_KEYS.df] ?? "—";
+            lyr.bindPopup(
+              `<b>Sección</b>: ${
+                p.SECCION ?? "—"
+              }<br><b>Mun</b>: ${muni}<br><b>DL</b>: ${dl}<br><b>DF</b>: ${df}`
+            );
+            lyr.on("mouseover", () => lyr.setStyle({ weight: 2 }));
+            lyr.on("mouseout", () => lyr.setStyle({ weight: 1.2 }));
+          },
+        }).addTo(atMap);
 
-    try { atMap.fitBounds(layer.getBounds(), { padding:[20,20] }); } catch(e){}
-    window.AT_CTX = { universe: u, paths, map: atMap, layer };
+        try {
+          atMap.fitBounds(layer.getBounds(), { padding: [20, 20] });
+        } catch (e) {}
+        window.AT_CTX = { universe: u, paths, map: atMap, layer };
 
-    function getMunNameFromCatalog(code){
-  const cat = window.AT_CATALOG;
-  if (!cat?.municipios) return String(code ?? '');
-  return cat.municipios[String(code)] || String(code ?? '');
-}
-function getDfListFromCatalog(feats){
-  return (window.AT_CATALOG?.distritos_federales && window.AT_CATALOG.distritos_federales.length)
-    ? window.AT_CATALOG.distritos_federales
-    : uniqSorted(feats.map(f => f.properties?.[FIELD_KEYS.df]));
-}
-function getDlListFromCatalog(feats){
-  return (window.AT_CATALOG?.distritos_locales && window.AT_CATALOG.distritos_locales.length)
-    ? window.AT_CATALOG.distritos_locales
-    : uniqSorted(feats.map(f => f.properties?.[FIELD_KEYS.dl]));
-}
-    initMiniSelector(raw, u);
-    initSectionSearch(window.AT_DATA || raw, u);
-
-  });
-
-  (function wireATHotkeys(){
-      if (window.__AT_HOTKEYS) return;
-      window.__AT_HOTKEYS = true;
-
-      window.addEventListener('keydown', (e)=>{
-        // Esc: cerrar panel
-        if (e.key === 'Escape'){
-          if (document.getElementById('sec-info')?.style.display !== 'none'){
-            e.preventDefault();
-            closeSecInfoPanel();
-          }
+        function getMunNameFromCatalog(code) {
+          const cat = window.AT_CATALOG;
+          if (!cat?.municipios) return String(code ?? "");
+          return cat.municipios[String(code)] || String(code ?? "");
         }
-        // Ctrl+K (o Cmd+K en Mac): enfocar buscador de secciones
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){
-          e.preventDefault();
-          document.getElementById('sec-q')?.focus();
+        function getDfListFromCatalog(feats) {
+          return window.AT_CATALOG?.distritos_federales &&
+            window.AT_CATALOG.distritos_federales.length
+            ? window.AT_CATALOG.distritos_federales
+            : uniqSorted(feats.map((f) => f.properties?.[FIELD_KEYS.df]));
         }
+        function getDlListFromCatalog(feats) {
+          return window.AT_CATALOG?.distritos_locales &&
+            window.AT_CATALOG.distritos_locales.length
+            ? window.AT_CATALOG.distritos_locales
+            : uniqSorted(feats.map((f) => f.properties?.[FIELD_KEYS.dl]));
+        }
+        initMiniSelector(raw, u);
+        initSectionSearch(window.AT_DATA || raw, u);
+
+        cargarCapaCasillasDiaD().catch(err => console.error('[Día D] Error casillas:', err));
+
       });
-    })();
 
+      (function wireATHotkeys() {
+        if (window.__AT_HOTKEYS) return;
+        window.__AT_HOTKEYS = true;
 
-  </script>
-  <div id="sec-info">
-    <div class="hdr">
-    <span class="ttl">Sección</span>
-    <button id="sec-close" class="btn-close" aria-label="Cerrar">×</button>
-  </div>
-  <div class="body">
-    <div class="row"><span class="k">Sección</span>        <span class="v" id="si-sec">—</span></div>
-    <div class="row"><span class="k">Distrito Federal</span><span class="v" id="si-df">—</span></div>
-    <div class="row"><span class="k">Distrito Local</span>  <span class="v" id="si-dl">—</span></div>
-    <div class="row"><span class="k">LN (2024)</span>    <span class="v" id="si-ln">—</span></div>
-  </div>
-</div>
+        window.addEventListener("keydown", (e) => {
+          // Esc: cerrar panel
+          if (e.key === "Escape") {
+            if (document.getElementById("sec-info")?.style.display !== "none") {
+              e.preventDefault();
+              closeSecInfoPanel();
+            }
+          }
+          // Ctrl+K (o Cmd+K en Mac): enfocar buscador de secciones
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+            e.preventDefault();
+            document.getElementById("sec-q")?.focus();
+          }
+        });
+      })();
 
-</body>
+      // Cargar estado Día D desde localStorage al iniciar
+        cargarDiaDEstado();
+    </script>
+
+    <!-- ===== Menú Día D: Cambiar estatus ===== -->
+    <div id="diaD-menu-estatus" class="diaD-menu hidden">
+      <div data-est="sin_rep">❌ Sin representante</div>
+      <div data-est="instalada">🟡 Casilla instalada</div>
+      <div data-est="incidencia">⚠️ Incidencia</div>
+      <div data-est="acta_recibida">🟢 Acta recibida</div>
+      <div data-est="cerrada">⬛ Casilla cerrada</div>
+    </div>
+
+    <script>
+      document.getElementById("d2-close").addEventListener("click", () => {
+        const panel = document.getElementById("diaD-status-panel");
+        panel.classList.add("hidden");
+        panel.style.display = "";
+      });
+    </script>
+
+  </body>
 </html>
