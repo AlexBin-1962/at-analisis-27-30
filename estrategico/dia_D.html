@@ -40,39 +40,78 @@
       /* la lista queda clickeable */
 
 /* Etiqueta de la SECCIÓN seleccionada (rosa tenue) */
-.sec-label{
-  background: rgba(255, 235, 238, 0.96);  /* #ffebee */
-  border: 1px solid #e91e63;
-  color: #880e4f;
-  padding: 2px 6px;
-  border-radius: 8px;
+#map .sec-label, .leaflet-pane .sec-label{
+  background: #fff !important;            /* fondo blanco para contrastar */
+  border: 1px solid #e91e63 !important;   /* contorno rojo tenue */
+  color: #c2185b !important;              /* texto rojo */
+  padding: 4px 70px 4px 8px;              /* más espacio hacia la derecha */
+  border-radius: 10px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   pointer-events: none;
   white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+  box-shadow: 0 2px 10px rgba(0,0,0,.22);
+  display: inline-block;
+  transform: translate(-40%, -50%);       /* ancla un poco a la izquierda para ganar espacio a la derecha */
 }
 
-/* Etiquetas de SECCIONES ADYACENTES (azul/gris tenue) */
-.sec-label-adj{
-  background: rgba(227, 242, 253, 0.94);  /* #e3f2fd */
-  border: 1px solid #64b5f6;
-  color: #0d47a1;
-  padding: 1px 5px;
-  border-radius: 8px;
+/* Etiquetas de SECCIONES ADYACENTES (colores invertidos) */
+#map .sec-label-adj, .leaflet-pane .sec-label-adj{
+  background: rgba(233, 30, 99, 0.9) !important;  /* rojo tenue */
+  border: 1px solid #c2185b !important;
+  color: #fff !important;                          /* texto blanco */
+  padding: 3px 7px;
+  border-radius: 9px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 800;
   pointer-events: none;
   white-space: nowrap;
-  box-shadow: 0 1px 4px rgba(0,0,0,.12);
+  box-shadow: 0 2px 8px rgba(0,0,0,.22);
+  display: inline-block;
+  transform: translate(-50%, -50%);
 }
+
+/* Limpia el icono base de Leaflet para divIcon */
+.leaflet-div-icon{
+  background: transparent;
+  border: none;
+}
+
+/* Toolbar casillas Abasolo */
+#casillas-toolbar{
+  position:absolute;
+  top:10px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:2500;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  background:rgba(255,255,255,0.92);
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+  box-shadow:0 10px 24px rgba(0,0,0,.12);
+  padding:8px 10px;
+  backdrop-filter: blur(6px);
+}
+#casillas-toolbar button{
+  border:1px solid #cbd5e1;
+  background:#2563eb;
+  color:#fff;
+  padding:8px 12px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:700;
+  font-size:13px;
+}
+#casillas-toolbar button:hover{ background:#1d4ed8; }
 
 
 /* Panel flotante sección */
 #sec-info {
   position: absolute;
-  right: 16px; bottom: 16px;
-  width: 320px; max-width: 38vw; min-width: 260px;
+  left: 16px; bottom: 16px;
+  width: 280px; max-width: 38vw; min-width: 260px;
   background: #ffffff;
   border: 1px solid #cfd8dc;
   border-radius: 10px;
@@ -104,13 +143,284 @@
 #sec-info .row  { display:flex; justify-content:space-between; margin:6px 0; }
 #sec-info .k    { color:#607d8b; }
 #sec-info .v    { font-weight:600; }
+
+#casillas-panel{
+  position:absolute;
+  left:16px; bottom:180px;
+  width:360px; max-width:42vw; max-height:52vh;
+  background:#fff;
+  border:1px solid #cfd8dc;
+  border-radius:12px;
+  box-shadow:0 10px 28px rgba(0,0,0,.18);
+  display:none;
+  overflow:hidden;
+  z-index:4200;
+  font-size:14px;
+  resize: both;                   /* permitir redimensionar */
+}
+#casillas-panel .cp-hdr{
+  display:flex; align-items:center; gap:8px;
+  background:#f1f5f9;
+  padding:10px 12px;
+  border-bottom:1px solid #e2e8f0;
+  font-weight:700; color:#0f172a;
+  cursor: move;                   /* arrastrable */
+}
+#casillas-panel .cp-hdr small{ color:#475569; font-weight:600; }
+#casillas-panel .cp-close{
+  margin-left:auto; border:none; background:transparent; cursor:pointer;
+  font-size:18px; color:#475569;
+}
+#casillas-panel .cp-body{
+  padding:10px 12px;
+  max-height:calc(52vh - 48px);
+  overflow:auto;                       /* scrollbar cuando hay muchas casillas */
+}
+#casillas-panel .cp-row{
+  padding:8px 6px;
+  border-bottom:1px solid #e2e8f0;
+  display:flex;
+  gap:8px;
+}
+#casillas-panel .cp-row b{ color:#111; }
+#casillas-panel .cp-row .cp-info{ flex:1; min-width:0; }
+#casillas-panel .cp-row .cp-actions{
+  display:flex; flex-direction:column; gap:6px;
+}
+#casillas-panel .cp-row .cp-actions button{
+  border:1px solid #cbd5e1;
+  background:#fff;
+  border-radius:8px;
+  padding:6px 8px;
+  cursor:pointer;
+  font-size:12px;
+  font-weight:700;
+}
+#casillas-panel .cp-row .cp-actions button:hover{ background:#f8fafc; }
+#casillas-panel .cp-meta{
+  display:flex; gap:12px; font-size:12px; color:#64748b; margin-top:2px;
+}
+#casillas-panel .cp-dom{
+  font-size:13px; color:#0f172a; margin-top:4px;
+}
+#casillas-panel .cp-empty{
+  padding:12px; color:#64748b; font-size:13px;
+}
+#casillas-panel .cp-body::-webkit-scrollbar{
+  width:10px;
+}
+#casillas-panel .cp-body::-webkit-scrollbar-track{
+  background:#f8fafc;
+  border-left:1px solid #e2e8f0;
+}
+#casillas-panel .cp-body::-webkit-scrollbar-thumb{
+  background:#cbd5e1;
+  border-radius:8px;
+  border:2px solid #f8fafc;
+}
+#casillas-panel .cp-body::-webkit-scrollbar-thumb:hover{
+  background:#94a3b8;
+}
+
+/* Modal captura de actas */
+#acta-modal-backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,.35);
+  display:none; align-items:center; justify-content:center;
+  z-index:6000;
+}
+#acta-modal{
+  background:#fff;
+  width:min(900px, 92vw);
+  max-height:90vh;
+  border-radius:14px;
+  box-shadow:0 24px 64px rgba(0,0,0,.25);
+  display:flex; flex-direction:column;
+  overflow:hidden;
+}
+#acta-modal .am-hdr{
+  display:flex; gap:10px; align-items:center;
+  padding:14px 16px;
+  border-bottom:1px solid #e2e8f0;
+  background:linear-gradient(180deg, #eef2f7, #e2e8f0);
+  font-weight:700; color:#0f172a;
+}
+#acta-modal .am-hdr small{ color:#475569; font-weight:600; }
+#acta-modal .cp-close,
+#estatus-modal .cp-close{
+  border:none;
+  background:transparent;
+  font-size:18px;
+  cursor:pointer;
+  color:#475569;
+}
+#acta-modal .am-body{
+  padding:18px 20px;
+  overflow:auto;
+}
+#acta-modal .am-foot{
+  padding:12px 16px;
+  border-top:1px solid #e2e8f0;
+  display:flex; gap:10px; justify-content:flex-end;
+  background:#f8fafc;
+}
+#acta-modal table{
+  width:100%; border-collapse:separate; border-spacing:0 6px;
+  font-size:13px;
+}
+#acta-modal th, #acta-modal td{
+  border:none;
+  padding:6px 6px;
+  text-align:center;
+}
+#acta-modal th{
+  background:#f1f5f9;
+  font-weight:700;
+  color:#0f172a;
+  border:1px solid #e2e8f0;
+}
+#acta-modal td{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-top:none;
+}
+#acta-modal td:first-child{
+  text-align:left;
+  font-weight:700;
+  color:#111827;
+  border-left:1px solid #e2e8f0;
+}
+#acta-modal tr td:first-child{
+  border-top-left-radius:10px;
+  border-bottom-left-radius:10px;
+}
+#acta-modal tr td:last-child{
+  border-top-right-radius:10px;
+  border-bottom-right-radius:10px;
+}
+#acta-modal input[type="number"]{
+  width:100%;
+  padding:6px 4px;
+  border:1px solid #cbd5e1;
+  border-radius:8px;
+  font-size:13px;
+  text-align:right;
+}
+#acta-modal input[type="text"]{
+  width:100%;
+  padding:6px 4px;
+  border:1px solid #cbd5e1;
+  border-radius:8px;
+  font-size:13px;
+}
+#acta-modal .btn{
+  padding:10px 14px;
+  border-radius:10px;
+  border:1px solid #cbd5e1;
+  background:#fff;
+  cursor:pointer;
+  font-weight:600;
+}
+#acta-modal .btn.primary{
+  background:#2563eb;
+  color:#fff;
+  border-color:#2563eb;
+}
+
+/* Reutiliza estilos para el modal de estatus */
+#estatus-modal-backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,.35);
+  display:none; align-items:center; justify-content:center;
+  z-index:6000;
+}
+#estatus-modal{
+  background:#fff;
+  width:min(680px, 92vw);
+  max-height:90vh;
+  border-radius:14px;
+  box-shadow:0 24px 64px rgba(0,0,0,.25);
+  display:flex; flex-direction:column;
+  overflow:hidden;
+  position:absolute;
+}
+#estatus-modal .am-hdr{
+  cursor: move;
+  display:flex; gap:10px; align-items:center;
+  padding:14px 16px;
+  border-bottom:1px solid #e2e8f0;
+  background:linear-gradient(180deg, #eef2f7, #e2e8f0);
+  font-weight:700; color:#0f172a;
+}
+#estatus-modal .am-body{
+  padding:18px 20px;
+  overflow:auto;
+}
+#estatus-modal .est-resizer{
+  position:absolute;
+  right:4px; bottom:4px;
+  width:14px; height:14px;
+  cursor: se-resize;
+  background: linear-gradient(135deg, transparent 50%, #cbd5e1 50%);
+  opacity:0.7;
+}
+#casillas-panel .cp-resizer{
+  position:absolute;
+  right:4px; bottom:4px;
+  width:14px; height:14px;
+  cursor: se-resize;
+  background: linear-gradient(135deg, transparent 50%, #cbd5e1 50%);
+  opacity:0.7;
+}
+#casillas-panel{
+  position:absolute;
+  left:16px; bottom:180px;
+  width:360px; max-width:42vw; max-height:52vh;
+  background:#fff;
+  border:1px solid #cfd8dc;
+  border-radius:12px;
+  box-shadow:0 10px 28px rgba(0,0,0,.18);
+  display:none;
+  overflow:hidden;
+  z-index:4200;
+  font-size:14px;
+}
+#casillas-panel .cp-hdr{
+  display:flex; align-items:center; gap:8px;
+  background:#f1f5f9;
+  padding:10px 12px;
+  border-bottom:1px solid #e2e8f0;
+  font-weight:700; color:#0f172a;
+}
+#casillas-panel .cp-hdr small{ color:#475569; font-weight:600; }
+#casillas-panel .cp-close{
+  margin-left:auto; border:none; background:transparent; cursor:pointer;
+  font-size:18px; color:#475569;
+}
+#casillas-panel .cp-body{
+  padding:10px 12px;
+  max-height:calc(52vh - 48px);
+  overflow:auto;
+}
+#casillas-panel .cp-row{
+  padding:8px 6px;
+  border-bottom:1px solid #e2e8f0;
+}
+#casillas-panel .cp-row b{ color:#111; }
+#casillas-panel .cp-meta{
+  display:flex; gap:12px; font-size:12px; color:#64748b; margin-top:2px;
+}
+#casillas-panel .cp-dom{
+  font-size:13px; color:#0f172a; margin-top:4px;
+}
+#casillas-panel .cp-empty{
+  padding:12px; color:#64748b; font-size:13px;
+}
  
-
-
-
   </style>
 </head>
 <body>
+  <div id="casillas-toolbar">
+    <button id="btn-cargar-casillas" type="button">Cargar casillas</button>
+  </div>
   <div id="panel-lateral">
     <div id="panel-header">
       <!-- <img src="assets/img/logo.png" alt="Logo"/> -->
@@ -311,7 +621,12 @@
   function addLabelForFeature(feat, className, text){
     try {
       const c = turf.centerOfMass(feat).geometry.coordinates; // [lon, lat]
-      const m = L.marker([c[1], c[0]], { icon: L.divIcon({ className, html: text, iconSize:[0,0] }) });
+      const icon = L.divIcon({
+        className: className,
+        html: text,
+        iconAnchor: [0, 0],   // se centra con transform en CSS
+      });
+      const m = L.marker([c[1], c[0]], { icon });
       window.__SEC_LABELS = window.__SEC_LABELS || L.layerGroup().addTo(ensureLeafletMap());
       window.__SEC_LABELS.addLayer(m);
       return m;
@@ -348,6 +663,9 @@
       const s2 = f.properties?.SECCION ?? '—';
       addLabelForFeature(f, 'sec-label-adj', s2);
     }
+
+    // panel de casillas (dato enriquecido por sección)
+    showCasillasPanelForSec(sec);
   }
 
   // ====== PANEL FLOTANTE (drag + datos) ======
@@ -392,17 +710,351 @@
     document.getElementById('si-dl').textContent  = dl;
     document.getElementById('si-ln').textContent  = ln;
     box.style.display = 'block';
+
+    // actualizar panel de casillas
+    showCasillasPanelForSec(sec);
   }
 
 
 
   // ENTER + CLIC + ULTIMO TOKEN
 
-    function currentNeedle(q){
-      if (!q) return '';
-      const parts = String(q).split(/[,;\s]+/).filter(Boolean);
-      return parts.length ? parts[parts.length-1] : '';
+  function currentNeedle(q){
+    if (!q) return '';
+    const parts = String(q).split(/[,;\s]+/).filter(Boolean);
+    return parts.length ? parts[parts.length-1] : '';
+  }
+
+  // ===== Carga de casillas Abasolo (GeoJSON) =====
+  let __ABASOLO_LAYER = null;
+  async function loadCasillasAbasolo(){
+    const url = 'data/casillas/puntos_casillas.geojson';
+    const map = (window.AT_CTX?.map) || ensureLeafletMap();
+    try{
+      const res = await fetch(url);
+      const geo = await res.json();
+      if (__ABASOLO_LAYER){ try{ map.removeLayer(__ABASOLO_LAYER); }catch(_){ } }
+      __ABASOLO_LAYER = L.geoJSON(geo, {
+        pointToLayer: (feat, latlng)=> L.circleMarker(latlng, {
+          radius:7,
+          color:'#e11d48',
+          weight:2,
+          fillColor:'#f472b6',
+          fillOpacity:0.8
+        }),
+        onEachFeature:(feat, layer)=>{
+          const p = feat.properties || {};
+          const cas = p.CASILLA || p.casilla || p.CAS || p.Casilla || '—';
+          const sec = p.SECCION || p.sec || p.SecciOn || p.Seccion || '—';
+          const dom = p.DOMICILIO || p.dom || '';
+          layer.bindPopup(`<b>Casilla ${cas}</b><br/>Sección: ${sec}<br/>${dom}`);
+        }
+      }).addTo(map);
+      try{ map.fitBounds(__ABASOLO_LAYER.getBounds(), { padding:[18,18] }); }catch(_){}
+    }catch(err){
+      console.error('No pude cargar casillas_Abasolo.geojson', err);
+      alert('No se pudo cargar casillas_Abasolo.geojson');
     }
+  }
+
+  // ===== Panel de casillas por sección (datos enriquecidos) =====
+  const CASILLAS_PATH = 'data/casillas/casillas_min_por_seccion_enriquecido.json';
+  let __CASILLAS_MAP = null;
+  const ACTA_STORAGE_KEY = 'AT27_ACTAS_CASILLA';
+  const EST_STORAGE_KEY  = 'AT27_DIA_CASILLA';
+
+  async function ensureCasillasData(){
+    if (__CASILLAS_MAP) return __CASILLAS_MAP;
+    try{
+      const res = await fetch(CASILLAS_PATH);
+      const json = await res.json();
+      const map = {};
+      if (Array.isArray(json)){
+        json.forEach(it => {
+          const k = String(it.SECCION ?? '').replace(/\D+/g,'');
+          if (k) map[k] = it;
+        });
+      } else if (json && typeof json === 'object'){
+        Object.keys(json).forEach(k => {
+          const clean = String(k).replace(/\D+/g,'');
+          map[clean] = json[k];
+        });
+      }
+      __CASILLAS_MAP = map;
+    }catch(err){
+      console.error('[Día D] No pude leer casillas enriquecido:', err);
+      __CASILLAS_MAP = {};
+    }
+    return __CASILLAS_MAP;
+  }
+
+  async function showCasillasPanelForSec(sec){
+    const panel = document.getElementById('casillas-panel');
+    if (!panel) return;
+    const body = panel.querySelector('.cp-body');
+    const title = panel.querySelector('.cp-sec');
+
+    title.textContent = sec || '—';
+    panel.style.display = 'block';
+    body.innerHTML = '<div class="cp-empty">Cargando…</div>';
+
+    const data = await ensureCasillasData();
+    const row = data[String(sec).replace(/\D+/g,'')] || null;
+    if (!row){
+      body.innerHTML = '<div class="cp-empty">Sin casillas registradas para esta sección.</div>';
+      return;
+    }
+
+    const cas = Array.isArray(row.casillas) ? row.casillas : [];
+    if (!cas.length){
+      body.innerHTML = '<div class="cp-empty">Sin casillas registradas para esta sección.</div>';
+      return;
+    }
+
+    const req = row.req_rep != null ? ` · Req rep: ${row.req_rep}` : '';
+    panel.querySelector('.cp-hdr small').textContent = `Sección ${sec}${req}`;
+
+    body.innerHTML = cas.map(c => {
+      const dom = c.DOMICILIO_CORTO || c.DOMICILIO_LIMPIO || c.DOMICILIO || '—';
+      const loc = c.LOCALIDAD || '';
+      return `<div class="cp-row" data-cas="${c.CASILLA || ''}" data-loc="${loc}" data-dom="${dom.replace(/"/g,'&quot;')}">
+        <div class="cp-info">
+          <div><b>Casilla ${c.CASILLA || '—'}</b></div>
+          <div class="cp-meta">
+            ${loc ? `<span>Loc: ${loc}</span>` : ''}
+          </div>
+          <div class="cp-dom">${dom}</div>
+        </div>
+        <div class="cp-actions">
+          <button type="button" class="cp-acta">Acta</button>
+          <button type="button" class="cp-est">Estatus</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    body.querySelectorAll('.cp-row').forEach(rowEl=>{
+      const cas = rowEl.getAttribute('data-cas') || '—';
+      const loc = rowEl.getAttribute('data-loc') || '';
+      const dom = rowEl.getAttribute('data-dom') || '';
+      rowEl.querySelector('.cp-acta')?.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
+        openActaModal({ sec, cas, loc, dom });
+      });
+      rowEl.querySelector('.cp-est')?.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
+        openEstModal({ sec, cas, loc, dom });
+      });
+    });
+  }
+
+  // ===== Modal Acta =====
+  const ACTA_ELECCIONES = [
+    { key:'A', label:'AYUNTAMIENTO' },
+    { key:'DL', label:'DIPUTADO LOCAL' },
+    { key:'DF', label:'DIPUTADO FEDERAL' },
+    { key:'G', label:'GOBERNADOR' },
+    { key:'S', label:'SENADOR' },
+    { key:'P', label:'PRESIDENTE' },
+  ];
+  const ACTA_PARTIDOS = ['PAN','PRI','PVEM','MC','MORENA','INDEPENDIENTE'];
+
+  function getStoredActas(){
+    try{
+      return JSON.parse(localStorage.getItem(ACTA_STORAGE_KEY) || '{}');
+    }catch(_){ return {}; }
+  }
+  function saveStoredActas(obj){
+    try{ localStorage.setItem(ACTA_STORAGE_KEY, JSON.stringify(obj)); }catch(_){}
+  }
+  function actaKey(sec, cas){ return `${String(sec).trim()}|${String(cas).trim().toUpperCase()}`; }
+
+  function renderActaTable(existing){
+    const table = document.getElementById('acta-table');
+    if (!table) return;
+    const header = `
+      <tr>
+        <th>Elección</th>
+        ${ACTA_PARTIDOS.map(p=>`<th>${p}</th>`).join('')}
+        <th>Nulos</th>
+        <th>Votos</th>
+        <th>Lista Nominal</th>
+        <th>Incidencias</th>
+      </tr>`;
+    const rows = ACTA_ELECCIONES.map(e=>{
+      const row = existing?.[e.key] || {};
+      const inputsPartidos = ACTA_PARTIDOS.map(p=>{
+        const val = row[p] ?? '';
+        return `<td><input type="number" inputmode="numeric" min="0" data-elec="${e.key}" data-field="${p}" value="${val}"/></td>`;
+      }).join('');
+      return `
+        <tr>
+          <td>${e.label}</td>
+          ${inputsPartidos}
+          <td><input type="number" inputmode="numeric" min="0" data-elec="${e.key}" data-field="NULOS" value="${row.NULOS ?? ''}"/></td>
+          <td><input type="number" inputmode="numeric" min="0" data-elec="${e.key}" data-field="VOTOS" value="${row.VOTOS ?? ''}"/></td>
+          <td><input type="number" inputmode="numeric" min="0" data-elec="${e.key}" data-field="LN" value="${row.LN ?? ''}"/></td>
+          <td><input type="text" data-elec="${e.key}" data-field="INCIDENCIAS" value="${row.INCIDENCIAS ?? ''}"/></td>
+        </tr>`;
+    }).join('');
+    table.innerHTML = header + rows;
+  }
+
+  function openActaModal(ctx){
+    const backdrop = document.getElementById('acta-modal-backdrop');
+    const meta = document.querySelector('#acta-modal .am-meta');
+    if (!backdrop || !meta) return;
+    meta.textContent = `Sección ${ctx.sec} · Casilla ${ctx.cas}`;
+
+    const store = getStoredActas();
+    const existing = store[actaKey(ctx.sec, ctx.cas)];
+    renderActaTable(existing);
+
+    backdrop.style.display = 'flex';
+
+    const btnClose = document.querySelector('#acta-modal .cp-close');
+    const btnCancel = document.getElementById('acta-cancel');
+    const btnSave = document.getElementById('acta-save');
+
+    const close = ()=>{ backdrop.style.display = 'none'; };
+
+    btnClose.onclick = close;
+    btnCancel.onclick = close;
+    btnSave.onclick = ()=>{
+      const inputs = document.querySelectorAll('#acta-table input');
+      const next = {};
+      inputs.forEach(inp=>{
+        const elec = inp.dataset.elec;
+        const field = inp.dataset.field;
+        if (!elec || !field) return;
+        next[elec] = next[elec] || {};
+        const val = inp.type === 'number' ? (inp.value ? Number(inp.value) : '') : inp.value;
+        if (val !== '') next[elec][field] = val;
+      });
+      const all = getStoredActas();
+      all[actaKey(ctx.sec, ctx.cas)] = next;
+      saveStoredActas(all);
+      close();
+    };
+  }
+
+  // ===== Modal Estatus / Cortes =====
+  function getStoredEst(){
+    try{
+      return JSON.parse(localStorage.getItem(EST_STORAGE_KEY) || '{}');
+    }catch(_){ return {}; }
+  }
+  function saveStoredEst(obj){
+    try{ localStorage.setItem(EST_STORAGE_KEY, JSON.stringify(obj)); }catch(_){}
+  }
+
+  function openEstModal(ctx){
+    const backdrop = document.getElementById('estatus-modal-backdrop');
+    const meta = document.querySelector('#estatus-modal-backdrop .est-meta');
+    const modal = document.getElementById('estatus-modal');
+    if (!backdrop || !meta) return;
+    meta.textContent = `Sección ${ctx.sec} · Casilla ${ctx.cas}`;
+
+    const inputs = {
+      estatus: document.getElementById('est-dia-status'),
+      apHora: document.getElementById('est-dia-apertura-hora'),
+      apObs: document.getElementById('est-dia-apertura-obs'),
+      c11: document.getElementById('est-dia-corte-11'),
+      c13: document.getElementById('est-dia-corte-13'),
+      c17: document.getElementById('est-dia-corte-17'),
+      cvot: document.getElementById('est-dia-cierre-vot'),
+      chora: document.getElementById('est-dia-cierre-hora'),
+      cobs: document.getElementById('est-dia-cierre-obs'),
+    };
+
+    const store = getStoredEst();
+    const existing = store[actaKey(ctx.sec, ctx.cas)] || {};
+
+    inputs.estatus.value = existing.DIA_ESTATUS || 'SIN_REPORTE';
+    inputs.apHora.value = existing.DIA_APERTURA_HORA || '';
+    inputs.apObs.value  = existing.DIA_APERTURA_OBS || '';
+    inputs.c11.value    = existing.DIA_CORTE_11 ?? '';
+    inputs.c13.value    = existing.DIA_CORTE_13 ?? '';
+    inputs.c17.value    = existing.DIA_CORTE_17 ?? '';
+    inputs.cvot.value   = existing.DIA_CIERRE_VOTANTES ?? '';
+    inputs.chora.value  = existing.DIA_CIERRE_HORA || '';
+    inputs.cobs.value   = existing.DIA_CIERRE_OBS || '';
+
+    // centrar la primera vez
+    if (!modal.dataset.pos){
+      const w = modal.offsetWidth || 640;
+      const h = modal.offsetHeight || 520;
+      modal.style.left = Math.max(12, (window.innerWidth - w)/2) + 'px';
+      modal.style.top  = Math.max(12, (window.innerHeight - h)/2) + 'px';
+      modal.dataset.pos = '1';
+    }
+
+    backdrop.style.display = 'flex';
+
+    const close = ()=>{ backdrop.style.display = 'none'; };
+    document.querySelector('#estatus-modal-backdrop .est-close').onclick = close;
+    document.getElementById('est-cancel').onclick = close;
+    document.getElementById('est-save').onclick = ()=>{
+      const all = getStoredEst();
+      all[actaKey(ctx.sec, ctx.cas)] = {
+        DIA_ESTATUS: inputs.estatus.value,
+        DIA_APERTURA_HORA: inputs.apHora.value || null,
+        DIA_APERTURA_OBS: inputs.apObs.value || '',
+        DIA_CORTE_11: inputs.c11.value ? Number(inputs.c11.value) : null,
+        DIA_CORTE_13: inputs.c13.value ? Number(inputs.c13.value) : null,
+        DIA_CORTE_17: inputs.c17.value ? Number(inputs.c17.value) : null,
+        DIA_CIERRE_VOTANTES: inputs.cvot.value ? Number(inputs.cvot.value) : null,
+        DIA_CIERRE_HORA: inputs.chora.value || null,
+        DIA_CIERRE_OBS: inputs.cobs.value || '',
+      };
+      saveStoredEst(all);
+      close();
+    };
+
+    // drag
+    (function wireDrag(){
+      if (modal.__wiredDrag) return;
+      const hdr = modal.querySelector('.am-hdr');
+      let dragging = false, sx=0, sy=0, px=0, py=0;
+      hdr?.addEventListener('mousedown', (e)=>{
+        dragging = true;
+        sx = e.clientX; sy = e.clientY;
+        const r = modal.getBoundingClientRect();
+        px = r.left; py = r.top;
+        document.body.style.userSelect = 'none';
+      });
+      window.addEventListener('mousemove', (e)=>{
+        if (!dragging) return;
+        const dx = e.clientX - sx, dy = e.clientY - sy;
+        modal.style.left = (px + dx) + 'px';
+        modal.style.top  = (py + dy) + 'px';
+      });
+      window.addEventListener('mouseup', ()=>{ dragging=false; document.body.style.userSelect=''; });
+      modal.__wiredDrag = true;
+    })();
+
+    // resize
+    (function wireResize(){
+      if (modal.__wiredResize) return;
+      const handle = modal.querySelector('.est-resizer');
+      if (!handle) return;
+      let resizing = false, sx=0, sy=0, sw=0, sh=0;
+      handle.addEventListener('mousedown', (e)=>{
+        resizing = true;
+        sx = e.clientX; sy = e.clientY;
+        const r = modal.getBoundingClientRect();
+        sw = r.width; sh = r.height;
+        e.preventDefault();
+      });
+      window.addEventListener('mousemove', (e)=>{
+        if (!resizing) return;
+        const dx = e.clientX - sx, dy = e.clientY - sy;
+        modal.style.width = Math.max(520, sw + dx) + 'px';
+        modal.style.height = Math.max(400, sh + dy) + 'px';
+      });
+      window.addEventListener('mouseup', ()=>{ resizing=false; });
+      modal.__wiredResize = true;
+    })();
+  }
 
 // ===== Mini-selector de universo dentro del módulo =====
     let __mini = { selMun:null, selDf:null, selDl:null, all:null };
@@ -926,5 +1578,149 @@ function getDlListFromCatalog(feats){
   </div>
 </div>
 
+<div id="casillas-panel">
+  <div class="cp-hdr">
+    <span>Casillas sección <span class="cp-sec">—</span></span>
+    <small></small>
+    <button class="cp-close" aria-label="Cerrar">×</button>
+  </div>
+  <div class="cp-body">
+    <div class="cp-empty">Selecciona una sección para ver sus casillas.</div>
+  </div>
+  <div class="cp-resizer" title="Redimensionar"></div>
+</div>
+
+  <div id="acta-modal-backdrop">
+    <div id="acta-modal">
+      <div class="am-hdr">
+        <div>
+          <div>Captura de acta</div>
+          <small class="am-meta">Sección — · Casilla —</small>
+        </div>
+        <button class="cp-close" aria-label="Cerrar" style="margin-left:auto; border:none; background:transparent; font-size:18px; cursor:pointer;">×</button>
+      </div>
+      <div class="am-body">
+        <table id="acta-table">
+          <!-- se rellena por JS -->
+        </table>
+      </div>
+      <div class="am-foot">
+        <button class="btn" id="acta-cancel">Cancelar</button>
+        <button class="btn primary" id="acta-save">Guardar acta</button>
+      </div>
+    </div>
+  </div>
+
+<div id="estatus-modal-backdrop">
+  <div id="estatus-modal" style="width:min(680px,92vw);">
+    <div class="am-hdr">
+      <div>
+        <div>Estatus y cortes de casilla</div>
+        <small class="am-meta est-meta">Sección — · Casilla —</small>
+      </div>
+      <button class="cp-close est-close" aria-label="Cerrar">×</button>
+    </div>
+    <div class="am-body">
+      <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;">
+        <label style="display:flex; flex-direction:column; gap:4px; font-size:13px; color:#475569;">
+          Estatus día D
+          <select id="est-dia-status" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+            <option value="SIN_REPORTE">Sin reporte</option>
+            <option value="INSTALADA">Instalada</option>
+            <option value="INCIDENCIA">Incidencia</option>
+            <option value="ACTA_RECIBIDA">Acta recibida</option>
+            <option value="CERRADA">Cerrada</option>
+          </select>
+        </label>
+        <label style="display:flex; flex-direction:column; gap:4px; font-size:13px; color:#475569;">
+          Hora de apertura
+          <input id="est-dia-apertura-hora" type="time" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+        </label>
+        <label style="grid-column:span 2; display:flex; flex-direction:column; gap:4px; font-size:13px; color:#475569;">
+          Observaciones de apertura
+          <input id="est-dia-apertura-obs" type="text" placeholder="Ej. abrió 8:30, sin incidentes" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+        </label>
+        <label style="display:flex; flex-direction:column; gap:4px; font-size:13px; color:#475569;">
+          Corte 11:00 (votantes)
+          <input id="est-dia-corte-11" type="number" min="0" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+        </label>
+        <label style="display:flex; flex-direction:column; gap:4px; font-size:13px; color:#475569;">
+          Corte 13:00 (votantes)
+          <input id="est-dia-corte-13" type="number" min="0" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+        </label>
+        <label style="display:flex; flex-direction:column; gap:4px; font-size:13px; color:#475569;">
+          Corte 17:00 (votantes)
+          <input id="est-dia-corte-17" type="number" min="0" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+        </label>
+        <label style="display:flex; flex-direction:column; gap:4px; font-size:13px; color:#475569;">
+          Cierre: votantes
+          <input id="est-dia-cierre-vot" type="number" min="0" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+        </label>
+        <label style="display:flex; flex-direction:column; gap:4px; font-size:13px; color:#475569;">
+          Cierre: hora
+          <input id="est-dia-cierre-hora" type="time" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+        </label>
+        <label style="grid-column:span 2; display:flex; flex-direction:column; gap:4px; font-size:13px; color:#475569;">
+          Observaciones de cierre
+          <input id="est-dia-cierre-obs" type="text" placeholder="Ej. cerró 18:05, sin incidentes" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+        </label>
+      </div>
+    </div>
+    <div class="am-foot">
+      <button class="btn" id="est-cancel">Cancelar</button>
+      <button class="btn primary" id="est-save">Guardar</button>
+    </div>
+    <div class="est-resizer" title="Redimensionar"></div>
+  </div>
+</div>
+
+<script>
+  // cerrar panel casillas
+  (function wireCasillasPanel(){
+    const panel = document.getElementById('casillas-panel');
+    const btn = panel?.querySelector('.cp-close');
+    if (!panel || !btn) return;
+    btn.addEventListener('click', ()=>{ panel.style.display = 'none'; });
+
+    // drag
+    const hdr = panel.querySelector('.cp-hdr');
+    let dragging = false, sx=0, sy=0, px=0, py=0;
+    hdr?.addEventListener('mousedown', (e)=>{
+      dragging = true;
+      sx = e.clientX; sy = e.clientY;
+      const r = panel.getBoundingClientRect();
+      px = r.left; py = r.top;
+      document.body.style.userSelect = 'none';
+    });
+    window.addEventListener('mousemove', (e)=>{
+      if (!dragging) return;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      panel.style.left = (px + dx) + 'px';
+      panel.style.top  = (py + dy) + 'px';
+      panel.style.right = 'auto';
+      panel.style.bottom = 'auto';
+      panel.style.position = 'absolute';
+    });
+    window.addEventListener('mouseup', ()=>{
+      dragging = false;
+      document.body.style.userSelect = '';
+    });
+  })();
+
+  // Toolbar: botón para cargar casillas Abasolo
+  (function wireToolbarCasillas(){
+    const btn = document.getElementById('btn-cargar-casillas');
+    if (!btn) return;
+    btn.addEventListener('click', loadCasillasAbasolo);
+  })();
+</script>
+
 </body>
 </html>
+#estatus-modal .am-hdr{
+  display:flex; gap:10px; align-items:center;
+  padding:14px 16px;
+  border-bottom:1px solid #e2e8f0;
+  background:linear-gradient(180deg, #eef2f7, #e2e8f0);
+  font-weight:700; color:#0f172a;
+}
