@@ -498,6 +498,26 @@ body, html { overflow-x: hidden; }
         .sr-modal__dialog{ padding: 16px 14px 14px; }
       }
 
+      .btn-manual{
+        position: fixed;
+        left: 18px;
+        bottom: 18px;
+        z-index: 900; /* debajo del modal (999), arriba del portal */
+        border: 1px solid var(--borde-suave);
+        background: #fff;
+        color: var(--azul-osc);
+        padding: 10px 12px;
+        border-radius: 14px;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 10px 22px rgba(18,38,80,.12);
+      }
+      .btn-manual:hover{
+        transform: translateY(-1px);
+        box-shadow: 0 14px 26px rgba(18,38,80,.18);
+      }
+
+
       /* Botón flotante */
       .preso-btn{
         position: fixed; right: 16px; bottom: 18px; z-index: 90;
@@ -524,6 +544,62 @@ body, html { overflow-x: hidden; }
       /* Si tu contenedor principal tiene ancho limitado, dale aire */
       body { background: #fff !important; }
     }
+
+    .manual-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 9999;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .manual-panel {
+      width: 420px;
+      max-width: 90%;
+      height: 100%;
+      background: #ffffff;
+      box-shadow: -6px 0 20px rgba(0,0,0,0.25);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .manual-header {
+      padding: 14px 16px;
+      background: #2b2b2b;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .manual-header h2 {
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .manual-header button {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .manual-content {
+      padding: 16px;
+      overflow-y: auto;
+      font-size: 14px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #manualATModal.hidden + .manual-index {
+      display: none;
+    }
+
 
 
 
@@ -626,6 +702,8 @@ body, html { overflow-x: hidden; }
         <a class="sr-cta" href="#" role="button" aria-label="Ver guía rápida">
           Ver guía rápida
         </a>
+
+
       </div>
     </aside>
 
@@ -641,6 +719,8 @@ body, html { overflow-x: hidden; }
                   stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
+
+      <div class="sr-view sr-view--quick">
 
         <h3 id="sr-modal-title">Guía rápida</h3>
         <p class="sr-modal__lead">Pasos exprés para usar el portal en demo con el DF 2.</p>
@@ -658,10 +738,32 @@ body, html { overflow-x: hidden; }
           <span class="chip">Tip: exporta capturas para PPT</span>
           <span class="chip">Tip: revisa abstención 2024</span>
         </div>
+      </div>
 
-        <div class="sr-modal__footer">
-          <button class="sr-btn sr-btn--primary" type="button" data-sr-close>Entendido</button>
+      <div class="sr-view sr-view--manual" hidden>
+        <h3>Manual AT Análisis 27-30</h3>
+
+        <div class="sr-modal__content">
+          <br><br>
+          <h4>Capítulo 1 · Introducción</h4>
+          AT Análisis 27-30 es una plataforma integral...<br><br>
+
+          <h4>Capítulo 2 · Visión General</h4>
+          La app se organiza en módulos...<br><br>
         </div>
+      </div>
+
+
+      <div class="sr-modal__footer">
+        <button class="sr-btn" type="button" id="btnVerManual">
+          Ver manual completo
+        </button>
+
+        <button class="sr-btn sr-btn--primary" type="button" data-sr-close>
+          Entendido
+        </button>
+      </div>
+
       </div>
     </div>
 
@@ -1112,6 +1214,184 @@ body, html { overflow-x: hidden; }
   })();
   </script>
 
+  <script>
+    const btnVerManual = document.getElementById('btnVerManual');
+    const vistaQuick = document.querySelector('.sr-view--quick');
+    const vistaManual = document.querySelector('.sr-view--manual');
+    const titulo = document.getElementById('sr-modal-title');
+
+    if (btnVerManual && vistaQuick && vistaManual) {
+      btnVerManual.addEventListener('click', () => {
+        vistaQuick.hidden = true;
+        vistaManual.hidden = false;
+        titulo.textContent = 'Manual AT Análisis 27-30';
+      });
+    }
+
+  </script>
+
+
+    <div id="manualATModal" class="manual-modal hidden">
+    <div class="manual-panel">
+
+      <div class="manual-header">
+        <h2>Manual AT Análisis 27-30</h2>
+        <button id="cerrarManualAT">✕</button>
+      </div>
+
+      <div class="manual-content">
+        <div id="manualATContent" data-src="data/Manual/manual.txt">
+          <p>El manual se cargara aqui.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <nav class="manual-index">
+    <a href="#cap1">Intro</a>
+    <a href="#cap2">Visión</a>
+    <a href="#cap3">Navegación</a>
+    <a href="#cap4">AT</a>
+    <a href="#cap5">GT</a>
+    <a href="#cap6">AS</a>
+    <a href="#cap7">CT</a>
+    <a href="#cap8">ET</a>
+    <a href="#cap9">DD</a>
+    <a href="#cap10">Cierre</a>
+  </nav>
+
+          <button id="btnManualAT" class="btn-manual">
+          📘 Manual AT 27-30
+        </button>
+
+
+
+  <script>
+    (() => {
+      const btnManual = document.getElementById('btnManualAT');
+      const manualModal = document.getElementById('manualATModal');
+      const closeManual = document.getElementById('cerrarManualAT');
+      const manualContent = document.getElementById('manualATContent');
+      const manualSrc = manualContent?.dataset.src || 'data/Manual/manual.txt';
+      let manualLoaded = false;
+
+      const openManual = () => {
+        if (!manualModal) return;
+        manualModal.classList.remove('hidden');
+        if (!manualLoaded) loadManual();
+      };
+
+      const closeManualFn = () => {
+        manualModal?.classList.add('hidden');
+      };
+
+      const applyInlineFormatting = (text) =>
+        text.replace(/'''(.*?)'''/g, '<strong>$1</strong>');
+
+      const buildManualHtml = (raw) => {
+        const prepared = raw.replace(/:\s*([*#])\s+/g, ':\n$1 ');
+        const lines = prepared.split(/\r?\n/);
+        const html = [];
+        let listType = null;
+        let inParagraph = false;
+
+        const closeList = () => {
+          if (listType) {
+            html.push(`</${listType}>`);
+            listType = null;
+          }
+        };
+
+        const closeParagraph = () => {
+          if (inParagraph) {
+            html.push('</p>');
+            inParagraph = false;
+          }
+        };
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) {
+            closeParagraph();
+            closeList();
+            continue;
+          }
+
+          const headingMatch = trimmed.match(/^(=+)\s*(.+?)\s*=+$/);
+          if (headingMatch) {
+            closeParagraph();
+            closeList();
+            const level = Math.min(3, headingMatch[1].length);
+            const tag = level === 1 ? 'h2' : level === 2 ? 'h3' : 'h4';
+            const headingText = applyInlineFormatting(headingMatch[2].trim());
+            const capMatch = headingMatch[2].match(/CAP[ÍI]TULO\s+(\d+)/i);
+            const idAttr = capMatch ? ` id="cap${capMatch[1]}"` : '';
+            html.push(`<${tag}${idAttr}>${headingText}</${tag}>`);
+            continue;
+          }
+
+          const listMatch = trimmed.match(/^([*#])\s+(.*)$/);
+          if (listMatch) {
+            closeParagraph();
+            const nextListType = listMatch[1] === '*' ? 'ul' : 'ol';
+            if (listType && listType !== nextListType) {
+              closeList();
+            }
+            if (!listType) {
+              listType = nextListType;
+              html.push(`<${listType}>`);
+            }
+            html.push(`<li>${applyInlineFormatting(listMatch[2])}</li>`);
+            continue;
+          }
+
+          if (!inParagraph) {
+            closeList();
+            html.push('<p>');
+            inParagraph = true;
+            html.push(applyInlineFormatting(trimmed));
+          } else {
+            html.push('<br>' + applyInlineFormatting(trimmed));
+          }
+        }
+
+        closeParagraph();
+        closeList();
+        return html.join('');
+      };
+
+      const loadManual = async () => {
+        if (!manualContent) return;
+        manualContent.innerHTML = '<p>Cargando manual...</p>';
+        try {
+          const response = await fetch(manualSrc, { cache: 'no-store' });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          const text = await response.text();
+          manualContent.innerHTML = buildManualHtml(text);
+          manualLoaded = true;
+        } catch (error) {
+          manualContent.innerHTML =
+            '<p>No se pudo cargar el manual. Revisa la ruta de <code>data/Manual/manual.txt</code>.</p>';
+        }
+      };
+
+      btnManual?.addEventListener('click', openManual);
+      closeManual?.addEventListener('click', closeManualFn);
+      manualModal?.addEventListener('click', (event) => {
+        if (event.target === manualModal) {
+          closeManualFn();
+        }
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && manualModal && !manualModal.classList.contains('hidden')) {
+          closeManualFn();
+        }
+      });
+    })();
+  </script>
 
 </body>
 </html>

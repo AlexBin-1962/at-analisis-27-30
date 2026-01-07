@@ -1,0 +1,1852 @@
+= CAPÍTULO 1 · INTRODUCCIÓN =
+
+== Manual Operativo — AT Análisis 27-30 ==
+
+
+
+
+
+== 1.1 ¿Qué es AT Análisis 27-30? ==
+
+'''AT Análisis 27-30''' es una '''plataforma integral de análisis territorial y operación política''', diseñada para '''planear, ejecutar y evaluar una campaña electoral desde el territorio''', con base en datos reales, estructura operativa y trabajo de campo.
+
+No es solo un mapa ni un sistema de consulta.Es una '''herramienta de toma de decisiones''' que permite entender '''qué está pasando en cada sección''', '''quién opera el territorio''' y '''qué se necesita para ganar'''.
+
+AT Análisis 27-30 integra en un solo entorno:* <div style="margin-left:1.251cm;">Información electoral histórica</div>
+* <div style="margin-left:1.251cm;">Análisis territorial y socioeconómico</div>
+* <div style="margin-left:1.251cm;">Construcción y evaluación de estructura</div>
+* <div style="margin-left:1.251cm;">Captura de información en campo</div>
+* <div style="margin-left:1.251cm;">Operación y control del Día de la Elección</div>
+
+
+
+Todo con un enfoque '''político-operativo''', pensado para equipos reales de campaña.
+
+
+== 1.2 ¿Por qué existe AT Análisis 27-30? ==
+
+Las campañas modernas ya no se ganan solo con discurso o presencia.Se ganan con '''organización, lectura territorial y ejecución precisa'''.
+
+AT Análisis 27-30 surge para resolver cinco problemas centrales de cualquier campaña:# <div style="margin-left:1.251cm;">'''Desconocimiento del territorio'''Se trabaja con intuición y no con datos reales por sección.</div>
+# <div style="margin-left:1.251cm;">'''Falta de integración entre áreas'''Análisis, estructura y campo trabajan de forma aislada.</div>
+# <div style="margin-left:1.251cm;">'''Uso ineficiente de recursos'''Se invierte tiempo, personas y dinero donde no es estratégico.</div>
+# <div style="margin-left:1.251cm;">'''Débil control de la estructura'''No se sabe con certeza dónde hay cobertura y dónde no.</div>
+# <div style="margin-left:1.251cm;">'''Desorden el Día D'''La información llega tarde o no llega.</div>
+
+
+
+La plataforma responde a estos problemas con una lógica clara:'''ver → entender → decidir → ejecutar'''.
+
+
+== 1.3 ¿Para quién está diseñado este sistema? ==
+
+AT Análisis 27-30 está diseñado para '''uso interno de campaña''', no para difusión pública.
+
+Está pensado principalmente para:* <div style="margin-left:1.251cm;">'''Coordinador General de Campaña'''</div>
+* <div style="margin-left:1.251cm;">'''Coordinadores Territoriales (municipales y distritales)'''</div>
+* <div style="margin-left:1.251cm;">'''Equipo de Análisis y Estrategia'''</div>
+* <div style="margin-left:1.251cm;">'''Responsables de Estructura'''</div>
+* <div style="margin-left:1.251cm;">'''Equipo de Campo'''</div>
+
+
+
+Cada usuario puede consultar el sistema desde su rol, pero '''todos trabajan sobre la misma información''', evitando versiones distintas de la realidad.
+
+
+== 1.4 ¿Qué tipo de decisiones permite tomar? ==
+
+AT Análisis 27-30 permite responder preguntas operativas clave, como:* <div style="margin-left:1.251cm;">¿En qué secciones estamos fuertes y en cuáles no?</div>
+* <div style="margin-left:1.251cm;">¿Dónde conviene invertir recursos y dónde no?</div>
+* <div style="margin-left:1.251cm;">¿Tenemos estructura suficiente para cubrir casillas?</div>
+* <div style="margin-left:1.251cm;">¿Qué zonas requieren trabajo inmediato de campo?</div>
+* <div style="margin-left:1.251cm;">¿Qué nos falta para ganar un distrito o municipio?</div>
+* <div style="margin-left:1.251cm;">¿Estamos listos para el Día D?</div>
+
+
+
+Cada módulo del sistema está diseñado para '''responder preguntas concretas de campaña''', no para generar información decorativa.
+
+
+== 1.5 Cómo debe usarse este manual ==
+
+Este manual no es un documento teórico.Es una '''guía práctica de operación'''.
+
+Se recomienda:* <div style="margin-left:1.251cm;">Leer primero los '''capítulos generales''' para entender la lógica del sistema.</div>
+* <div style="margin-left:1.251cm;">Consultar los '''módulos específicos''' según el rol del usuario.</div>
+* <div style="margin-left:1.251cm;">Usarlo como referencia para '''capacitación''', '''planeación''' y '''operación diaria'''.</div>
+* <div style="margin-left:1.251cm;">Actualizarlo conforme la campaña avanza y la estrategia se ajusta.</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+= CAPÍTULO 2 · VISIÓN GENERAL DE LA APP =
+
+== Arquitectura Operativa — AT Análisis 27-30 ==
+
+
+
+
+
+== 2.1 ¿Qué es la App AT Análisis 27-30? ==
+
+La '''App AT Análisis 27-30''' es el '''centro de control territorial de la campaña'''.Funciona como una '''plataforma única''' donde se concentran:* <div style="margin-left:1.251cm;">El análisis electoral</div>
+* <div style="margin-left:1.251cm;">La lectura territorial</div>
+* <div style="margin-left:1.251cm;">La información socioeconómica</div>
+* <div style="margin-left:1.251cm;">La estructura política</div>
+* <div style="margin-left:1.251cm;">El trabajo de campo</div>
+* <div style="margin-left:1.251cm;">La operación del Día D</div>
+
+
+
+Su diseño permite que '''todas las áreas de la campaña trabajen sobre el mismo mapa, los mismos datos y los mismos criterios''', evitando duplicidades, confusión o decisiones contradictorias.
+
+
+== 2.2 Lógica general de funcionamiento ==
+
+La app opera bajo una lógica simple y operativa:
+
+'''Territorio → Sección → Información → Decisión → Acción'''
+
+Cada interacción parte del '''mapa''', que representa el territorio real de la campaña.Al seleccionar una '''sección electoral''', el sistema despliega la información necesaria para '''entender esa sección y actuar sobre ella'''.
+
+No se navega por menús complejos.Se navega por '''territorio'''.
+
+
+== 2.3 Arquitectura por módulos ==
+
+La app está organizada en '''módulos especializados''', cada uno con una función clara dentro de la campaña.Los módulos no funcionan de manera aislada: '''se complementan entre sí'''.
+
+A continuación, se presenta una descripción operativa breve de cada módulo.
+
+
+=== AT — Análisis Territorial ===
+
+'''¿Qué es?'''Es el módulo que permite analizar el comportamiento electoral del territorio a nivel sección, distrito y municipio.
+
+'''¿Para qué sirve?'''Para identificar fortalezas, debilidades, tendencias y zonas estratégicas de la campaña.
+
+'''Funciones principales:'''* <div style="margin-left:1.251cm;">Visualizar resultados electorales históricos.</div>
+* <div style="margin-left:1.251cm;">Comparar elecciones y partidos.</div>
+* <div style="margin-left:1.251cm;">Detectar secciones ganadas, perdidas y competitivas.</div>
+* <div style="margin-left:1.251cm;">Identificar patrones territoriales de voto.</div>
+
+
+
+'''Decisiones que permite:'''* <div style="margin-left:1.251cm;">Priorizar zonas de intervención.</div>
+* <div style="margin-left:1.251cm;">Definir rutas de campaña.</div>
+* <div style="margin-left:1.251cm;">Ajustar estrategia territorial.</div>
+
+
+
+
+
+=== GT — Ganar Todo ===
+
+'''¿Qué es?'''Es el módulo de simulación y proyección electoral.
+
+'''¿Para qué sirve?'''Para calcular '''qué se necesita para ganar''' un municipio, distrito o ámbito específico.
+
+'''Funciones principales:'''* <div style="margin-left:1.251cm;">Identificar secciones perdidas.</div>
+* <div style="margin-left:1.251cm;">Calcular votos faltantes.</div>
+* <div style="margin-left:1.251cm;">Simular escenarios de victoria.</div>
+* <div style="margin-left:1.251cm;">Evaluar impacto de cambios estratégicos.</div>
+
+
+
+'''Decisiones que permite:'''* <div style="margin-left:1.251cm;">Definir objetivos numéricos reales.</div>
+* <div style="margin-left:1.251cm;">Asignar recursos estratégicamente.</div>
+* <div style="margin-left:1.251cm;">Planear cierres de campaña.</div>
+
+
+
+
+
+=== AS — Análisis Socioeconómico ===
+
+'''¿Qué es?'''Es el módulo que permite entender '''quién vive en el territorio''' y cuáles son sus condiciones sociales y económicas.
+
+'''¿Para qué sirve?'''Para adaptar el mensaje político a la realidad de cada zona.
+
+'''Funciones principales:'''* <div style="margin-left:1.251cm;">Consultar indicadores socioeconómicos.</div>
+* <div style="margin-left:1.251cm;">Identificar perfiles poblacionales.</div>
+* <div style="margin-left:1.251cm;">Detectar problemáticas dominantes.</div>
+
+
+
+'''Decisiones que permite:'''* <div style="margin-left:1.251cm;">Ajustar discurso y narrativa.</div>
+* <div style="margin-left:1.251cm;">Segmentar mensajes.</div>
+* <div style="margin-left:1.251cm;">Definir prioridades temáticas.</div>
+
+
+
+
+
+=== CT — Campo y Territorio ===
+
+'''¿Qué es?'''Es el módulo de captura y seguimiento del trabajo de campo.
+
+'''¿Para qué sirve?'''Para saber '''qué está pasando realmente en la calle''', en tiempo casi real.
+
+'''Funciones principales:'''* <div style="margin-left:1.251cm;">Capturar información en campo.</div>
+* <div style="margin-left:1.251cm;">Registrar observaciones territoriales.</div>
+* <div style="margin-left:1.251cm;">Georreferenciar datos de operación.</div>
+
+
+
+'''Decisiones que permite:'''* <div style="margin-left:1.251cm;">Corregir estrategia en tiempo real.</div>
+* <div style="margin-left:1.251cm;">Detectar conflictos o riesgos.</div>
+* <div style="margin-left:1.251cm;">Validar percepción vs. realidad.</div>
+
+
+
+
+
+=== ET — Estructura Territorial ===
+
+'''¿Qué es?'''Es el módulo que permite construir y evaluar la '''estructura política y operativa''' de la campaña.
+
+'''¿Para qué sirve?'''Para asegurar cobertura territorial y defensa del voto.
+
+'''Funciones principales:'''* <div style="margin-left:1.251cm;">Registrar simpatizantes, líderes y representantes.</div>
+* <div style="margin-left:1.251cm;">Medir cobertura por sección y casilla.</div>
+* <div style="margin-left:1.251cm;">Identificar faltantes de estructura.</div>
+
+
+
+'''Decisiones que permite:'''* <div style="margin-left:1.251cm;">Dónde reclutar estructura.</div>
+* <div style="margin-left:1.251cm;">Dónde reforzar operación.</div>
+* <div style="margin-left:1.251cm;">Dónde existe riesgo electoral.</div>
+
+
+
+
+
+=== DD — Día D ===
+
+'''¿Qué es?'''Es el módulo de control y seguimiento de la '''operación electoral el día de la elección'''.
+
+'''¿Para qué sirve?'''Para asegurar presencia, control y respuesta inmediata en casillas.
+
+'''Funciones principales:'''* <div style="margin-left:1.251cm;">Visualizar casillas por sección.</div>
+* <div style="margin-left:1.251cm;">Asignar y verificar representantes.</div>
+* <div style="margin-left:1.251cm;">Monitorear estatus operativo en tiempo real.</div>
+
+
+
+'''Decisiones que permite:'''* <div style="margin-left:1.251cm;">Activar refuerzos inmediatos.</div>
+* <div style="margin-left:1.251cm;">Detectar casillas sin cobertura.</div>
+* <div style="margin-left:1.251cm;">Coordinar la defensa del voto.</div>
+
+
+
+
+
+== 2.4 Relación entre los módulos ==
+
+Los módulos siguen una secuencia lógica de campaña:# <div style="margin-left:1.251cm;">'''AT''' identifica el territorio estratégico.</div>
+# <div style="margin-left:1.251cm;">'''AS''' explica a quién se dirige la campaña.</div>
+# <div style="margin-left:1.251cm;">'''CT''' valida lo que ocurre en la calle.</div>
+# <div style="margin-left:1.251cm;">'''ET''' construye la estructura necesaria.</div>
+# <div style="margin-left:1.251cm;">'''GT''' define lo que se necesita para ganar.</div>
+# <div style="margin-left:1.251cm;">'''DD''' ejecuta y controla el cierre electoral.</div>
+
+
+
+La app permite '''saltar entre módulos''' sin perder contexto, ya que todos comparten el mismo mapa y la misma lógica territorial.
+
+
+== 2.5 Enfoque operativo ==
+
+AT Análisis 27-30 no está diseñado para análisis académico ni presentación pública.Está diseñado para:* <div style="margin-left:1.251cm;">Uso interno</div>
+* <div style="margin-left:1.251cm;">Decisión rápida</div>
+* <div style="margin-left:1.251cm;">Operación diaria</div>
+* <div style="margin-left:1.251cm;">Ajuste constante</div>
+
+
+
+Es una herramienta viva, que se adapta conforme avanza la campaña.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+= CAPÍTULO 3 · NAVEGACIÓN GENERAL DE LA APP =
+
+== Cómo moverse, consultar y operar AT Análisis 27-30 ==
+
+
+
+== 3.1 Principio de navegación (regla operativa) ==
+
+En AT Análisis 27-30 no se navega por “menús largos”.Se navega por '''territorio''':
+
+'''Mapa → Sección → Panel / Módulo → Acción'''
+
+Todo parte del mapa.El usuario entra, ubica una zona, selecciona sección y '''opera'''.
+
+
+== 3.2 Componentes base de la interfaz ==
+
+La app se compone de 4 piezas principales:# <div style="margin-left:1.251cm;">'''Panel lateral (izquierdo)'''Es el área de control general: búsqueda, filtros, selección de universo y accesos a módulos.</div>
+# <div style="margin-left:1.251cm;">'''Mapa principal (centro)'''Es el tablero territorial. Aquí se seleccionan secciones y se visualiza información sobre el territorio.</div>
+# <div style="margin-left:1.251cm;">'''Paneles flotantes (derecha / inferior)'''Ventanas que muestran información detallada (por módulo) y permiten ejecutar acciones operativas.</div>
+# <div style="margin-left:1.251cm;">'''Barras y botones de acción rápida'''Botones para activar herramientas, alternar vistas y ejecutar funciones del módulo.</div>
+
+
+
+Esta estructura se repite en los módulos (para que el usuario no “reaprenda” cada pantalla). 
+
+<div style="margin-left:1cm;margin-right:1cm;">estructura</div>
+
+
+== 3.3 Panel lateral: qué contiene y cómo se usa ==
+
+El panel lateral es la “consola” operativa. Normalmente incluye:
+
+=== A) Buscador de secciones ===
+
+Permite buscar por:* <div style="margin-left:1.251cm;">número de sección (ej. 1481)</div>
+* <div style="margin-left:1.251cm;">sección + referencia (ej. “1481 León”)</div>
+
+
+
+El buscador muestra sugerencias y al seleccionar:* <div style="margin-left:1.251cm;">centra el mapa</div>
+* <div style="margin-left:1.251cm;">destaca la sección</div>
+* <div style="margin-left:1.251cm;">habilita información y consultas</div>
+
+
+
+(Se observa esta mecánica en módulos como '''Estructura''' y '''Campo'''.) 
+
+estructura
+
+campo
+
+=== B) Selección de universo ===
+
+Sirve para limitar la vista a:* <div style="margin-left:1.251cm;">'''Estado completo'''</div>
+* <div style="margin-left:1.251cm;">'''Un municipio'''</div>
+* <div style="margin-left:1.251cm;">'''Un distrito federal'''</div>
+* <div style="margin-left:1.251cm;">'''Un distrito local'''</div>
+
+
+
+Regla: '''solo uno a la vez''' (para mantener claridad operativa). 
+
+estructura
+
+=== C) Accesos a módulos ===
+
+El panel lateral puede incluir botones para abrir un módulo o un panel flotante (ejemplo: botón “Módulo CAMPO”). 
+
+campo
+
+
+== 3.4 Mapa: interacción básica ==
+
+El mapa es el centro del sistema.
+
+=== Acciones principales ===
+
+* <div style="margin-left:1.251cm;">'''Mover y acercar/alejar''' para ubicar zona</div>
+* <div style="margin-left:1.251cm;">'''Seleccionar una sección''' (clic)</div>
+* <div style="margin-left:1.251cm;">'''Interpretar resaltados y etiquetas'''</div>
+
+
+
+=== Resaltado y etiquetas ===
+
+Cuando una sección se selecciona, el sistema puede:* <div style="margin-left:1.251cm;">resaltar sección principal</div>
+* <div style="margin-left:1.251cm;">mostrar etiquetas “Sección XXXX”</div>
+* <div style="margin-left:1.251cm;">marcar secciones adyacentes (contexto territorial)</div>
+
+
+
+Esto ayuda a lectura rápida para coordinación territorial. 
+
+campo
+
+estructura
+
+
+== 3.5 Panel flotante de información de sección ==
+
+Al seleccionar una sección, puede abrirse (según módulo) un panel flotante con datos clave, por ejemplo:* <div style="margin-left:1.251cm;">Sección</div>
+* <div style="margin-left:1.251cm;">DF / DL</div>
+* <div style="margin-left:1.251cm;">Lista nominal (LN) u otros indicadores</div>
+
+
+
+Este panel suele ser:* <div style="margin-left:1.251cm;">'''movible (drag)'''</div>
+* <div style="margin-left:1.251cm;">'''redimensionable (resize)'''</div>
+* <div style="margin-left:1.251cm;">con botón de '''cerrar (×)'''</div>
+
+
+
+Esto permite adaptarlo a la operación sin tapar el mapa. 
+
+campo
+
+estructura
+
+dia_D
+
+
+== 3.6 Paneles operativos por módulo ==
+
+Cada módulo despliega un panel flotante propio para operar.
+
+Ejemplos típicos:* <div style="margin-left:1.251cm;">'''Estructura (ET):''' cobertura, personas, faltantes, exportación</div>
+* <div style="margin-left:1.251cm;">'''Campo (CT):''' captura, tabs, contadores, acciones de guardado</div>
+* <div style="margin-left:1.251cm;">'''Día D (DD):''' sección → casillas, reps asignados, faltantes, estatus</div>
+
+
+
+Estos paneles están diseñados para que el operador:
+
+'''vea el estado y ejecute acciones sin salir del mapa.''' 
+
+<div style="margin-left:1cm;margin-right:1cm;">estructura</div>
+
+<div style="margin-left:1cm;margin-right:1cm;">campo</div>
+
+<div style="margin-left:1cm;margin-right:1cm;">dia_D</div>
+
+
+== 3.7 Convenciones visuales (lo que “significan” los colores) ==
+
+La app usa semáforos y chips de estado para lectura rápida:* <div style="margin-left:1.251cm;">'''Verde:''' cubierto / listo / completo</div>
+* <div style="margin-left:1.251cm;">'''Amarillo:''' parcial / requiere ajuste</div>
+* <div style="margin-left:1.251cm;">'''Rojo:''' faltante / riesgo / sin cobertura</div>
+* <div style="margin-left:1.251cm;">'''Gris:''' sin información / pendiente de captura</div>
+
+
+
+En Día D, por ejemplo, el estatus de casilla se refleja con chips/etiquetas para identificar rápidamente dónde actuar. 
+
+dia_D
+
+
+== 3.8 Botones de acción (qué esperar) ==
+
+Dependiendo del módulo, puede haber botones para:* <div style="margin-left:1.251cm;">'''Cargar / actualizar datos'''</div>
+* <div style="margin-left:1.251cm;">'''Pintar coberturas'''</div>
+* <div style="margin-left:1.251cm;">'''Abrir paneles de faltantes'''</div>
+* <div style="margin-left:1.251cm;">'''Exportar CSV'''</div>
+* <div style="margin-left:1.251cm;">'''Cerrar panel'''</div>
+* <div style="margin-left:1.251cm;">'''Colapsar barra'''</div>
+
+
+
+Este patrón permite operación rápida en reunión o en campo. 
+
+estructura
+
+
+== 3.9 Reglas de operación recomendadas ==
+
+Para evitar errores en campaña:# <div style="margin-left:1.251cm;">'''Siempre define el universo''' (estado/mun/DF/DL) antes de análisis fino.</div>
+# <div style="margin-left:1.251cm;">'''Opera por sección''', no por “percepción general”.</div>
+# <div style="margin-left:1.251cm;">'''Si cambias de sección, confirma que cambió el panel''' (evita capturar en la sección equivocada).</div>
+# <div style="margin-left:1.251cm;">'''Usa exportaciones solo como respaldo''', no como fuente principal: la fuente es el sistema. </div>
+
+
+
+<div style="margin-left:0cm;">estructura</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+= CAPÍTULO 4 · MÓDULO AT — ANÁLISIS TERRITORIAL =
+
+== Lectura electoral para decidir dónde y cómo operar ==
+
+
+
+
+
+
+
+
+
+
+
+== 4.1 ¿Qué es el Módulo AT? ==
+
+El '''Módulo AT (Análisis Territorial)''' es la herramienta que permite '''leer el comportamiento electoral del territorio''' a nivel de '''sección''', '''distrito''' y '''municipio''', con base en resultados históricos y comparativos.
+
+Es el '''punto de partida''' de la estrategia territorial:antes de salir a campo, antes de reclutar estructura y antes de asignar recursos.
+
+
+== 4.2 ¿Para qué sirve en la operación de campaña? ==
+
+Sirve para '''entender dónde estamos parados''' y '''dónde conviene actuar'''.
+
+Con AT se responde, de forma clara y visual, a preguntas como:* <div style="margin-left:1.251cm;">¿Dónde somos fuertes?</div>
+* <div style="margin-left:1.251cm;">¿Dónde somos competitivos?</div>
+* <div style="margin-left:1.251cm;">¿Dónde estamos débiles?</div>
+* <div style="margin-left:1.251cm;">¿Dónde no conviene gastar recursos?</div>
+
+
+
+AT evita trabajar “parejo” en todo el territorio y permite '''focalizar la operación'''.
+
+
+== 4.3 Información que analiza el Módulo AT ==
+
+El módulo trabaja principalmente con:* <div style="margin-left:1.251cm;">Resultados electorales históricos por sección</div>
+* <div style="margin-left:1.251cm;">Comparaciones entre elecciones (2018, 2021, 2024, según el caso)</div>
+* <div style="margin-left:1.251cm;">Comportamiento territorial del voto</div>
+* <div style="margin-left:1.251cm;">Diferencias entre partidos y coaliciones</div>
+
+
+
+Toda esta información se visualiza directamente sobre el '''mapa''', facilitando la lectura rápida por parte del equipo.
+
+
+== 4.4 Funciones principales del Módulo AT ==
+
+=== 1. Visualización de resultados por sección ===
+
+Permite pintar el mapa con base en:* <div style="margin-left:1.251cm;">Partido ganador</div>
+* <div style="margin-left:1.251cm;">Diferencia de votos</div>
+* <div style="margin-left:1.251cm;">Nivel de competitividad</div>
+
+
+
+Esto ayuda a identificar '''patrones territoriales''', no solo datos aislados.
+
+
+=== 2. Comparativa histórica ===
+
+Permite comparar cómo se ha comportado una sección o zona a lo largo del tiempo:* <div style="margin-left:1.251cm;">Secciones que cambian de preferencia</div>
+* <div style="margin-left:1.251cm;">Secciones estables</div>
+* <div style="margin-left:1.251cm;">Zonas en crecimiento o deterioro</div>
+
+
+
+Esta función es clave para '''detectar tendencias'''.
+
+
+=== 3. Identificación de secciones clave ===
+
+El sistema permite ubicar:* <div style="margin-left:1.251cm;">Secciones ganadas</div>
+* <div style="margin-left:1.251cm;">Secciones perdidas</div>
+* <div style="margin-left:1.251cm;">Secciones competitivas</div>
+
+
+
+Estas últimas son las más relevantes para la operación, ya que '''pueden definirse con trabajo territorial'''.
+
+
+=== 4. Análisis por ámbito ===
+
+El análisis puede realizarse por:* <div style="margin-left:1.251cm;">Estado completo</div>
+* <div style="margin-left:1.251cm;">Municipio</div>
+* <div style="margin-left:1.251cm;">Distrito Federal</div>
+* <div style="margin-left:1.251cm;">Distrito Local</div>
+
+
+
+Esto permite adaptar la estrategia al '''nivel real de la elección'''.
+
+
+== 4.5 ¿Cómo se usa el Módulo AT en la práctica? ==
+
+=== Paso operativo típico: ===
+
+# <div style="margin-left:1.251cm;">Se define el '''universo''' (municipio / distrito).</div>
+# <div style="margin-left:1.251cm;">Se activa el '''Módulo AT'''.</div>
+# <div style="margin-left:1.251cm;">Se revisa el mapa por secciones.</div>
+# <div style="margin-left:1.251cm;">Se identifican zonas:</div>
+#* <div style="margin-left:2.501cm;">Prioritarias</div>
+#* <div style="margin-left:2.501cm;">Competitivas</div>
+#* <div style="margin-left:2.501cm;">De bajo rendimiento</div>
+# <div style="margin-left:1.251cm;">Se toman decisiones de:</div>
+#* <div style="margin-left:2.501cm;">Campo</div>
+#* <div style="margin-left:2.501cm;">Mensaje</div>
+#* <div style="margin-left:2.501cm;">Estructura</div>
+
+
+
+AT no se usa una sola vez.Se consulta '''constantemente''' durante la campaña.
+
+
+== 4.6 ¿Qué decisiones permite tomar este módulo? ==
+
+El Módulo AT permite tomar decisiones como:* <div style="margin-left:1.251cm;">Dónde concentrar brigadas</div>
+* <div style="margin-left:1.251cm;">Dónde enfocar recorridos del candidato</div>
+* <div style="margin-left:1.251cm;">Qué zonas requieren refuerzo de estructura</div>
+* <div style="margin-left:1.251cm;">Dónde ajustar el mensaje</div>
+* <div style="margin-left:1.251cm;">Dónde no conviene invertir recursos</div>
+
+
+
+AT convierte datos electorales en '''criterios de acción'''.
+
+
+== 4.7 Relación del Módulo AT con otros módulos ==
+
+El Módulo AT alimenta directamente a:* <div style="margin-left:1.251cm;">'''GT (Ganar Todo):''' define qué secciones entran en la simulación.</div>
+* <div style="margin-left:1.251cm;">'''AS (Análisis Socioeconómico):''' contextualiza el territorio.</div>
+* <div style="margin-left:1.251cm;">'''CT (Campo):''' orienta dónde capturar información.</div>
+* <div style="margin-left:1.251cm;">'''ET (Estructura):''' prioriza dónde construir estructura.</div>
+* <div style="margin-left:1.251cm;">'''DD (Día D):''' anticipa riesgos operativos.</div>
+
+
+
+Sin AT, los demás módulos '''operan a ciegas'''.
+
+
+== 4.8 Reglas de uso recomendadas ==
+
+* <div style="margin-left:1.251cm;">No tomar decisiones solo con una elección; usar comparativas.</div>
+* <div style="margin-left:1.251cm;">Analizar siempre por '''sección''', no solo por municipio.</div>
+* <div style="margin-left:1.251cm;">Usar AT antes de definir rutas de campo.</div>
+* <div style="margin-left:1.251cm;">Volver a AT cuando cambie la estrategia.</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+= CAPÍTULO 5 · MÓDULO GT — GANAR TODO =
+
+== ¿Qué se necesita para ganar el territorio? ==
+
+
+
+
+
+
+
+
+
+
+
+
+
+== 5.1 ¿Qué es el Módulo GT (Ganar Todo)? ==
+
+El '''Módulo GT — Ganar Todo''' es la herramienta de '''simulación y proyección electoral''' de AT Análisis 27-30.
+
+Su función principal es responder, con números claros y criterios territoriales, a una pregunta clave de toda campaña:
+
+'''¿Qué nos falta para ganar?'''
+
+T traduce el análisis territorial en '''objetivos cuantificables''', permitiendo pasar del diagnóstico a la '''planeación estratégica'''.
+
+
+== 5.2 ¿Para qué sirve en la operación de campaña? ==
+
+Sirve para '''poner metas reales''' y '''ordenar la estrategia'''.
+
+Con GT se puede:* <div style="margin-left:1.251cm;">Saber cuántos votos faltan para ganar un ámbito.</div>
+* <div style="margin-left:1.251cm;">Identificar '''qué secciones están perdiendo la elección'''.</div>
+* <div style="margin-left:1.251cm;">Priorizar zonas donde el esfuerzo '''sí cambia el resultado'''.</div>
+* <div style="margin-left:1.251cm;">Evitar decisiones basadas en percepción o ánimo.</div>
+
+
+
+GT es el módulo que '''le pone números a la estrategia'''.
+
+
+== 5.3 Información que utiliza el Módulo GT ==
+
+El módulo trabaja con:* <div style="margin-left:1.251cm;">Resultados electorales históricos.</div>
+* <div style="margin-left:1.251cm;">Proyecciones electorales.</div>
+* <div style="margin-left:1.251cm;">Diferencias de votación por sección.</div>
+* <div style="margin-left:1.251cm;">Universo territorial seleccionado (municipio, distrito, estado).</div>
+
+
+
+Toda la información se procesa '''a nivel sección''', que es donde realmente se gana o se pierde una elección.
+
+
+== 5.4 Funciones principales del Módulo GT ==
+
+=== 1. Identificación de secciones perdidas ===
+
+El sistema detecta automáticamente las secciones donde:* <div style="margin-left:1.251cm;">El partido o coalición va abajo.</div>
+* <div style="margin-left:1.251cm;">La diferencia es recuperable.</div>
+* <div style="margin-left:1.251cm;">Existe potencial de crecimiento.</div>
+
+
+
+Estas secciones son el '''foco principal de la operación'''.
+
+
+=== 2. Cálculo de votos faltantes ===
+
+GT calcula cuántos votos adicionales se requieren para:* <div style="margin-left:1.251cm;">Voltear una sección.</div>
+* <div style="margin-left:1.251cm;">Ganar un distrito.</div>
+* <div style="margin-left:1.251cm;">Ganar un municipio o estado.</div>
+
+
+
+Este cálculo permite establecer '''metas claras por territorio'''.
+
+
+=== 3. Simulación de escenarios ===
+
+El módulo permite simular escenarios como:* <div style="margin-left:1.251cm;">¿Qué pasa si se ganan ciertas secciones?</div>
+* <div style="margin-left:1.251cm;">¿Qué impacto tiene reforzar una zona específica?</div>
+* <div style="margin-left:1.251cm;">¿Qué ocurre si se pierde un bastión?</div>
+
+
+
+Esto permite '''probar estrategias sin arriesgar la campaña'''.
+
+
+=== 4. Análisis por ámbito ===
+
+El usuario puede ejecutar el análisis por:* <div style="margin-left:1.251cm;">Municipio</div>
+* <div style="margin-left:1.251cm;">Distrito Federal</div>
+* <div style="margin-left:1.251cm;">Distrito Local</div>
+* <div style="margin-left:1.251cm;">Estado</div>
+
+
+
+Cada ámbito muestra:* <div style="margin-left:1.251cm;">Secciones ganadas</div>
+* <div style="margin-left:1.251cm;">Secciones perdidas</div>
+* <div style="margin-left:1.251cm;">Total de votos faltantes</div>
+
+
+
+
+
+== 5.5 ¿Cómo se usa el Módulo GT en la práctica? ==
+
+=== Flujo operativo típico: ===
+
+# <div style="margin-left:1.251cm;">Seleccionar el '''ámbito''' (municipio o distrito).</div>
+# <div style="margin-left:1.251cm;">Ejecutar el módulo '''Ganar Todo'''.</div>
+# <div style="margin-left:1.251cm;">Revisar la lista de secciones perdidas.</div>
+# <div style="margin-left:1.251cm;">Analizar votos faltantes por sección.</div>
+# <div style="margin-left:1.251cm;">Definir prioridades operativas:</div>
+#* <div style="margin-left:2.501cm;">Campo</div>
+#* <div style="margin-left:2.501cm;">Estructura</div>
+#* <div style="margin-left:2.501cm;">Mensaje</div>
+
+
+
+GT no se usa solo para “ver números”,se usa para '''asignar tareas y recursos'''.
+
+
+== 5.6 ¿Qué decisiones permite tomar este módulo? ==
+
+Con el Módulo GT se pueden tomar decisiones como:* <div style="margin-left:1.251cm;">Dónde concentrar brigadas.</div>
+* <div style="margin-left:1.251cm;">Cuántos votos debe aportar cada zona.</div>
+* <div style="margin-left:1.251cm;">Qué secciones requieren operación intensiva.</div>
+* <div style="margin-left:1.251cm;">Dónde no vale la pena invertir esfuerzo.</div>
+* <div style="margin-left:1.251cm;">Cómo planear cierres territoriales.</div>
+
+
+
+GT convierte el “queremos ganar” en un '''plan medible'''.
+
+
+== 5.7 Relación del Módulo GT con otros módulos ==
+
+GT se alimenta directamente de:* <div style="margin-left:1.251cm;">'''AT (Análisis Territorial):''' define qué secciones analizar.</div>
+* <div style="margin-left:1.251cm;">'''AS (Análisis Socioeconómico):''' da contexto al esfuerzo requerido.</div>
+* <div style="margin-left:1.251cm;">'''CT (Campo):''' ejecuta la recuperación territorial.</div>
+* <div style="margin-left:1.251cm;">'''ET (Estructura):''' asegura capacidad operativa.</div>
+* <div style="margin-left:1.251cm;">'''DD (Día D):''' valida que el esfuerzo se defienda en casilla.</div>
+
+
+
+GT es el puente entre '''análisis y ejecución'''.
+
+
+== 5.8 Reglas de uso recomendadas ==
+
+* <div style="margin-left:1.251cm;">No fijar metas sin revisar GT.</div>
+* <div style="margin-left:1.251cm;">No operar secciones sin conocer votos faltantes.</div>
+* <div style="margin-left:1.251cm;">Usar GT como base de la planeación semanal.</div>
+* <div style="margin-left:1.251cm;">Ajustar simulaciones conforme avance la campaña.</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+= CAPÍTULO 6 · MÓDULO AS — ANÁLISIS SOCIOECONÓMICO =
+
+== Entender a la gente para ajustar el mensaje y la operación ==
+
+
+
+
+
+
+
+
+
+
+
+
+
+== 6.1 ¿Qué es el Módulo AS? ==
+
+El '''Módulo AS (Análisis Socioeconómico)''' es la herramienta que permite '''comprender quién vive en el territorio''', cuáles son sus condiciones sociales, económicas y demográficas, y cómo estas influyen en el comportamiento electoral.
+
+AS no mide votos.Mide '''contexto''', '''necesidades''' y '''realidades sociales'''.
+
+
+== 6.2 ¿Para qué sirve en la operación de campaña? ==
+
+Sirve para '''alinear el mensaje, la narrativa y la operación''' con la realidad del territorio.
+
+Con AS se evita:* <div style="margin-left:1.251cm;">Mensajes genéricos</div>
+* <div style="margin-left:1.251cm;">Promesas fuera de contexto</div>
+* <div style="margin-left:1.251cm;">Estrategias desconectadas de la vida real</div>
+
+
+
+Y se logra:* <div style="margin-left:1.251cm;">Comunicación más efectiva</div>
+* <div style="margin-left:1.251cm;">Prioridades claras</div>
+* <div style="margin-left:1.251cm;">Operación sensible al entorno social</div>
+
+
+
+
+
+== 6.3 Información que analiza el Módulo AS ==
+
+El módulo integra indicadores como:* <div style="margin-left:1.251cm;">Nivel socioeconómico</div>
+* <div style="margin-left:1.251cm;">Condiciones de vivienda</div>
+* <div style="margin-left:1.251cm;">Acceso a servicios</div>
+* <div style="margin-left:1.251cm;">Educación</div>
+* <div style="margin-left:1.251cm;">Actividad económica</div>
+* <div style="margin-left:1.251cm;">Características demográficas</div>
+
+
+
+Estos indicadores se visualizan '''por sección''', permitiendo una lectura territorial precisa.
+
+
+== 6.4 Funciones principales del Módulo AS ==
+
+=== 1. Perfil socioeconómico por sección ===
+
+Permite conocer el perfil general de cada sección:* <div style="margin-left:1.251cm;">Condiciones de vida</div>
+* <div style="margin-left:1.251cm;">Nivel de bienestar</div>
+* <div style="margin-left:1.251cm;">Rezago o desarrollo relativo</div>
+
+
+
+Esto ayuda a '''contextualizar el voto''', no solo a contarlo.
+
+
+=== 2. Identificación de problemáticas dominantes ===
+
+El módulo permite detectar zonas donde predominan:* <div style="margin-left:1.251cm;">Carencias sociales</div>
+* <div style="margin-left:1.251cm;">Condiciones laborales específicas</div>
+* <div style="margin-left:1.251cm;">Necesidades particulares</div>
+
+
+
+Esta lectura es clave para '''definir prioridades de campaña'''.
+
+
+=== 3. Segmentación territorial ===
+
+AS permite agrupar secciones con características similares, facilitando:* <div style="margin-left:1.251cm;">Diseño de mensajes diferenciados</div>
+* <div style="margin-left:1.251cm;">Planeación de recorridos temáticos</div>
+* <div style="margin-left:1.251cm;">Priorización de atención territorial</div>
+
+
+
+
+
+=== 4. Visualización comparativa ===
+
+El sistema permite comparar:* <div style="margin-left:1.251cm;">Secciones entre sí</div>
+* <div style="margin-left:1.251cm;">Municipios</div>
+* <div style="margin-left:1.251cm;">Distritos</div>
+
+
+
+Esto ayuda a entender '''desigualdades internas''' del territorio.
+
+
+== 6.5 ¿Cómo se usa el Módulo AS en la práctica? ==
+
+=== Flujo operativo típico: ===
+
+# <div style="margin-left:1.251cm;">Seleccionar el '''ámbito''' (municipio o distrito).</div>
+# <div style="margin-left:1.251cm;">Activar el '''Módulo AS'''.</div>
+# <div style="margin-left:1.251cm;">Revisar indicadores por sección.</div>
+# <div style="margin-left:1.251cm;">Identificar perfiles dominantes.</div>
+# <div style="margin-left:1.251cm;">Ajustar:</div>
+#* <div style="margin-left:2.501cm;">Mensaje</div>
+#* <div style="margin-left:2.501cm;">Discurso</div>
+#* <div style="margin-left:2.501cm;">Prioridades de campo</div>
+
+
+
+AS se consulta '''antes de definir el discurso''', no después.
+
+
+== 6.6 ¿Qué decisiones permite tomar este módulo? ==
+
+Con AS se pueden tomar decisiones como:* <div style="margin-left:1.251cm;">Qué temas priorizar en cada zona.</div>
+* <div style="margin-left:1.251cm;">Qué tipo de mensaje funciona mejor.</div>
+* <div style="margin-left:1.251cm;">Dónde enfocar programas o propuestas.</div>
+* <div style="margin-left:1.251cm;">Cómo adaptar el discurso del candidato.</div>
+
+
+
+AS convierte el territorio en '''audiencias reales''', no abstractas.
+
+
+== 6.7 Relación del Módulo AS con otros módulos ==
+
+AS se conecta directamente con:* <div style="margin-left:1.251cm;">'''AT (Análisis Territorial):''' contextualiza resultados electorales.</div>
+* <div style="margin-left:1.251cm;">'''GT (Ganar Todo):''' explica el esfuerzo requerido.</div>
+* <div style="margin-left:1.251cm;">'''CT (Campo):''' orienta la captura de información.</div>
+* <div style="margin-left:1.251cm;">'''ET (Estructura):''' apoya el reclutamiento adecuado.</div>
+* <div style="margin-left:1.251cm;">'''DD (Día D):''' anticipa riesgos sociales y logísticos.</div>
+
+
+
+Sin AS, la campaña corre el riesgo de '''hablarle mal al territorio'''.
+
+
+== 6.8 Reglas de uso recomendadas ==
+
+* <div style="margin-left:1.251cm;">No usar indicadores aislados; leer el conjunto.</div>
+* <div style="margin-left:1.251cm;">No asumir que todas las secciones son iguales.</div>
+* <div style="margin-left:1.251cm;">Ajustar mensaje según perfil socioeconómico.</div>
+* <div style="margin-left:1.251cm;">Revisar AS cuando se modifique la estrategia.</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+= CAPÍTULO 7 · MÓDULO CT — CAMPO Y TERRITORIO =
+
+== La calle manda: capturar, leer y ajustar ==
+
+
+
+
+
+
+
+
+
+
+
+== 7.1 ¿Qué es el Módulo CT? ==
+
+El '''Módulo CT (Campo y Territorio)''' es la herramienta de '''captura, verificación y lectura política en la calle'''.Es el módulo que convierte la estrategia en '''información viva del territorio''', obtenida por el equipo de campo, casa por casa, punto por punto.
+
+
+== 7.2 ¿Para qué sirve en campaña? ==
+
+Sirve para:* <div style="margin-left:1.251cm;">'''Escuchar el pulso real''' del territorio.</div>
+* <div style="margin-left:1.251cm;">'''Validar percepción vs. realidad'''.</div>
+* <div style="margin-left:1.251cm;">'''Detectar riesgos, conflictos y oportunidades''' antes que otros.</div>
+* <div style="margin-left:1.251cm;">'''Ajustar la estrategia territorial''' con datos frescos del campo.</div>
+
+
+
+
+
+== 7.3 Funciones principales (cortas y operativas) ==
+
+* <div style="margin-left:1.251cm;">'''Captura por sección y casilla:''' registrar información diferenciada según el territorio de operación.</div>
+* <div style="margin-left:1.251cm;">'''Georreferenciación de actores:''' ubicar simpatizantes, líderes, adversarios o riesgos en puntos precisos del mapa.</div>
+* <div style="margin-left:1.251cm;">'''Registro de observaciones:''' anotar incidencias, ánimo social, conflictos, necesidades, rumores, narrativa dominante.</div>
+* <div style="margin-left:1.251cm;">'''Modo multielección (configurable):''' capturar datos según la elección que se esté trabajando (A, DL, DF, G, S, P).</div>
+* <div style="margin-left:1.251cm;">'''Estatus de cobertura:''' marcar avances del campo por sección (cubierto/parcial/sin info).</div>
+* <div style="margin-left:1.251cm;">'''Exportación de respaldo:''' generar CSV de lo capturado para uso en war room o reportes internos.</div>
+
+
+
+
+
+== 7.4 ¿Cómo se usa en la operación diaria? ==
+
+# <div style="margin-left:1.251cm;">El coordinador territorial define la '''zona prioritaria''' (desde AT/GT).</div>
+# <div style="margin-left:1.251cm;">El equipo de campo entra al '''Módulo CT'''.</div>
+# <div style="margin-left:1.251cm;">Captura puntos en el mapa, '''clasifica roles''', '''anota estatus y observaciones'''.</div>
+# <div style="margin-left:1.251cm;">Guarda sin recargar, sigue capturando.</div>
+# <div style="margin-left:1.251cm;">En war room se '''lee el territorio''' y se ajusta estrategia con base en lo capturado.</div>
+
+
+
+
+
+== 7.5 Decisiones que habilita ==
+
+* <div style="margin-left:1.251cm;">Reasignar brigadas según hallazgos.</div>
+* <div style="margin-left:1.251cm;">Ajustar recorridos del candidato.</div>
+* <div style="margin-left:1.251cm;">Activar refuerzo de estructura.</div>
+* <div style="margin-left:1.251cm;">Modificar narrativa en zonas específicas.</div>
+* <div style="margin-left:1.251cm;">Atender casillas con riesgo logístico/social.</div>
+* <div style="margin-left:1.251cm;">Anticipar crisis o capitalizar oportunidades.</div>
+
+
+
+
+
+== 7.6 Conexión con otros módulos ==
+
+CT alimenta directamente a:* <div style="margin-left:1.251cm;">'''ET (Estructura Territorial):''' para reclutar y medir cobertura de reps.</div>
+* <div style="margin-left:1.251cm;">'''GT (Ganar Todo):''' para actualizar escenarios con realidad de la calle.</div>
+* <div style="margin-left:1.251cm;">'''DD (Día D):''' para asegurar que lo detectado se defienda en casilla.</div>
+
+
+
+
+
+== 7.7 Reglas operativas recomendadas ==
+
+* <div style="margin-left:1.251cm;">Captura '''por elección y por sección''', no mezcles ámbitos.</div>
+* <div style="margin-left:1.251cm;">Guarda '''respaldo CSV''' al terminar rutas, no en caliente.</div>
+* <div style="margin-left:1.251cm;">La data buena es '''la que se captura en la calle''', no la que se imagina en escritorio.</div>
+* <div style="margin-left:1.251cm;">Actualiza estatus al cambiar de sección/elección</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+= CAPÍTULO 8 · MÓDULO ET — ESTRUCTURA TERRITORIAL =
+
+== Construir, medir y asegurar la defensa del voto ==
+
+
+
+
+
+
+
+
+
+
+
+
+
+== 8.1 ¿Qué es el Módulo ET? ==
+
+El '''Módulo ET (Estructura Territorial)''' es la herramienta para '''construir, visualizar y evaluar la estructura política y operativa''' de la campaña en el territorio.
+
+Aquí se responde una pregunta crítica:
+
+'''¿Tenemos a la gente necesaria, en el lugar correcto, para operar y defender el voto?'''
+
+ET es el '''esqueleto operativo''' de la campaña.
+
+
+== 8.2 ¿Para qué sirve en la operación de campaña? ==
+
+Sirve para:* <div style="margin-left:1.251cm;">Medir '''cobertura real''' por sección y casilla.</div>
+* <div style="margin-left:1.251cm;">Detectar '''faltantes de representantes'''.</div>
+* <div style="margin-left:1.251cm;">Organizar y clasificar '''roles operativos'''.</div>
+* <div style="margin-left:1.251cm;">Priorizar '''reclutamiento y refuerzos'''.</div>
+
+
+
+ET evita suposiciones y pone '''control''' donde normalmente hay desorden.
+
+
+== 8.3 Información que gestiona el Módulo ET ==
+
+El módulo integra información como:* <div style="margin-left:1.251cm;">Personas registradas por sección.</div>
+* <div style="margin-left:1.251cm;">Rol asignado dentro de la estructura.</div>
+* <div style="margin-left:1.251cm;">Cobertura por casilla.</div>
+* <div style="margin-left:1.251cm;">Estatus operativo (cubierto / parcial / sin cobertura).</div>
+
+
+
+Todo se visualiza '''sobre el mapa''', permitiendo lectura inmediata del territorio.
+
+
+== 8.4 Funciones principales del Módulo ET ==
+
+=== 1. Registro de estructura por sección ===
+
+Permite registrar personas asociadas a una sección, con datos básicos de identificación y contacto.
+
+
+=== 2. Clasificación de roles ===
+
+Cada persona puede clasificarse como:* <div style="margin-left:1.251cm;">Simpatizante</div>
+* <div style="margin-left:1.251cm;">Líder</div>
+* <div style="margin-left:1.251cm;">Representante de casilla</div>
+* <div style="margin-left:1.251cm;">Representante general</div>
+* <div style="margin-left:1.251cm;">Observador</div>
+* <div style="margin-left:1.251cm;">Otros roles operativos</div>
+
+
+
+Esto permite '''ordenar responsabilidades''' y evitar duplicidades.
+
+
+=== 3. Medición de cobertura ===
+
+El sistema calcula automáticamente:* <div style="margin-left:1.251cm;">Casillas requeridas</div>
+* <div style="margin-left:1.251cm;">Representantes asignados</div>
+* <div style="margin-left:1.251cm;">Faltantes por sección o ámbito</div>
+
+
+
+La cobertura se muestra con '''semáforo visual''' para lectura rápida.
+
+
+=== 4. Detección de faltantes ===
+
+ET identifica dónde:* <div style="margin-left:1.251cm;">No hay representantes</div>
+* <div style="margin-left:1.251cm;">La cobertura es parcial</div>
+* <div style="margin-left:1.251cm;">Existe riesgo operativo</div>
+
+
+
+Esto permite '''actuar antes del Día D'''.
+
+
+=== 5. Paneles de control y exportación ===
+
+El módulo incluye paneles para:* <div style="margin-left:1.251cm;">Revisar faltantes por sección, municipio o distrito.</div>
+* <div style="margin-left:1.251cm;">Exportar listados (CSV) para seguimiento y coordinación.</div>
+
+
+
+
+
+== 8.5 ¿Cómo se usa el Módulo ET en la práctica? ==
+
+=== Flujo operativo típico: ===
+
+# <div style="margin-left:1.251cm;">Definir el '''universo''' (municipio / distrito).</div>
+# <div style="margin-left:1.251cm;">Cargar la información de estructura.</div>
+# <div style="margin-left:1.251cm;">Visualizar cobertura en el mapa.</div>
+# <div style="margin-left:1.251cm;">Revisar panel de faltantes.</div>
+# <div style="margin-left:1.251cm;">Asignar tareas de reclutamiento.</div>
+# <div style="margin-left:1.251cm;">Actualizar estatus conforme avanza la campaña.</div>
+
+
+
+ET se revisa '''constantemente''', no solo al final.
+
+
+== 8.6 ¿Qué decisiones permite tomar este módulo? ==
+
+Con ET se pueden tomar decisiones como:* <div style="margin-left:1.251cm;">Dónde reclutar representantes de inmediato.</div>
+* <div style="margin-left:1.251cm;">Qué zonas requieren refuerzo.</div>
+* <div style="margin-left:1.251cm;">Dónde existe riesgo de operación electoral.</div>
+* <div style="margin-left:1.251cm;">Cómo priorizar recursos humanos.</div>
+* <div style="margin-left:1.251cm;">Cuándo una zona está “lista” para el Día D.</div>
+
+
+
+ET convierte personas en '''capacidad operativa real'''.
+
+
+== 8.7 Relación del Módulo ET con otros módulos ==
+
+ET se conecta directamente con:* <div style="margin-left:1.251cm;">'''CT (Campo):''' captura y recluta estructura.</div>
+* <div style="margin-left:1.251cm;">'''GT (Ganar Todo):''' enfoca esfuerzo en secciones clave.</div>
+* <div style="margin-left:1.251cm;">'''DD (Día D):''' valida cobertura final de casillas.</div>
+* <div style="margin-left:1.251cm;">'''AT / AS:''' contextualizan dónde y cómo reforzar estructura.</div>
+
+
+
+Sin ET, el resto de la estrategia '''no se sostiene'''.
+
+
+== 8.8 Reglas de uso recomendadas ==
+
+* <div style="margin-left:1.251cm;">No asumir cobertura sin revisar ET.</div>
+* <div style="margin-left:1.251cm;">Actualizar estatus después de cada avance.</div>
+* <div style="margin-left:1.251cm;">Revisar faltantes semanalmente (mínimo).</div>
+* <div style="margin-left:1.251cm;">Confirmar estructura completa antes de activar Día D.</div>
+
+
+
+
+
+== 🧠 Resumen rápido del módulo ET ==
+
+'''ET = personas, roles, cobertura, control y defensa del voto.'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+= APÍTULO 9 · MÓDULO DD — DÍA D =
+
+== Control total de la operación electoral ==
+
+
+
+
+
+
+
+
+
+== 9.1 ¿Qué es el Módulo DD (Día D)? ==
+
+El '''Módulo DD — Día D''' es la herramienta de '''operación, control y respuesta inmediata''' durante el '''día de la elección'''.
+
+Es el módulo donde '''todo lo planeado se ejecuta''':* <div style="margin-left:1.251cm;">El análisis</div>
+* <div style="margin-left:1.251cm;">La estructura</div>
+* <div style="margin-left:1.251cm;">El campo</div>
+* <div style="margin-left:1.251cm;">La estrategia</div>
+
+
+
+Aquí se responde la pregunta final de la campaña:
+
+'''¿Estamos cubriendo todas las casillas y defendiendo cada voto?'''
+
+
+== 9.2 ¿Para qué sirve en la operación electoral? ==
+
+Sirve para:* <div style="margin-left:1.251cm;">Ver '''en tiempo real''' el estado de la operación.</div>
+* <div style="margin-left:1.251cm;">Detectar '''casillas sin cobertura'''.</div>
+* <div style="margin-left:1.251cm;">Coordinar '''respuestas rápidas''' ante incidencias.</div>
+* <div style="margin-left:1.251cm;">Evitar improvisación el día más importante.</div>
+
+
+
+DD convierte el Día D en un '''proceso controlado''', no en una crisis.
+
+
+== 9.3 Información que gestiona el Módulo DD ==
+
+El módulo trabaja con:* <div style="margin-left:1.251cm;">Casillas por sección.</div>
+* <div style="margin-left:1.251cm;">Representantes asignados.</div>
+* <div style="margin-left:1.251cm;">Datos de contacto.</div>
+* <div style="margin-left:1.251cm;">Estatus operativo de cada casilla.</div>
+
+
+
+Todo se presenta de forma '''clara, visual y accionable''', directamente sobre el mapa y en paneles de control.
+
+
+== 9.4 Funciones principales del Módulo DD ==
+
+=== 1. Visualización sección → casillas ===
+
+Al seleccionar una sección, el módulo despliega:* <div style="margin-left:1.251cm;">Lista completa de casillas.</div>
+* <div style="margin-left:1.251cm;">Domicilio de cada una.</div>
+* <div style="margin-left:1.251cm;">Representante asignado (si existe).</div>
+
+
+
+Esto permite '''ubicar rápidamente dónde actuar'''.
+
+
+=== 2. Control de estatus de casilla ===
+
+Cada casilla puede marcarse como:* <div style="margin-left:1.251cm;">'''Cubierta'''</div>
+* <div style="margin-left:1.251cm;">'''Parcial'''</div>
+* <div style="margin-left:1.251cm;">'''Sin representante'''</div>
+* <div style="margin-left:1.251cm;">'''En riesgo'''</div>
+
+
+
+El estatus se refleja con '''semáforos y etiquetas''', facilitando la lectura en war room.
+
+
+=== 3. Gestión de representantes ===
+
+Permite:* <div style="margin-left:1.251cm;">Ver quién está asignado.</div>
+* <div style="margin-left:1.251cm;">Consultar teléfono de contacto.</div>
+* <div style="margin-left:1.251cm;">Detectar ausencias o duplicidades.</div>
+
+
+
+Esto reduce tiempos de reacción y errores críticos.
+
+
+=== 4. Identificación inmediata de faltantes ===
+
+El módulo detecta automáticamente:* <div style="margin-left:1.251cm;">Casillas sin representante.</div>
+* <div style="margin-left:1.251cm;">Secciones con cobertura incompleta.</div>
+* <div style="margin-left:1.251cm;">Zonas de alto riesgo operativo.</div>
+
+
+
+Esto permite '''activar refuerzos en minutos''', no en horas.
+
+
+== 9.5 ¿Cómo se usa el Módulo DD en la práctica? ==
+
+=== Flujo operativo del Día D: ===
+
+# <div style="margin-left:1.251cm;">Desde temprano se abre el '''Módulo DD'''.</div>
+# <div style="margin-left:1.251cm;">Se revisa cobertura general por ámbito.</div>
+# <div style="margin-left:1.251cm;">Se monitorean secciones críticas.</div>
+# <div style="margin-left:1.251cm;">Se atienden alertas de faltantes.</div>
+# <div style="margin-left:1.251cm;">Se coordinan refuerzos y sustituciones.</div>
+# <div style="margin-left:1.251cm;">Se mantiene control hasta el cierre de casillas.</div>
+
+
+
+DD se usa '''durante toda la jornada electoral'''.
+
+
+== 9.6 ¿Qué decisiones permite tomar este módulo? ==
+
+Con el Módulo DD se pueden tomar decisiones como:* <div style="margin-left:1.251cm;">A dónde enviar refuerzos de inmediato.</div>
+* <div style="margin-left:1.251cm;">Qué casillas requieren atención urgente.</div>
+* <div style="margin-left:1.251cm;">Qué zonas están completamente cubiertas.</div>
+* <div style="margin-left:1.251cm;">Dónde existe riesgo de pérdida de control.</div>
+
+
+
+DD permite '''defender el trabajo de toda la campaña'''.
+
+
+== 9.7 Relación del Módulo DD con el resto del sistema ==
+
+El Módulo DD es la culminación de:* <div style="margin-left:1.251cm;">'''AT:''' define zonas críticas.</div>
+* <div style="margin-left:1.251cm;">'''GT:''' prioriza lo que se debe defender.</div>
+* <div style="margin-left:1.251cm;">'''AS:''' anticipa contextos sociales.</div>
+* <div style="margin-left:1.251cm;">'''CT:''' detecta riesgos previos.</div>
+* <div style="margin-left:1.251cm;">'''ET:''' asegura estructura completa.</div>
+
+
+
+DD es donde '''todo se valida o se pierde'''.
+
+
+== 9.8 Reglas de oro para el Día D ==
+
+* <div style="margin-left:1.251cm;">No improvisar: todo debe estar cargado previamente.</div>
+* <div style="margin-left:1.251cm;">Revisar cobertura completa '''antes de la jornada'''.</div>
+* <div style="margin-left:1.251cm;">Usar DD como '''tablero central''', no WhatsApp.</div>
+* <div style="margin-left:1.251cm;">Resolver faltantes '''en tiempo real'''.</div>
+* <div style="margin-left:1.251cm;">Mantener comunicación clara y directa.</div>
+
+
+
+
+
+== 🧠 Resumen rápido del Módulo DD ==
+
+'''DD = control, cobertura, reacción inmediata y defensa del voto.'''
+
+
+== 🏁 CIERRE DEL BLOQUE DE MÓDULOS ==
+
+Con este capítulo queda documentado '''el ciclo completo de la campaña''':# <div style="margin-left:1.251cm;">'''AT''' – Leer el territorio</div>
+# <div style="margin-left:1.251cm;">'''GT''' – Saber qué se necesita para ganar</div>
+# <div style="margin-left:1.251cm;">'''AS''' – Entender a la gente</div>
+# <div style="margin-left:1.251cm;">'''CT''' – Escuchar la calle</div>
+# <div style="margin-left:1.251cm;">'''ET''' – Construir estructura</div>
+# <div style="margin-left:1.251cm;">'''DD''' – Defender el voto</div>
+
+
+
+Esto convierte a '''AT Análisis 27-30''' en una '''plataforma integral de campaña''', no en una herramienta aislada.
+
+
+
+
+= CAPÍTULO 10 · CIERRE OPERATIVO =
+
+== AT Análisis 27-30 como sistema integral de campaña ==
+
+
+
+
+
+
+
+
+
+
+
+
+
+== 10.1 AT Análisis 27-30: una lógica completa de campaña ==
+
+AT Análisis 27-30 no es una suma de módulos aislados.Es un '''sistema integral de campaña''', diseñado para acompañar '''todo el ciclo electoral''', desde la planeación inicial hasta la defensa del voto el Día D.
+
+Su valor no está solo en la información que muestra, sino en la '''lógica operativa que impone''':
+
+'''Analizar → decidir → ejecutar → corregir → defender'''
+
+Esta lógica permite que la campaña avance con '''orden, criterio y control''', evitando improvisaciones y decisiones reactivas.
+
+
+== 10.2 El ciclo operativo completo ==
+
+El sistema cubre todas las etapas clave de una campaña:# <div style="margin-left:1.251cm;">'''Lectura del territorio (AT)'''Entender dónde se gana y dónde se pierde.</div>
+# <div style="margin-left:1.251cm;">'''Definición de objetivos reales (GT)'''Saber qué se necesita para ganar, con números claros.</div>
+# <div style="margin-left:1.251cm;">'''Comprensión social del territorio (AS)'''Ajustar el mensaje a la realidad de la gente.</div>
+# <div style="margin-left:1.251cm;">'''Trabajo en campo (CT)'''Escuchar, validar y corregir desde la calle.</div>
+# <div style="margin-left:1.251cm;">'''Construcción de estructura (ET)'''Asegurar capacidad operativa y defensa del voto.</div>
+# <div style="margin-left:1.251cm;">'''Control del Día D (DD)'''Ejecutar y proteger todo el trabajo previo.</div>
+
+
+
+Cada módulo cumple una función específica, pero '''todos dependen entre sí'''.
+
+
+== 10.3 Qué diferencia a AT Análisis 27-30 de otras herramientas ==
+
+AT Análisis 27-30 se diferencia porque:* <div style="margin-left:1.251cm;">Trabaja '''por sección''', no de forma genérica.</div>
+* <div style="margin-left:1.251cm;">Integra '''datos electorales, sociales y operativos'''.</div>
+* <div style="margin-left:1.251cm;">Conecta análisis con '''acción real'''.</div>
+* <div style="margin-left:1.251cm;">Está diseñado para '''uso interno de campaña''', no para exhibición.</div>
+* <div style="margin-left:1.251cm;">Permite '''corregir rumbo en tiempo real'''.</div>
+
+
+
+No busca impresionar con gráficas,busca '''ganar territorio'''.
+
+
+== 10.4 Cómo debe usarse el sistema durante la campaña ==
+
+Para aprovechar todo su potencial, se recomienda:* <div style="margin-left:1.251cm;">Usar AT y GT como base de la planeación semanal.</div>
+* <div style="margin-left:1.251cm;">Consultar AS antes de definir mensajes o recorridos.</div>
+* <div style="margin-left:1.251cm;">Mantener CT activo durante toda la campaña.</div>
+* <div style="margin-left:1.251cm;">Revisar ET de forma constante (no solo al final).</div>
+* <div style="margin-left:1.251cm;">Activar DD solo cuando la información esté completa.</div>
+
+
+
+AT Análisis 27-30 funciona mejor cuando se usa como '''herramienta cotidiana''', no como consulta esporádica.
+
+
+== 10.5 Roles y disciplina operativa ==
+
+El sistema exige '''disciplina''', no solo acceso.
+
+Recomendaciones clave:* <div style="margin-left:1.251cm;">Definir responsables por módulo.</div>
+* <div style="margin-left:1.251cm;">Evitar capturas duplicadas o sin criterio.</div>
+* <div style="margin-left:1.251cm;">Usar una sola fuente de información: la app.</div>
+* <div style="margin-left:1.251cm;">Actualizar datos conforme avance la campaña.</div>
+* <div style="margin-left:1.251cm;">Tomar decisiones con base en el sistema, no al margen de él.</div>
+
+
+
+Una campaña ordenada es una campaña '''más difícil de derrotar'''.
+
+
+== 10.6 AT Análisis 27-30 como activo estratégico ==
+
+Más allá de una elección, AT Análisis 27-30 se convierte en:* <div style="margin-left:1.251cm;">Un '''activo estratégico''' del proyecto político.</div>
+* <div style="margin-left:1.251cm;">Una base de conocimiento territorial acumulado.</div>
+* <div style="margin-left:1.251cm;">Un sistema reutilizable y perfeccionable.</div>
+* <div style="margin-left:1.251cm;">Una ventaja competitiva frente a campañas improvisadas.</div>
+
+
+
+Cada elección alimenta la siguiente.
+
+
+== 10.7 Mensaje final operativo ==
+
+AT Análisis 27-30 no garantiza ganar una elección.Lo que garantiza es '''no perderla por desorden, desconocimiento o improvisación'''.
+
+Cuando el territorio se entiende,la estructura se organiza,el campo informa,y el Día D se controla,
+
+la campaña deja de ser un voladoy se convierte en '''una operación estratégica'''.
+
+
+== 🏁 CIERRE DEL MANUAL ==
+
+Este manual debe usarse como:* <div style="margin-left:1.251cm;">Guía de capacitación</div>
+* <div style="margin-left:1.251cm;">Referencia operativa</div>
+* <div style="margin-left:1.251cm;">Documento vivo de campaña</div>
+
+
+
+Y debe actualizarse conforme el proyecto crece y evoluciona
+
+
+
