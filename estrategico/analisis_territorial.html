@@ -2504,6 +2504,11 @@
             },
           }
         );
+        requestAnimationFrame(() => {
+          __HIST_CHART_BAR?.resize();
+          __HIST_CHART_WIN?.resize();
+          __HIST_CHART_PIE?.resize();
+        });
         if (document.getElementById("hist-qa")?.style.display !== "none")
           renderHistQA();
       }
@@ -2514,9 +2519,10 @@
         const sel = document.getElementById("hist-puesto");
         if (!sel.__wired) {
           sel.addEventListener("change", renderHistorialCharts);
+          sel.addEventListener("input", renderHistorialCharts);
           sel.__wired = true;
         }
-        renderHistorialCharts();
+        requestAnimationFrame(() => renderHistorialCharts());
       }
 
       document.addEventListener("DOMContentLoaded", () => {
