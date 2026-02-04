@@ -23,15 +23,20 @@
         background: #f4f4f4;
       }
       :root {
-        --sidebar-w: 320px;
+        --sidebar-w: 240px;
+      }
+      body {
+        display: grid;
+        grid-template-columns: var(--sidebar-w) 1fr 1fr;
+        grid-template-rows: 100vh;
+        overflow: hidden;
+      }
+      #at-layout {
+        display: contents;
       }
       #panel-lateral {
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
         width: var(--sidebar-w);
-        height: 100%;
+        height: 100vh;
         background: linear-gradient(180deg, #8ea3ad 0%, #dfe6e9 100%);
         color: #2c3e50;
         border-right: 1px solid #b2bec3;
@@ -55,13 +60,77 @@
         height: 32px;
         margin-right: 10px;
       }
+      #map-wrap {
+        position: relative;
+        height: 100vh;
+        min-width: 0;
+        overflow: hidden;
+      }
       #map {
         position: absolute;
-        top: 0;
-        left: var(--sidebar-w);
-        width: calc(100% - var(--sidebar-w));
+        inset: 0;
+        width: 100%;
         height: 100%;
+        z-index: 1;
       }
+      #at-dashboard {
+        height: 100vh;
+        min-width: 0;
+        overflow: hidden;
+        background: #f2f6fb;
+        border-left: 1px solid #d3dbe0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px;
+        box-sizing: border-box;
+      }
+      #dash-panels {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-height: 0;
+        overflow: auto;
+        padding-right: 4px;
+      }
+      .qa-cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      #hist-qa {
+        background: #f2f6fb;
+      }
+      #hist-panel.dock-panel {
+        max-height: none;
+        overflow: visible;
+      }
+      #hist-panel.dock-panel .body {
+        max-height: none;
+        overflow: visible;
+      }
+      #sec-info {
+        order: -1;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+      }
+      .dock-panel {
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        resize: none !important;
+        box-sizing: border-box;
+      }
+      .dock-panel .hdr {
+        cursor: default;
+      }
+
 
       #sec-search {
         position: relative;
@@ -122,7 +191,7 @@
         resize: both;
         overflow: auto;
         z-index: 4000;
-        display: none;
+        display: block;
         pointer-events: auto;
       }
       #sec-info .hdr {
@@ -161,6 +230,15 @@
         display: flex;
         justify-content: space-between;
         margin: 6px 0;
+      }
+      #sec-info .row-inline {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 12px;
+      }
+      #sec-info .row-inline .k {
+        margin-right: 4px;
       }
       #sec-info .k {
         color: #607d8b;
@@ -358,7 +436,7 @@
       }
       .hist-panel .grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
         gap: 10px;
       }
       .hist-panel .card {
@@ -370,6 +448,12 @@
         font-weight: 700;
         color: #263238;
         margin: 0 0 6px;
+      }
+      .qa-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
       }
       @media (max-width: 1100px) {
         .hist-panel {
@@ -484,6 +568,8 @@
         border-radius: 12px;
         padding: 8px 10px;
         box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+        flex-direction: column;
+        align-items: stretch;
       }
       .ttb-btn {
         border: 1px solid #b0bec5;
@@ -493,6 +579,8 @@
         padding: 6px 10px;
         cursor: pointer;
         font-size: 13px;
+        text-align: left;
+        width: 100%;
       }
       .ttb-btn:hover {
         background: #f5f7f9;
@@ -508,13 +596,14 @@
         color: #880e4f;
       }
       .ttb-sep {
-        width: 1px;
-        height: 26px;
+        width: 100%;
+        height: 1px;
         background: #e0e0e0;
       }
       .ttb-label {
         font-size: 12px;
         color: #455a64;
+        margin-top: 4px;
       }
       .ttb-select {
         padding: 5px 8px;
@@ -689,10 +778,32 @@
         width: 32px;
         height: 32px;
         padding: 0 6px;
+        align-self: flex-start;
       }
+
+      .at-scope-badge{
+        position:absolute;
+        top:14px;
+        left:14px;
+        z-index:999;
+        padding:10px 12px;
+        border-radius:12px;
+        background:#ffffff;
+        border:1px solid rgba(0,0,0,.08);
+        box-shadow:0 10px 25px rgba(0,0,0,.10);
+        font: 600 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+        color:#222;
+        letter-spacing:.2px;
+        max-width: 360px;
+      }
+      .at-scope-badge strong{ font-weight:800; }
+
+
+
     </style>
   </head>
   <body>
+    <div id="at-layout">
     <div id="panel-lateral">
       <div id="panel-header">
         <!-- <img src="assets/img/logo.png" alt="Logo"/> -->
@@ -725,9 +836,7 @@
               border-radius: 6px;
             "
           />
-          <label style="white-space: nowrap; font-size: 12px">
-            <input id="sec-global" type="checkbox" /> Todo el estado
-          </label>
+
         </div>
         <ul
           id="sec-suggest"
@@ -781,10 +890,137 @@
           Elige solo uno. Al cambiar, el mapa se actualiza.
         </div>
       </div>
-    </div>
-    <div id="map"></div>
 
-    <div id="hist-panel" class="hist-panel" style="display: none">
+      <!-- Barra superior (ahora vertical) -->
+      <div id="top-toolbar" class="ttb" style="padding: 10px 12px 12px">
+        <div class="ttb-wrap">
+          <!-- Toggle Compact -->
+          <button
+            id="btn-ttb-compact-toggle"
+            class="ttb-btn"
+            title="Compactar barra"
+            type="button"
+          >
+            <span class="ico">▤</span><span class="txt">▤</span>
+          </button>
+
+          <!-- SECCIÓN (requieren sección seleccionada) -->
+          <span class="ttb-label">Sección</span>
+          <button id="btn-historial" class="ttb-btn" title="Historial (H)">
+            Historial
+          </button>
+          <button
+            id="btn-comp-puesto"
+            class="ttb-btn"
+            title="Comparativa por Puesto (C)"
+            type="button"
+            disabled
+          >
+            Comparativa
+          </button>
+          <button
+            id="btn-competitividad"
+            class="ttb-btn"
+            title="Competitividad 2024 (K)"
+            type="button"
+            disabled
+          >
+            Competitividad
+          </button>
+          <button
+            id="btn-top3"
+            class="ttb-btn"
+            title="Top 3 Partidos 2024 (T)"
+            type="button"
+            disabled
+          >
+            Top 3
+          </button>
+
+          <div class="ttb-sep"></div>
+
+          <!-- UNIVERSO (estado/mun/DF/DL; siempre habilitados) -->
+          <span class="ttb-label">Universo</span>
+
+          <button
+            id="btn-gpa"
+            class="ttb-btn"
+            title="Ganadores por Año (Y)"
+            type="button"
+          >
+            Ganadores por Año
+          </button>
+          <button
+            id="btn-abst"
+            class="ttb-btn"
+            title="Abstención (B)"
+            type="button"
+          >
+            Abstención
+          </button>
+          <button id="btn-hhi" class="ttb-btn" title="HHI 2024 (I)" type="button">
+            Indice de concentracion 2024
+          </button>
+
+          <div class="ttb-sep"></div>
+
+          <button
+            id="btn-recentrar"
+            class="ttb-btn"
+            title="Recentrar universo (R)"
+            type="button"
+          >
+            Recentrar
+          </button>
+
+          <button
+            id="btn-ayuda"
+            class="ttb-btn ttb-help"
+            title="Ayuda (?)"
+            type="button"
+          >
+            Ayuda
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="map-wrap">
+      <div id="map"></div>
+
+      <!-- Rail de herramientas -->
+      <div id="tool-rail" class="tool-rail">
+        <button class="rail-toggle" id="railToggle" aria-label="Mostrar/ocultar">
+          <svg><use href="#ic-menu"></use></svg>
+        </button>
+
+        <div class="rail-group" id="railGroup">
+          <button class="tool" data-tool="historial" data-tooltip="Historial">
+            <svg><use href="#ic-history"></use></svg>
+          </button>
+          <button class="tool" data-tool="ganador" data-tooltip="Ganador">
+            <svg><use href="#ic-trophy"></use></svg>
+          </button>
+          <button class="tool" data-tool="competencia" data-tooltip="Competencia">
+            <svg><use href="#ic-compare"></use></svg>
+          </button>
+          <button class="tool" data-tool="proyeccion" data-tooltip="Proyección">
+            <svg><use href="#ic-forecast"></use></svg>
+          </button>
+
+          <div class="rail-sep"></div>
+
+          <button class="tool" data-tool="exportar" data-tooltip="Exportar">
+            <svg><use href="#ic-download"></use></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="at-dashboard">
+      <div id="dash-panels">
+        <div id="hist-panel" class="hist-panel" style="display: none">
       <div class="hdr">
         <div class="ttl">
           <strong>Historial</strong> · Sección <span id="hist-sec">—</span>
@@ -819,20 +1055,65 @@
             <canvas id="hist-pie"></canvas>
           </div>
 
-          <div id="hist-qa" class="card" style="display: none">
-            <div class="card-h">Verificación (QA)</div>
-            <div
-              id="hist-qa-context"
-              style="font-size: 13px; margin: 0.25rem 0"
-            ></div>
-            <div id="hist-qa-app" class="card" style="margin-top: 0.5rem">
+          <label class="qa-toggle" title="Modo Verificación">
+            <input type="checkbox" id="hist-qa-toggle" /> QA
+          </label>
+        </div>
+      </div>
+        </div>
+
+        <div id="sec-info">
+          <div class="hdr">
+            <span class="ttl">Sección</span>
+            <button id="sec-close" class="btn-close" aria-label="Cerrar">×</button>
+          </div>
+          <div class="body">
+          <div class="row-inline">
+            <span class="k">Distrito Federal</span>
+            <span class="v" id="si-df">—</span>
+            <span class="k">Distrito Local</span>
+            <span class="v" id="si-dl">—</span>
+            <span class="k">LN (2024)</span>
+            <span class="v" id="si-ln">—</span>
+          </div>
+        </div>
+
+        <div id="hist-qa" class="card" style="display: none">
+          <div class="card-h qa-head">
+            <span>Verificación (QA)</span>
+            <button id="qa-close" class="btn-close" aria-label="Cerrar">×</button>
+          </div>
+          <div
+            id="hist-qa-context"
+            style="font-size: 13px; margin: 0.25rem 0"
+          ></div>
+          <div class="qa-cols">
+            <div id="hist-qa-app" class="card">
               <div class="card-h">Fuente interna (App/JSON)</div>
               <table class="qa-table" id="qa-app-table"></table>
               <div id="qa-app-warn" class="qa-warn"></div>
+              <div
+                style="
+                  margin-top: 0.5rem;
+                  display: flex;
+                  gap: 0.5rem;
+                  align-items: center;
+                  flex-wrap: wrap;
+                "
+              >
+                <label style="display: inline-flex; gap: 0.25rem; align-items: center">
+                  Fuente:
+                  <select id="qa-source">
+                    <option value="IEEG" selected>IEEG</option>
+                    <option value="INE">INE</option>
+                  </select>
+                </label>
+                <button id="qa-compare" type="button">Comparar</button>
+                <button id="qa-clear-ext" type="button">Limpiar</button>
+                <span id="qa-compare-result" style="margin-left: 0.5rem"></span>
+              </div>
             </div>
-            <!-- Aquí luego pondremos tablas de App y Externo -->
-
-            <div id="hist-qa-external" class="card" style="margin-top: 0.5rem">
+            <div id="hist-qa-external" class="card">
               <div class="card-h">Externo (INE/IEEG)</div>
 
               <div
@@ -860,6 +1141,7 @@
                   <input
                     id="qa-url-ieeg"
                     type="url"
+                    value="https://computosgto2024.ieeg.mx/#/gubernatura/entidad/votos-entidad/mapa"
                     placeholder="https://..."
                     style="width: 320px"
                   />
@@ -923,25 +1205,12 @@
                 </tbody>
               </table>
 
-              <div
-                style="
-                  margin-top: 0.5rem;
-                  display: flex;
-                  gap: 0.5rem;
-                  align-items: center;
-                "
-              >
-                <button id="qa-compare" type="button">Comparar</button>
-                <button id="qa-clear-ext" type="button">Limpiar</button>
-                <span id="qa-compare-result" style="margin-left: 0.5rem"></span>
-              </div>
             </div>
           </div>
         </div>
-        <label class="qa-toggle" title="Modo Verificación">
-          <input type="checkbox" id="hist-qa-toggle" /> QA
-        </label>
       </div>
+      </div>
+    </div>
     </div>
 
     <!-- Sprite de íconos (inline, sin dependencias) -->
@@ -973,34 +1242,6 @@
         <path d="M4 7h16v2H4V7zm0 4h16v2H4v-2zm0 4h10v2H4v-2z" />
       </symbol>
     </svg>
-
-    <!-- Rail de herramientas -->
-    <div id="tool-rail" class="tool-rail">
-      <button class="rail-toggle" id="railToggle" aria-label="Mostrar/ocultar">
-        <svg><use href="#ic-menu"></use></svg>
-      </button>
-
-      <div class="rail-group" id="railGroup">
-        <button class="tool" data-tool="historial" data-tooltip="Historial">
-          <svg><use href="#ic-history"></use></svg>
-        </button>
-        <button class="tool" data-tool="ganador" data-tooltip="Ganador">
-          <svg><use href="#ic-trophy"></use></svg>
-        </button>
-        <button class="tool" data-tool="competencia" data-tooltip="Competencia">
-          <svg><use href="#ic-compare"></use></svg>
-        </button>
-        <button class="tool" data-tool="proyeccion" data-tooltip="Proyección">
-          <svg><use href="#ic-forecast"></use></svg>
-        </button>
-
-        <div class="rail-sep"></div>
-
-        <button class="tool" data-tool="exportar" data-tooltip="Exportar">
-          <svg><use href="#ic-download"></use></svg>
-        </button>
-      </div>
-    </div>
 
     <!-- === SCRIPT ÚNICO === -->
     <script>
@@ -1116,11 +1357,50 @@
         );
       }
 
+      function AT_isDockedPanel(el) {
+        return !!(el && el.classList && el.classList.contains("dock-panel"));
+      }
+
+      function AT_dockPanel(el) {
+        if (!el) return;
+        el.classList.add("dock-panel");
+        const host = document.getElementById("dash-panels");
+        if (host && el.parentElement !== host) host.appendChild(el);
+      }
+
+      function AT_watchDockPanels() {
+        const host = document.getElementById("dash-panels");
+        if (!host || host.__dockObserver) return;
+        const dockIfNeeded = (node) => {
+          if (!node || node.nodeType !== 1) return;
+          if (node.id && /^AT27_/.test(node.id) && /_panel$/.test(node.id)) {
+            AT_dockPanel(node);
+          }
+        };
+        const obs = new MutationObserver((mutations) => {
+          for (const m of mutations) {
+            for (const n of m.addedNodes) {
+              dockIfNeeded(n);
+              if (n.querySelectorAll) {
+                n.querySelectorAll('[id^="AT27_"][id$="_panel"]').forEach(
+                  dockIfNeeded
+                );
+              }
+            }
+          }
+        });
+        obs.observe(document.body, { childList: true, subtree: true });
+        host.__dockObserver = true;
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
         if (window.Chart && window.ChartDataLabels) {
           Chart.register(ChartDataLabels);
         }
         // …tu código que crea gráficas…
+        AT_dockPanel(document.getElementById("hist-panel"));
+        AT_dockPanel(document.getElementById("sec-info"));
+        AT_watchDockPanels();
       });
 
       // ===== 0) Campos (ajusta si tus nombres son distintos) =====
@@ -1197,6 +1477,7 @@
           bx = 0,
           by = 0;
         hdr.addEventListener("mousedown", (e) => {
+          if (AT_isDockedPanel(box)) return;
           if (e.target.closest(".btn-close")) return; // no iniciar drag si clic en "×"
           e.preventDefault();
           e.stopPropagation();
@@ -1424,6 +1705,7 @@
           bx = 0,
           by = 0;
         hdr.addEventListener("mousedown", (e) => {
+          if (AT_isDockedPanel(box)) return;
           dragging = true;
           sx = e.clientX;
           sy = e.clientY;
@@ -1462,11 +1744,14 @@
 
         // Pintar
         const box = document.getElementById("sec-info");
-        box.querySelector(".hdr").textContent = `Sección ${sec}`;
-        document.getElementById("si-sec").textContent = sec;
-        document.getElementById("si-df").textContent = df;
-        document.getElementById("si-dl").textContent = dl;
-        document.getElementById("si-ln").textContent = ln;
+        const hdr = box?.querySelector(".hdr");
+        if (hdr) hdr.textContent = `Sección ${sec}`;
+        const elDf = document.getElementById("si-df");
+        const elDl = document.getElementById("si-dl");
+        const elLn = document.getElementById("si-ln");
+        if (elDf) elDf.textContent = df;
+        if (elDl) elDl.textContent = dl;
+        if (elLn) elLn.textContent = ln;
         box.style.display = "block";
       }
 
@@ -1492,6 +1777,14 @@
             : a.localeCompare(b, "es")
         );
       }
+      function getSeccionesFromFeatures(feats) {
+        return [...new Set(
+          (feats || [])
+            .map((f) => f.properties?.SECCION)
+            .filter((s) => s !== null && s !== undefined)
+            .map(String)
+        )];
+      }
       function buildMiniOptions(raw) {
         const feats = raw.features || [];
         const grab = (k) => uniqueSorted(feats.map((f) => f.properties?.[k]));
@@ -1500,6 +1793,35 @@
           df: grab(FIELD_KEYS.df),
           dl: grab(FIELD_KEYS.dl),
         };
+      }
+      function getBaseMunKey() {
+        return (
+          __mini.selMun?.value ||
+          window.AT_BASE_MUN ||
+          (window.AT_UNIVERSE?.scope === "MUN" ? window.AT_UNIVERSE.key : null)
+        );
+      }
+      function updateMiniDlDfOptions(munKey) {
+        const raw = window.AT_DATA || {};
+        const feats = raw.features || [];
+        const filtered = munKey
+          ? feats.filter(
+              (f) =>
+                toComp(f.properties?.[FIELD_KEYS.mun]) === toComp(munKey)
+            )
+          : feats;
+        const dfVals = uniqueSorted(
+          filtered.map((f) => f.properties?.[FIELD_KEYS.df])
+        );
+        const dlVals = uniqueSorted(
+          filtered.map((f) => f.properties?.[FIELD_KEYS.dl])
+        );
+        const curDf = __mini.selDf?.value || "";
+        const curDl = __mini.selDl?.value || "";
+        fillSelect(__mini.selDf, dfVals);
+        fillSelect(__mini.selDl, dlVals);
+        if (curDf && dfVals.includes(curDf)) __mini.selDf.value = curDf;
+        if (curDl && dlVals.includes(curDl)) __mini.selDl.value = curDl;
       }
       function fillSelect(sel, arr) {
         sel.innerHTML =
@@ -1536,11 +1858,13 @@
           selMun.value = "";
           selDf.value = "";
           selDl.value = "";
+          window.AT_BASE_MUN = null;
         }
         if (which === "MUN") {
           selDf.value = "";
           selDl.value = "";
           all.checked = false;
+          window.AT_BASE_MUN = selMun.value || null;
         }
         if (which === "DF") {
           selMun.value = "";
@@ -1552,6 +1876,7 @@
           selDf.value = "";
           all.checked = false;
         }
+        updateMiniDlDfOptions(getBaseMunKey());
         applyMiniUniverse();
       }
       function applyMiniUniverse() {
@@ -1565,11 +1890,37 @@
         // 2) Redibujar con el nuevo universo usando el raw ya cargado
         const atMap = ensureLeafletMap();
         const filtered2 = filterGeojson(window.AT_DATA, u2);
+        const seccionesUni2 = getSeccionesFromFeatures(filtered2.features || []);
+        window.seccionesUniverso = seccionesUni2;
+        window.totalSeccionesUniverso = seccionesUni2.length;
+        window.AT_UNIVERSE = u2;
+        window.AT_SCOPE = u2.scope;
+        window.AT_MUN_ID = u2.scope === "MUN" ? u2.key : null;
+        if (typeof window.updateATScopeBadge === "function") {
+          window.updateATScopeBadge(u2, seccionesUni2);
+        }
         if (window.AT_CTX?.layer) {
           atMap.removeLayer(AT_CTX.layer);
         }
         const layer2 = L.geoJSON(filtered2, {
-          style: { color: "#7d0025", weight: 1.2, fillOpacity: 0.15 },
+          style: (feat) => qaStyleForFeature(feat, "#7d0025"),
+          onEachFeature: (feat, lyr) => {
+            const p = feat.properties || {};
+            const muni = p[FIELD_KEYS.mun] ?? "—";
+            const dl = p[FIELD_KEYS.dl] ?? "—";
+            const df = p[FIELD_KEYS.df] ?? "—";
+            lyr.bindPopup(
+              `<b>Sección</b>: ${
+                p.SECCION ?? "—"
+              }<br><b>Mun</b>: ${muni}<br><b>DL</b>: ${dl}<br><b>DF</b>: ${df}`
+            );
+            lyr.on("mouseover", () => lyr.setStyle({ weight: 2 }));
+            lyr.on("mouseout", () => lyr.setStyle({ weight: 1.2 }));
+            lyr.on("click", () => {
+              if (typeof gotoSection === "function")
+                gotoSection({ sec: p.SECCION, feature: feat });
+            });
+          },
         }).addTo(atMap);
         try {
           atMap.fitBounds(layer2.getBounds(), { padding: [20, 20] });
@@ -1578,6 +1929,7 @@
           ...(window.AT_CTX || {}),
           universe: u2,
           layer: layer2,
+          baseColor: "#7d0025",
         };
         // 3) Header
         const hdr = document.querySelector("#panel-header span");
@@ -1599,8 +1951,6 @@
 
         const opt = buildMiniOptions(raw);
         fillSelect(__mini.selMun, opt.mun);
-        fillSelect(__mini.selDf, opt.df);
-        fillSelect(__mini.selDl, opt.dl);
 
         // Reflejar el universo actual
         if (u.scope === "ALL") {
@@ -1608,6 +1958,7 @@
         }
         if (u.scope === "MUN") {
           __mini.selMun.value = String(u.key);
+          window.AT_BASE_MUN = String(u.key);
         }
         if (u.scope === "DF") {
           __mini.selDf.value = String(u.key);
@@ -1615,6 +1966,7 @@
         if (u.scope === "DL") {
           __mini.selDl.value = String(u.key);
         }
+        updateMiniDlDfOptions(getBaseMunKey());
 
         async function labelMunicipiosFromCatalog(selectId) {
           const sel = document.querySelector(selectId);
@@ -1864,6 +2216,12 @@
         // 3) Mostrar panel con DF, DL y LN (24DL_LN)
         showSectionInfo(feat);
 
+        // 3.1) Si el panel de historial está abierto, refresca gráficas
+        const histPanel = document.getElementById("hist-panel");
+        if (histPanel && histPanel.style.display !== "none") {
+          requestAnimationFrame(() => renderHistorialCharts());
+        }
+
         // 4) Feedback visual (parpadeo leve sobre el highlight actual)
         const hl = window.__SEC_HL;
         if (hl && typeof hl.setStyle === "function") {
@@ -2036,23 +2394,37 @@
         }
         // a partir de aquí, usa 'raw'
 
-        const filtered = filterGeojson(raw, u);
-        console.log(
-          "[AT] Universo:",
-          u,
-          "Total:",
-          raw.features?.length || 0,
-          "Filtradas:",
-          filtered.features?.length || 0
-        );
+        // ================================
+        // UNIVERSO TERRITORIAL (AT-27-30)
+        // ================================
 
-        if (!filtered.features || filtered.features.length === 0) {
-          console.warn(
-            "[AT] No hay geometrías para el universo seleccionado:",
-            u
+        // 1️⃣ Leer selección desde portal (si no existe, default = Estado)
+        const scope = localStorage.getItem('AT_SCOPE') || 'STATE'; // 'STATE' | 'MUN'
+        const munId = localStorage.getItem('AT_MUN_ID');           // ej. '6'
+
+        // 2️⃣ Clonar features originales (NUNCA mutar el geojson base)
+        let featuresUniverso = [...raw.features];
+
+        // 3️⃣ Filtrar por municipio si aplica
+        if (scope === 'MUN' && munId) {
+          featuresUniverso = featuresUniverso.filter(f =>
+            Number(f.properties?.MUNICIPIO) === Number(munId)
           );
-          alert("No hay datos para el universo seleccionado");
         }
+
+        // 4️⃣ Extraer secciones del universo activo
+        const seccionesUniverso = getSeccionesFromFeatures(featuresUniverso);
+        window.seccionesUniverso = seccionesUniverso;
+        window.totalSeccionesUniverso = seccionesUniverso.length;
+        window.AT_UNIVERSE = u;
+        window.AT_SCOPE = scope;
+        window.AT_MUN_ID = munId;
+
+        // 🔎 DEBUG OPCIONAL
+        console.log('AT_SCOPE:', scope);
+        console.log('AT_MUN_ID:', munId);
+        console.log('Total secciones universo:', seccionesUniverso.length);
+
 
         // Nombre fijo del campo (texto) del municipio
         const MUN_NAME_KEY = "MUNICIPIO";
@@ -2080,9 +2452,63 @@
         FIELD_KEYS.mun = munCodeKey;
         window.AT_KEYS = { munCode: munCodeKey, munName: MUN_NAME_KEY };
 
+        function updateATScopeBadge(uLocal, seccionesLocal) {
+          const el = document.getElementById("atScopeBadge");
+          if(!el) return;
+
+          const uEff = uLocal || window.AT_UNIVERSE || {};
+          const scopeLocal = String(uEff.scope || window.AT_SCOPE || scope || "").toUpperCase();
+          const munIdLocal = uEff.key ?? window.AT_MUN_ID ?? munId ?? "—";
+          const total =
+            seccionesLocal?.length ??
+            window.seccionesUniverso?.length ??
+            window.totalSeccionesUniverso ??
+            0;
+
+          // Si ya tienes un label calculado en tu objeto universo, úsalo
+          let munName = null;
+          if (scopeLocal === "MUN" && munIdLocal && munIdLocal !== "—") {
+            munName = getMunNameFromCatalog(munIdLocal);
+            if (!munName || munName === String(munIdLocal)) {
+              const hit = raw.features?.find(
+                (f) => String(f.properties?.[munCodeKey]) === String(munIdLocal)
+              );
+              munName = hit?.properties?.[MUN_NAME_KEY] ?? munName;
+            }
+          }
+          let label = uEff.label || scopeLocal || "—";
+          if (scopeLocal === "MUN") {
+            label = munName || uEff.label || String(munIdLocal);
+            label = String(label).replace(/^Municipio\s+/i, "");
+          }
+
+          el.innerHTML = `UNIVERSO: <strong>${label}</strong> · Secciones: <strong>${total}</strong>`;
+        }
+        window.updateATScopeBadge = updateATScopeBadge;
+        updateATScopeBadge(u, seccionesUniverso);
+
+
+        const filtered = filterGeojson(raw, u);
+        console.log(
+          "[AT] Universo:",
+          u,
+          "Total:",
+          raw.features?.length || 0,
+          "Filtradas:",
+          filtered.features?.length || 0
+        );
+
+        if (!filtered.features || filtered.features.length === 0) {
+          console.warn(
+            "[AT] No hay geometrías para el universo seleccionado:",
+            u
+          );
+          alert("No hay datos para el universo seleccionado");
+        }
+
         // e) Dibujar capa
         const layer = L.geoJSON(filtered, {
-          style: { color: "#000000", weight: 1.2, fillOpacity: 0.15 },
+          style: (feat) => qaStyleForFeature(feat, "#000000"),
           onEachFeature: (feat, lyr) => {
             const p = feat.properties || {};
             const muni = p[FIELD_KEYS.mun] ?? "—";
@@ -2095,13 +2521,17 @@
             );
             lyr.on("mouseover", () => lyr.setStyle({ weight: 2 }));
             lyr.on("mouseout", () => lyr.setStyle({ weight: 1.2 }));
+            lyr.on("click", () => {
+              if (typeof gotoSection === "function")
+                gotoSection({ sec: p.SECCION, feature: feat });
+            });
           },
         }).addTo(atMap);
 
         try {
           atMap.fitBounds(layer.getBounds(), { padding: [20, 20] });
         } catch (e) {}
-        window.AT_CTX = { universe: u, paths, map: atMap, layer };
+        window.AT_CTX = { universe: u, paths, map: atMap, layer, baseColor: "#000000" };
 
         function getMunNameFromCatalog(code) {
           const cat = window.AT_CATALOG;
@@ -2276,6 +2706,7 @@
           bx = 0,
           by = 0;
         hdr.addEventListener("mousedown", (e) => {
+          if (AT_isDockedPanel(box)) return;
           if (e.target.closest(".btn-close") || e.target.tagName === "SELECT")
             return;
           e.preventDefault();
@@ -2380,15 +2811,26 @@
           return;
         }
 
-        // Opción 1 (auto-detecta los años disponibles en esa sección)
-        const years = Object.keys(slot)
-          .filter((k) => /^\d{4}$/.test(k))
-          .map(Number)
-          .sort();
-        // Opción 2 (forzar 2018/2021/2024 aunque falte alguno)
-        // const years = [2018, 2021, 2024];
-
-        const rows = years.map((y) => slot[String(y)] || null);
+        const isSexenal = ["P", "S", "G"].includes(puesto);
+        const expected = isSexenal ? [2018, 2024] : [2018, 2021, 2024];
+        const hasYearKey = (y) =>
+          slot[String(y)] != null ||
+          slot[String(y).slice(2)] != null ||
+          slot[String(+String(y).slice(2))] != null;
+        let years = expected.filter(hasYearKey);
+        if (!years.length) {
+          years = Object.keys(slot)
+            .filter((k) => /^\d{2}$|^\d{4}$/.test(k))
+            .map((k) => (k.length === 2 ? 2000 + Number(k) : Number(k)))
+            .filter((y) => Number.isFinite(y))
+            .sort();
+        }
+        const getYearRow = (y) =>
+          slot[String(y)] ??
+          slot[String(y).slice(2)] ??
+          slot[String(+String(y).slice(2))] ??
+          null;
+        const rows = years.map((y) => getYearRow(y));
 
         destroyHistCharts();
 
@@ -2691,12 +3133,60 @@
         selY?.addEventListener("change", () => {
           if (qa.style.display !== "none") renderHistQA();
         });
+
+        const btnClose = document.getElementById("qa-close");
+        if (btnClose) {
+          btnClose.addEventListener("click", () => {
+            qa.style.display = "none";
+            tg.checked = false;
+          });
+        }
       })();
 
       // --- Utilidades QA externas ---
       function qaKey(sec, puesto, year) {
         const s = String(sec).replace(/\D+/g, "");
         return `QA:${s}|${puesto}|${year}`;
+      }
+      function qaStatusKey(sec, puesto, year, source) {
+        const s = String(sec).replace(/\D+/g, "");
+        return `QA_STATUS:${s}|${puesto}|${year}|${source}`;
+      }
+      function saveQAStatus(sec, puesto, year, source, status) {
+        const key = qaStatusKey(sec, puesto, year, source);
+        localStorage.setItem(key, status);
+        const lastKey = `QA_STATUS_LAST:${String(sec).replace(/\D+/g, "")}`;
+        localStorage.setItem(lastKey, JSON.stringify({ source, status }));
+      }
+      function getLastQAStatus(sec) {
+        const lastKey = `QA_STATUS_LAST:${String(sec).replace(/\D+/g, "")}`;
+        try {
+          return JSON.parse(localStorage.getItem(lastKey) || "null");
+        } catch (_) {
+          return null;
+        }
+      }
+      function qaStyleForFeature(feat, baseColor) {
+        const p = feat?.properties || {};
+        const sec = p.SECCION ?? p.SECCION_ID ?? p.SEC ?? null;
+        const last = sec ? getLastQAStatus(sec) : null;
+        const st = last?.status;
+        if (st === "ok")
+          return { color: "#2e7d32", weight: 1.6, fillOpacity: 0.15 };
+        if (st === "bad")
+          return { color: "#c62828", weight: 1.6, fillOpacity: 0.15 };
+        return { color: baseColor || "#000", weight: 1.2, fillOpacity: 0.15 };
+      }
+      function refreshQAStyleForSection(sec) {
+        const layer = window.AT_CTX?.layer;
+        if (!layer?.eachLayer) return;
+        const baseColor = window.AT_CTX?.baseColor || "#000";
+        layer.eachLayer((lyr) => {
+          const f = lyr.feature;
+          if (normSec(f?.properties?.SECCION) === normSec(sec)) {
+            lyr.setStyle(qaStyleForFeature(f, baseColor));
+          }
+        });
       }
       function readExtInputs() {
         const o = {};
@@ -2740,7 +3230,9 @@
         const saved = loadQAState(sec, puesto, year) || {};
         fillExtInputs(saved.values || {});
         document.getElementById("qa-url-ine").value = saved.urls?.ine || "";
-        document.getElementById("qa-url-ieeg").value = saved.urls?.ieeg || "";
+        document.getElementById("qa-url-ieeg").value =
+          saved.urls?.ieeg ||
+          "https://computosgto2024.ieeg.mx/#/gubernatura/entidad/votos-entidad/mapa";
 
         // Abrir URLs
         document.getElementById("qa-open-ine").onclick = () =>
@@ -2778,6 +3270,8 @@
         document.getElementById("qa-compare").onclick = () => {
           const vals = readExtInputs();
           const res = document.getElementById("qa-compare-result");
+          const sourceSel = document.getElementById("qa-source");
+          const source = sourceSel?.value || "IEEG";
           // marcar campos vacíos o no numéricos como diferencia
           document
             .querySelectorAll("#qa-ext-table .qa-num")
@@ -2864,6 +3358,8 @@
             res.classList.remove("ok-msg");
             res.classList.add("bad-msg");
           }
+          saveQAStatus(sec, puesto, year, source, diffs.length === 0 ? "ok" : "bad");
+          refreshQAStyleForSection(sec);
 
           // Guardar lo pegado
           const urls = {
@@ -3017,6 +3513,7 @@
           oy = 0,
           dragging = false;
         handle.addEventListener("mousedown", (e) => {
+          if (AT_isDockedPanel(panel)) return;
           dragging = true;
           sx = e.clientX;
           sy = e.clientY;
@@ -3403,6 +3900,7 @@
             oy = 0,
             dragging = false;
           handle.addEventListener("mousedown", (e) => {
+            if (AT_isDockedPanel(panel)) return;
             dragging = true;
             sx = e.clientX;
             sy = e.clientY;
@@ -3665,6 +4163,7 @@
             oy = 0,
             dragging = false;
           handle.addEventListener("mousedown", (e) => {
+            if (AT_isDockedPanel(panel)) return;
             dragging = true;
             sx = e.clientX;
             sy = e.clientY;
@@ -3964,6 +4463,7 @@
             oy = 0,
             dragging = false;
           handle.addEventListener("mousedown", (e) => {
+            if (AT_isDockedPanel(panel)) return;
             dragging = true;
             sx = e.clientX;
             sy = e.clientY;
@@ -4313,6 +4813,7 @@
             oy = 0,
             dragging = false;
           handle.addEventListener("mousedown", (e) => {
+            if (AT_isDockedPanel(panel)) return;
             dragging = true;
             sx = e.clientX;
             sy = e.clientY;
@@ -4537,6 +5038,7 @@
             oy = 0,
             dragging = false;
           handle.addEventListener("mousedown", (e) => {
+            if (AT_isDockedPanel(panel)) return;
             dragging = true;
             sx = e.clientX;
             sy = e.clientY;
@@ -4830,6 +5332,7 @@
             oy = 0,
             dragging = false;
           handle.addEventListener("mousedown", (e) => {
+            if (AT_isDockedPanel(panel)) return;
             dragging = true;
             sx = e.clientX;
             sy = e.clientY;
@@ -4958,125 +5461,6 @@
       }
       /* ===================== FIN MOD 3: ÍNDICE DE CONCENTRACIÓN (HHI) ===================== */
     </script>
-    <div id="sec-info">
-      <div class="hdr">
-        <span class="ttl">Sección</span>
-        <button id="sec-close" class="btn-close" aria-label="Cerrar">×</button>
-      </div>
-      <div class="body">
-        <div class="row">
-          <span class="k">Sección</span> <span class="v" id="si-sec">—</span>
-        </div>
-        <div class="row">
-          <span class="k">Distrito Federal</span
-          ><span class="v" id="si-df">—</span>
-        </div>
-        <div class="row">
-          <span class="k">Distrito Local</span>
-          <span class="v" id="si-dl">—</span>
-        </div>
-        <div class="row">
-          <span class="k">LN (2024)</span> <span class="v" id="si-ln">—</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Barra superior -->
-    <div
-      id="top-toolbar"
-      class="ttb"
-      style="position: absolute; top: 12px; right: 12px; z-index: 5200"
-    >
-      <div class="ttb-wrap">
-        <!-- Toggle Compact -->
-        <button
-          id="btn-ttb-compact-toggle"
-          class="ttb-btn"
-          title="Compactar barra"
-          type="button"
-        >
-          <span class="ico">▤</span><span class="txt">▤</span>
-        </button>
-
-        <!-- SECCIÓN (requieren sección seleccionada) -->
-        <span class="ttb-label" style="margin-right: 6px">Sección</span>
-        <button id="btn-historial" class="ttb-btn" title="Historial (H)">
-          Historial
-        </button>
-        <button
-          id="btn-comp-puesto"
-          class="ttb-btn"
-          title="Comparativa por Puesto (C)"
-          type="button"
-          disabled
-        >
-          Comparativa
-        </button>
-        <button
-          id="btn-competitividad"
-          class="ttb-btn"
-          title="Competitividad 2024 (K)"
-          type="button"
-          disabled
-        >
-          Competitividad
-        </button>
-        <button
-          id="btn-top3"
-          class="ttb-btn"
-          title="Top 3 Partidos 2024 (T)"
-          type="button"
-          disabled
-        >
-          Top 3
-        </button>
-
-        <div class="ttb-sep"></div>
-
-        <!-- UNIVERSO (estado/mun/DF/DL; siempre habilitados) -->
-        <span class="ttb-label" style="margin-right: 6px">Universo</span>
-
-        <button
-          id="btn-gpa"
-          class="ttb-btn"
-          title="Ganadores por Año (Y)"
-          type="button"
-        >
-          Ganadores por Año
-        </button>
-        <button
-          id="btn-abst"
-          class="ttb-btn"
-          title="Abstención (B)"
-          type="button"
-        >
-          Abstención
-        </button>
-        <button id="btn-hhi" class="ttb-btn" title="HHI 2024 (I)" type="button">
-          Indice de concentracion 2024
-        </button>
-
-        <div class="ttb-sep"></div>
-
-        <button
-          id="btn-recentrar"
-          class="ttb-btn"
-          title="Recentrar universo (R)"
-          type="button"
-        >
-          Recentrar
-        </button>
-
-        <button
-          id="btn-ayuda"
-          class="ttb-btn ttb-help"
-          title="Ayuda (?)"
-          type="button"
-        >
-          Ayuda
-        </button>
-      </div>
-    </div>
 
     <!-- Modal de ayuda con acordeón -->
     <div id="help-modal" class="hm" style="display: none">

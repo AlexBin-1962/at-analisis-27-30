@@ -14,19 +14,36 @@
 
   <style>
     html, body { margin:0; padding:0; height:100%; width:100%; font-family:'Segoe UI', Arial, sans-serif; background:#f4f4f4; }
-    :root{ --sidebar-w:320px; }
+    :root{ --sidebar-w:260px; }
+    body{
+      display:grid;
+      grid-template-columns: var(--sidebar-w) 1fr 1fr;
+      grid-template-rows: 100vh;
+      overflow:hidden;
+    }
+    #dd-layout{ display:contents; }
     #panel-lateral{
-      position:absolute;
-      left:0; top:0; bottom:0; width:var(--sidebar-w); height:100%;
+      width:var(--sidebar-w); height:100vh;
       background: linear-gradient(180deg, #8ea3ad 0%, #dfe6e9 100%);
       color:#2c3e50; border-right:1px solid #b2bec3;
       display:flex; flex-direction:column; 
       box-shadow:2px 0 5px rgba(0,0,0,0.1); box-sizing:border-box; align-items:stretch;
       z-index:2000;
+      overflow-y:auto;
     }
     #panel-header{ background:#b2bec3; color:#2c3e50; padding:12px 15px; display:flex; align-items:center; font-size:18px; font-weight:bold; }
     #panel-header img{ height:32px; margin-right:10px; }
-    #map{ position:absolute; top:0; left:var(--sidebar-w); width:calc(100% - var(--sidebar-w)); height:100%; }
+    #map-wrap{ position:relative; height:100vh; min-width:0; overflow:hidden; }
+    #map{ position:absolute; inset:0; width:100%; height:100%; }
+    #dd-dashboard{
+      height:100vh; min-width:0; overflow:hidden;
+      background:#f2f6fb; border-left:1px solid #d3dbe0;
+      display:flex; flex-direction:column; gap:12px; padding:12px; box-sizing:border-box;
+    }
+    #dash-panels{
+      display:flex; flex-direction:column; gap:12px;
+      min-height:0; overflow:auto; padding-right:4px;
+    }
 
     #sec-search    { position: relative; }                /* contenedor del buscador */
     #sec-suggest   { z-index: 3000; } 
@@ -79,32 +96,33 @@
 
 /* Toolbar casillas Abasolo */
 #casillas-toolbar{
-  position:absolute;
-  top:10px;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:2500;
+  padding:10px 12px 12px;
+}
+#casillas-toolbar .ct-wrap{
   display:flex;
-  gap:8px;
-  align-items:center;
-  background:rgba(255,255,255,0.92);
-  border:1px solid #e2e8f0;
+  flex-direction:column;
+  align-items:stretch;
+  gap:.5rem;
+  background:#ffffffcc;
+  border:1px solid #cfd8dc;
   border-radius:12px;
   box-shadow:0 10px 24px rgba(0,0,0,.12);
   padding:8px 10px;
   backdrop-filter: blur(6px);
 }
 #casillas-toolbar button{
-  border:1px solid #cbd5e1;
-  background:#2563eb;
-  color:#fff;
-  padding:8px 12px;
+  border:1px solid #b0bec5;
+  background:#fff;
+  color:#37474f;
+  padding:6px 10px;
   border-radius:10px;
   cursor:pointer;
-  font-weight:700;
+  font-weight:600;
   font-size:13px;
+  text-align:left;
+  width:100%;
 }
-#casillas-toolbar button:hover{ background:#1d4ed8; }
+#casillas-toolbar button:hover{ background:#f5f7f9; }
 
 
 /* Panel flotante sección */
@@ -120,6 +138,7 @@
   display: none;
   pointer-events: auto;
 }
+#sec-info.dock-panel{ display:block; }
 #sec-info .hdr {
   cursor: move;
   display:flex; align-items:center; justify-content:space-between;
@@ -144,6 +163,23 @@
 #sec-info .k    { color:#607d8b; }
 #sec-info .v    { font-weight:600; }
 
+.dock-panel{
+  position:relative !important;
+  left:auto !important;
+  top:auto !important;
+  right:auto !important;
+  bottom:auto !important;
+  width:100% !important;
+  max-width:none !important;
+  min-width:0 !important;
+  resize:none !important;
+  box-sizing:border-box;
+  z-index:auto !important;
+}
+.dock-panel .hdr,
+.dock-panel .cp-hdr{ cursor:default !important; }
+.dock-panel .cp-resizer{ display:none; }
+
 #casillas-panel{
   position:absolute;
   left:16px; bottom:180px;
@@ -157,6 +193,11 @@
   z-index:4200;
   font-size:14px;
   resize: both;                   /* permitir redimensionar */
+}
+#casillas-panel.dock-panel{
+  display:block;
+  max-height:none;
+  min-height:240px;
 }
 #casillas-panel .cp-hdr{
   display:flex; align-items:center; gap:8px;
@@ -374,9 +415,7 @@
   </style>
 </head>
 <body>
-  <div id="casillas-toolbar">
-    <button id="btn-cargar-casillas" type="button">Cargar casillas</button>
-  </div>
+  <div id="dd-layout">
   <div id="panel-lateral">
     <div id="panel-header">
       <!-- <img src="assets/img/logo.png" alt="Logo"/> -->
@@ -418,8 +457,44 @@
         <div class="hint" style="font-size:12px;color:#64748b">Elige solo uno. Al cambiar, el mapa se actualiza.</div>
     </div>
 
+    <div id="casillas-toolbar">
+      <div class="ct-wrap">
+        <button id="btn-cargar-casillas" type="button">Cargar casillas</button>
+      </div>
+    </div>
   </div>
-  <div id="map"></div>
+  <div id="map-wrap">
+    <div id="map"></div>
+  </div>
+  <div id="dd-dashboard">
+    <div id="dash-panels">
+      <div id="sec-info">
+        <div class="hdr">
+          <span class="ttl">Sección</span>
+          <button id="sec-close" class="btn-close" aria-label="Cerrar">×</button>
+        </div>
+        <div class="body">
+          <div class="row"><span class="k">Sección</span>        <span class="v" id="si-sec">—</span></div>
+          <div class="row"><span class="k">Distrito Federal</span><span class="v" id="si-df">—</span></div>
+          <div class="row"><span class="k">Distrito Local</span>  <span class="v" id="si-dl">—</span></div>
+          <div class="row"><span class="k">LN (2024)</span>    <span class="v" id="si-ln">—</span></div>
+        </div>
+      </div>
+
+      <div id="casillas-panel">
+        <div class="cp-hdr">
+          <span>Casillas sección <span class="cp-sec">—</span></span>
+          <small></small>
+          <button class="cp-close" aria-label="Cerrar">×</button>
+        </div>
+        <div class="cp-body">
+          <div class="cp-empty">Selecciona una sección para ver sus casillas.</div>
+        </div>
+        <div class="cp-resizer" title="Redimensionar"></div>
+      </div>
+    </div>
+  </div>
+  </div>
 
   <!-- === SCRIPT ÚNICO === -->
   <script>
@@ -457,6 +532,38 @@
     if (typeof clearSectionOverlays === 'function') clearSectionOverlays();
   }
 
+  function AT_isDockedPanel(el){
+    return !!(el && el.classList && el.classList.contains('dock-panel'));
+  }
+  function AT_dockPanel(el){
+    if (!el) return;
+    el.classList.add('dock-panel');
+    const host = document.getElementById('dash-panels');
+    if (host && el.parentElement !== host) host.appendChild(el);
+  }
+  function AT_watchDockPanels(){
+    const host = document.getElementById('dash-panels');
+    if (!host || host.__dockObserver) return;
+    const dockIfNeeded = (node)=>{
+      if (!node || node.nodeType !== 1) return;
+      if (node.id && /^AT27_/.test(node.id) && /_panel$/.test(node.id)) {
+        AT_dockPanel(node);
+      }
+    };
+    const obs = new MutationObserver((mutations)=>{
+      for (const m of mutations){
+        for (const n of m.addedNodes){
+          dockIfNeeded(n);
+          if (n.querySelectorAll){
+            n.querySelectorAll('[id^="AT27_"][id$="_panel"]').forEach(dockIfNeeded);
+          }
+        }
+      }
+    });
+    obs.observe(document.body, { childList:true, subtree:true });
+    host.__dockObserver = true;
+  }
+
 
   function ensureSecInfoPanelWired(){
   const box = document.getElementById('sec-info');
@@ -472,6 +579,7 @@
   // Drag del panel
   let dragging = false, sx=0, sy=0, bx=0, by=0;
   hdr.addEventListener('mousedown', (e)=>{
+    if (AT_isDockedPanel(box)) return;
     if (e.target.closest('.btn-close')) return; // no iniciar drag si clic en "×"
     e.preventDefault(); e.stopPropagation();
     dragging = true;
@@ -631,6 +739,7 @@
     if (!box || !hdr || box.__wired) return;
     let dragging = false, sx=0, sy=0, bx=0, by=0;
     hdr.addEventListener('mousedown', (e)=>{
+      if (AT_isDockedPanel(box)) return;
       dragging=true; sx=e.clientX; sy=e.clientY;
       const r = box.getBoundingClientRect(); bx=r.left; by=r.top;
       document.body.style.userSelect='none';
@@ -660,7 +769,8 @@
 
     // Pintar
     const box = document.getElementById('sec-info');
-    box.querySelector('.hdr').textContent = `Sección ${sec}`;
+    const ttl = box.querySelector('.ttl');
+    if (ttl) ttl.textContent = `Sección ${sec}`;
     document.getElementById('si-sec').textContent = sec;
     document.getElementById('si-df').textContent  = df;
     document.getElementById('si-dl').textContent  = dl;
@@ -1384,6 +1494,10 @@
 
   // ===== 3) Boot =====
   document.addEventListener('DOMContentLoaded', async () => {
+    AT_dockPanel(document.getElementById('sec-info'));
+    AT_dockPanel(document.getElementById('casillas-panel'));
+    AT_watchDockPanels();
+
     // a) Leer universo y rutas puestos en el PORTAL
     const u     = JSON.parse(localStorage.getItem('AT_UNIVERSE') || 'null');
     const paths = JSON.parse(localStorage.getItem('AT_PATHS') || '{"geo":""}');
@@ -1521,31 +1635,6 @@ function getDlListFromCatalog(feats){
 
 
   </script>
-  <div id="sec-info">
-    <div class="hdr">
-    <span class="ttl">Sección</span>
-    <button id="sec-close" class="btn-close" aria-label="Cerrar">×</button>
-  </div>
-  <div class="body">
-    <div class="row"><span class="k">Sección</span>        <span class="v" id="si-sec">—</span></div>
-    <div class="row"><span class="k">Distrito Federal</span><span class="v" id="si-df">—</span></div>
-    <div class="row"><span class="k">Distrito Local</span>  <span class="v" id="si-dl">—</span></div>
-    <div class="row"><span class="k">LN (2024)</span>    <span class="v" id="si-ln">—</span></div>
-  </div>
-</div>
-
-<div id="casillas-panel">
-  <div class="cp-hdr">
-    <span>Casillas sección <span class="cp-sec">—</span></span>
-    <small></small>
-    <button class="cp-close" aria-label="Cerrar">×</button>
-  </div>
-  <div class="cp-body">
-    <div class="cp-empty">Selecciona una sección para ver sus casillas.</div>
-  </div>
-  <div class="cp-resizer" title="Redimensionar"></div>
-</div>
-
   <div id="acta-modal-backdrop">
     <div id="acta-modal">
       <div class="am-hdr">
@@ -1642,6 +1731,7 @@ function getDlListFromCatalog(feats){
     const hdr = panel.querySelector('.cp-hdr');
     let dragging = false, sx=0, sy=0, px=0, py=0;
     hdr?.addEventListener('mousedown', (e)=>{
+      if (AT_isDockedPanel(panel)) return;
       dragging = true;
       sx = e.clientX; sy = e.clientY;
       const r = panel.getBoundingClientRect();

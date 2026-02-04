@@ -24,15 +24,20 @@
         background: #f4f4f4;
       }
       :root {
-        --sidebar-w: 320px;
+        --sidebar-w: 260px;
+      }
+      body {
+        display: grid;
+        grid-template-columns: var(--sidebar-w) 1fr 1fr;
+        grid-template-rows: 100vh;
+        overflow: hidden;
+      }
+      #campo-layout {
+        display: contents;
       }
       #panel-lateral {
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
         width: var(--sidebar-w);
-        height: 100%;
+        height: 100vh;
         background: linear-gradient(180deg, #8ea3ad 0%, #dfe6e9 100%);
         color: #2c3e50;
         border-right: 1px solid #b2bec3;
@@ -42,6 +47,7 @@
         box-sizing: border-box;
         align-items: stretch;
         z-index: 2000;
+        overflow-y: auto;
       }
       #panel-header {
         background: #b2bec3;
@@ -81,12 +87,37 @@
         margin-right: 6px;
       }
 
+      #map-wrap {
+        position: relative;
+        height: 100vh;
+        min-width: 0;
+        overflow: hidden;
+      }
       #map {
         position: absolute;
-        top: 0;
-        left: var(--sidebar-w);
-        width: calc(100% - var(--sidebar-w));
+        inset: 0;
+        width: 100%;
         height: 100%;
+      }
+      #campo-dashboard {
+        height: 100vh;
+        min-width: 0;
+        overflow: hidden;
+        background: #f2f6fb;
+        border-left: 1px solid #d3dbe0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px;
+        box-sizing: border-box;
+      }
+      #dash-panels {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-height: 0;
+        overflow: auto;
+        padding-right: 4px;
       }
 
       #sec-search {
@@ -207,6 +238,9 @@
         display: none;
         pointer-events: auto;
       }
+      #sec-info.dock-panel {
+        display: block;
+      }
       #sec-info .hdr {
         cursor: move;
         display: flex;
@@ -249,6 +283,26 @@
       }
       #sec-info .v {
         font-weight: 600;
+      }
+      .dock-panel {
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        resize: none !important;
+        box-sizing: border-box;
+        z-index: auto !important;
+      }
+      .dock-panel .hdr,
+      .dock-panel .ec-header {
+        cursor: default !important;
+      }
+      #estrategico-campo-panel.dock-panel {
+        max-height: none;
       }
 
       .ec-hidden {
@@ -363,6 +417,7 @@
     </style>
   </head>
   <body>
+    <div id="campo-layout">
     <!--
       Nota (2025-10-22): Se eliminaron bloques HTML duplicados que contenían
       elementos con atributos `id` repetidos (por ejemplo: `ec-*`, `ct-pin`).
@@ -484,7 +539,180 @@
         </button>
       </div>
     </div>
-    <div id="map"></div>
+    <div id="map-wrap">
+      <div id="map"></div>
+    </div>
+    <div id="campo-dashboard">
+      <div id="dash-panels">
+        <div id="sec-info">
+          <div class="hdr">
+            <span class="ttl">Sección</span>
+            <button id="sec-close" class="btn-close" aria-label="Cerrar">×</button>
+          </div>
+          <div class="body">
+            <div class="row">
+              <span class="k">Sección</span> <span class="v" id="si-sec">—</span>
+            </div>
+            <div class="row">
+              <span class="k">Distrito Federal</span
+              ><span class="v" id="si-df">—</span>
+            </div>
+            <div class="row">
+              <span class="k">Distrito Local</span>
+              <span class="v" id="si-dl">—</span>
+            </div>
+            <div class="row">
+              <span class="k">LN (2024)</span> <span class="v" id="si-ln">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- === ESTRATEGICO CAMPO: PANEL === -->
+        <div id="estrategico-campo-panel" class="ec-panel ec-hidden">
+          <div class="ec-header">
+            <strong>Módulo CAMPO · AT 27–30</strong>
+            <button id="ec-btn-cerrar" class="ec-icon">✕</button>
+          </div>
+
+          <div class="ec-counter">
+            <span id="ec-contador">0</span> registros locales
+          </div>
+          <div
+            id="ec-kpis"
+            style="display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px 0"
+          ></div>
+
+          <div class="ec-tabs">
+            <button class="ec-tab ec-tab-active" data-tab="captura">
+              Promotor
+            </button>
+            <button class="ec-tab" data-tab="admin">Administrador</button>
+          </div>
+
+          <div
+            class="ec-kpis"
+            style="display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px 0"
+          ></div>
+
+          <div class="ec-tabview" id="ec-tab-captura">
+            <div class="ec-field">
+              <label>Tipo asignación</label>
+              <select id="ec-tipo">
+                <option value="SIMPATIZANTE">SIMPATIZANTE</option>
+                <option value="LIDER">LÍDER</option>
+                <option value="ADVERSARIO">ADVERSARIO</option>
+                <option value="REP_CASILLA">REPRESENTANTE DE CASILLA</option>
+                <option value="REP_GENERAL">REPRESENTANTE GENERAL</option>
+                <option value="OBSERVADOR">OBSERVADOR</option>
+              </select>
+            </div>
+
+            <div class="ec-grid2">
+              <div class="ec-field">
+                <label>Nombre</label>
+                <input id="ec-nombre" placeholder="Nombre completo" />
+              </div>
+            </div>
+
+            <div class="ec-field">
+              <label>Teléfono</label>
+              <input
+                id="ec-telefono"
+                type="tel"
+                inputmode="tel"
+                placeholder="10 dígitos"
+                maxlength="14"
+              />
+            </div>
+
+            <div class="ec-grid2">
+              <div class="ec-field">
+                <label>Sección</label>
+                <input id="ec-seccion" placeholder="Se autollenará por mapa/GPS" />
+              </div>
+              <div class="ec-field">
+                <label>Ámbito</label>
+                <input id="ec-ambito" placeholder="MUN / DF / DL (opcional)" />
+              </div>
+            </div>
+
+            <input type="hidden" id="ec-dl" />
+            <input type="hidden" id="ec-df" />
+            <input type="hidden" id="ec-muni" />
+
+            <div class="ec-captura-modos">
+              <button id="ec-gps" class="ec-btn">📍 GPS</button>
+              <button id="ec-mapa" class="ec-btn">🗺️ Selección en mapa</button>
+              <div class="ec-field ec-grow">
+                <input
+                  id="ec-dom"
+                  placeholder="Domicilio (calle, número, colonia, municipio)"
+                />
+              </div>
+              <button id="ec-geocode" class="ec-btn">🔎</button>
+            </div>
+
+            <div class="ec-field">
+              <label>Observaciones</label>
+              <textarea id="ec-obs" rows="2" placeholder="Notas rápidas"></textarea>
+            </div>
+
+            <div class="ec-actions">
+              <button id="ec-guardar" class="ec-primary">Guardar registro</button>
+              <button id="ec-export" class="ec-secondary">Enviar</button>
+              <small
+                id="ec-export-name"
+                style="align-self: center; margin-left: 8px; color: #556"
+                >puntos_campo_no-pin_YYYYMMDD.geojson</small
+              >
+              <button id="ec-copiar" class="ec-secondary">
+                Descargar Capturas
+              </button>
+              <button id="ec-limpiar" class="ec-tertiary">
+                Limpiar formulario
+              </button>
+            </div>
+
+            <div class="ec-counter">
+              <span class="ec-contador">0</span> registros locales
+            </div>
+          </div>
+
+          <div class="ec-tabview ec-hidden" id="ec-tab-admin">
+            <div class="ec-field">
+              <label>URL GeoJSON (GitHub RAW)</label>
+              <input
+                id="ec-admin-url"
+                placeholder="https://.../puntos_campo.geojson"
+              />
+            </div>
+            <div class="ec-actions">
+              <button id="ec-admin-cargar" class="ec-primary">Cargar puntos</button>
+              <button id="ec-admin-limpiar" class="ec-tertiary">Quitar capa</button>
+            </div>
+            <hr />
+            <div class="ec-field">
+              <label>PINs (separados por coma)</label>
+              <input id="ec-admin-pins" placeholder="2701,1234" />
+            </div>
+            <div class="ec-actions">
+              <button id="ec-admin-save-pins" class="ec-primary">
+                Guardar PINs
+              </button>
+            </div>
+            <small
+              >Escribe uno o varios PINs separados por coma. El PIN con el que se
+              ingrese se registrará en cada punto como
+              <code>PROMOTOR_PIN</code>.</small
+            >
+            <small
+              >Tip: publica <code>puntos_campo.geojson</code> en tu repo y pega aquí
+              la URL RAW.</small
+            >
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- === SCRIPT ÚNICO === -->
     <script>
@@ -540,6 +768,40 @@
         if (typeof clearSectionOverlays === "function") clearSectionOverlays();
       }
 
+      function AT_isDockedPanel(el) {
+        return !!(el && el.classList && el.classList.contains("dock-panel"));
+      }
+      function AT_dockPanel(el) {
+        if (!el) return;
+        el.classList.add("dock-panel");
+        const host = document.getElementById("dash-panels");
+        if (host && el.parentElement !== host) host.appendChild(el);
+      }
+      function AT_watchDockPanels() {
+        const host = document.getElementById("dash-panels");
+        if (!host || host.__dockObserver) return;
+        const dockIfNeeded = (node) => {
+          if (!node || node.nodeType !== 1) return;
+          if (node.id && /^AT27_/.test(node.id) && /_panel$/.test(node.id)) {
+            AT_dockPanel(node);
+          }
+        };
+        const obs = new MutationObserver((mutations) => {
+          for (const m of mutations) {
+            for (const n of m.addedNodes) {
+              dockIfNeeded(n);
+              if (n.querySelectorAll) {
+                n.querySelectorAll('[id^="AT27_"][id$="_panel"]').forEach(
+                  dockIfNeeded
+                );
+              }
+            }
+          }
+        });
+        obs.observe(document.body, { childList: true, subtree: true });
+        host.__dockObserver = true;
+      }
+
       function ensureSecInfoPanelWired() {
         const box = document.getElementById("sec-info");
         const hdr = box?.querySelector(".hdr");
@@ -558,6 +820,7 @@
           bx = 0,
           by = 0;
         hdr.addEventListener("mousedown", (e) => {
+          if (AT_isDockedPanel(box)) return;
           if (e.target.closest(".btn-close")) return; // no iniciar drag si clic en "×"
           e.preventDefault();
           e.stopPropagation();
@@ -834,6 +1097,7 @@
           bx = 0,
           by = 0;
         hdr.addEventListener("mousedown", (e) => {
+          if (AT_isDockedPanel(box)) return;
           dragging = true;
           sx = e.clientX;
           sy = e.clientY;
@@ -872,7 +1136,8 @@
 
         // Pintar
         const box = document.getElementById("sec-info");
-        box.querySelector(".hdr").textContent = `Sección ${sec}`;
+        const ttl = box.querySelector(".ttl");
+        if (ttl) ttl.textContent = `Sección ${sec}`;
         document.getElementById("si-sec").textContent = sec;
         document.getElementById("si-df").textContent = df;
         document.getElementById("si-dl").textContent = dl;
@@ -1376,6 +1641,10 @@
 
       // ===== 3) Boot =====
       document.addEventListener("DOMContentLoaded", async () => {
+        AT_dockPanel(document.getElementById("sec-info"));
+        AT_dockPanel(document.getElementById("estrategico-campo-panel"));
+        AT_watchDockPanels();
+
         // a) Leer universo y rutas puestos en el PORTAL
         const u = JSON.parse(localStorage.getItem("AT_UNIVERSE") || "null");
         const paths = JSON.parse(
@@ -1542,180 +1811,6 @@
         });
       })();
     </script>
-    <div id="sec-info">
-      <div class="hdr">
-        <span class="ttl">Sección</span>
-        <button id="sec-close" class="btn-close" aria-label="Cerrar">×</button>
-      </div>
-      <div class="body">
-        <div class="row">
-          <span class="k">Sección</span> <span class="v" id="si-sec">—</span>
-        </div>
-        <div class="row">
-          <span class="k">Distrito Federal</span
-          ><span class="v" id="si-df">—</span>
-        </div>
-        <div class="row">
-          <span class="k">Distrito Local</span>
-          <span class="v" id="si-dl">—</span>
-        </div>
-        <div class="row">
-          <span class="k">LN (2024)</span> <span class="v" id="si-ln">—</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- === ESTRATEGICO CAMPO: LAUNCHER === -->
-
-    <!-- === ESTRATEGICO CAMPO: PANEL === -->
-    <div id="estrategico-campo-panel" class="ec-panel ec-hidden">
-      <div class="ec-header">
-        <strong>Módulo CAMPO · AT 27–30</strong>
-        <button id="ec-btn-cerrar" class="ec-icon">✕</button>
-      </div>
-
-      <div class="ec-counter">
-        <span id="ec-contador">0</span> registros locales
-      </div>
-      <div
-        id="ec-kpis"
-        style="display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px 0"
-      ></div>
-
-      <div class="ec-tabs">
-        <button class="ec-tab ec-tab-active" data-tab="captura">
-          Promotor
-        </button>
-        <button class="ec-tab" data-tab="admin">Administrador</button>
-      </div>
-
-      <!-- Placeholder visual para KPIs (tiene clase para evitar id duplicado) -->
-      <div
-        class="ec-kpis"
-        style="display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px 0"
-      ></div>
-
-      <!-- TAB: CAPTURA -->
-      <div class="ec-tabview" id="ec-tab-captura">
-        <div class="ec-field">
-          <label>Tipo asignación</label>
-          <select id="ec-tipo">
-            <option value="SIMPATIZANTE">SIMPATIZANTE</option>
-            <option value="LIDER">LÍDER</option>
-            <option value="ADVERSARIO">ADVERSARIO</option>
-            <option value="REP_CASILLA">REPRESENTANTE DE CASILLA</option>
-            <option value="REP_GENERAL">REPRESENTANTE GENERAL</option>
-            <option value="OBSERVADOR">OBSERVADOR</option>
-          </select>
-        </div>
-
-        <div class="ec-grid2">
-          <div class="ec-field">
-            <label>Nombre</label>
-            <input id="ec-nombre" placeholder="Nombre completo" />
-          </div>
-        </div>
-
-        <!-- NUEVO: Teléfono -->
-        <div class="ec-field">
-          <label>Teléfono</label>
-          <input
-            id="ec-telefono"
-            type="tel"
-            inputmode="tel"
-            placeholder="10 dígitos"
-            maxlength="14"
-          />
-        </div>
-
-        <div class="ec-grid2">
-          <div class="ec-field">
-            <label>Sección</label>
-            <input id="ec-seccion" placeholder="Se autollenará por mapa/GPS" />
-          </div>
-          <div class="ec-field">
-            <label>Ámbito</label>
-            <input id="ec-ambito" placeholder="MUN / DF / DL (opcional)" />
-          </div>
-        </div>
-
-        <input type="hidden" id="ec-dl" />
-        <input type="hidden" id="ec-df" />
-        <input type="hidden" id="ec-muni" />
-
-        <div class="ec-captura-modos">
-          <button id="ec-gps" class="ec-btn">📍 GPS</button>
-          <button id="ec-mapa" class="ec-btn">🗺️ Selección en mapa</button>
-          <div class="ec-field ec-grow">
-            <input
-              id="ec-dom"
-              placeholder="Domicilio (calle, número, colonia, municipio)"
-            />
-          </div>
-          <button id="ec-geocode" class="ec-btn">🔎</button>
-        </div>
-
-        <div class="ec-field">
-          <label>Observaciones</label>
-          <textarea id="ec-obs" rows="2" placeholder="Notas rápidas"></textarea>
-        </div>
-
-        <div class="ec-actions">
-          <button id="ec-guardar" class="ec-primary">Guardar registro</button>
-          <button id="ec-export" class="ec-secondary">Enviar</button>
-          <small
-            id="ec-export-name"
-            style="align-self: center; margin-left: 8px; color: #556"
-            >puntos_campo_no-pin_YYYYMMDD.geojson</small
-          >
-          <button id="ec-copiar" class="ec-secondary">
-            Descargar Capturas
-          </button>
-          <button id="ec-limpiar" class="ec-tertiary">
-            Limpiar formulario
-          </button>
-        </div>
-
-        <div class="ec-counter">
-          <span class="ec-contador">0</span> registros locales
-        </div>
-      </div>
-
-      <!-- TAB: ADMIN -->
-      <div class="ec-tabview ec-hidden" id="ec-tab-admin">
-        <div class="ec-field">
-          <label>URL GeoJSON (GitHub RAW)</label>
-          <input
-            id="ec-admin-url"
-            placeholder="https://.../puntos_campo.geojson"
-          />
-        </div>
-        <div class="ec-actions">
-          <button id="ec-admin-cargar" class="ec-primary">Cargar puntos</button>
-          <button id="ec-admin-limpiar" class="ec-tertiary">Quitar capa</button>
-        </div>
-        <hr />
-        <div class="ec-field">
-          <label>PINs (separados por coma)</label>
-          <input id="ec-admin-pins" placeholder="2701,1234" />
-        </div>
-        <div class="ec-actions">
-          <button id="ec-admin-save-pins" class="ec-primary">
-            Guardar PINs
-          </button>
-        </div>
-        <small
-          >Escribe uno o varios PINs separados por coma. El PIN con el que se
-          ingrese se registrará en cada punto como
-          <code>PROMOTOR_PIN</code>.</small
-        >
-        <small
-          >Tip: publica <code>puntos_campo.geojson</code> en tu repo y pega aquí
-          la URL RAW.</small
-        >
-      </div>
-    </div>
-
     <script>
       // Cache de elementos del formulario CAMPO (ajusta los IDs si difieren)
       // ✅ Cache de elementos del formulario CAMPO
@@ -2709,6 +2804,7 @@
           dragging = false;
 
         function onDown(e) {
+          if (AT_isDockedPanel(panel)) return;
           dragging = true;
           const p = "touches" in e ? e.touches[0] : e;
           sx = p.clientX - panel.offsetLeft;
@@ -2768,6 +2864,7 @@
       enableDragPanel();
     </script>
 
+    </div>
     <div
       id="ct-pin"
       style="

@@ -23,15 +23,20 @@
         background: #f4f4f4;
       }
       :root {
-        --sidebar-w: 320px;
+        --sidebar-w: 260px;
+      }
+      body {
+        display: grid;
+        grid-template-columns: var(--sidebar-w) 1fr 1fr;
+        grid-template-rows: 100vh;
+        overflow: hidden;
+      }
+      #gt-layout {
+        display: contents;
       }
       #panel-lateral {
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
         width: var(--sidebar-w);
-        height: 100%;
+        height: 100vh;
         background: linear-gradient(180deg, #8ea3ad 0%, #dfe6e9 100%);
         color: #2c3e50;
         border-right: 1px solid #b2bec3;
@@ -41,6 +46,7 @@
         box-sizing: border-box;
         align-items: stretch;
         z-index: 2000;
+        overflow-y: auto;
       }
       #panel-header {
         background: #b2bec3;
@@ -55,12 +61,37 @@
         height: 32px;
         margin-right: 10px;
       }
+      #map-wrap {
+        position: relative;
+        height: 100vh;
+        min-width: 0;
+        overflow: hidden;
+      }
       #map {
         position: absolute;
-        top: 0;
-        left: var(--sidebar-w);
-        width: calc(100% - var(--sidebar-w));
+        inset: 0;
+        width: 100%;
         height: 100%;
+      }
+      #gt-dashboard {
+        height: 100vh;
+        min-width: 0;
+        overflow: hidden;
+        background: #f2f6fb;
+        border-left: 1px solid #d3dbe0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px;
+        box-sizing: border-box;
+      }
+      #dash-panels {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-height: 0;
+        overflow: auto;
+        padding-right: 4px;
       }
 
       #sec-search {
@@ -123,6 +154,9 @@
         display: none;
         pointer-events: auto;
       }
+      #sec-info.dock-panel {
+        display: block;
+      }
       #sec-info .hdr {
         cursor: move;
         display: flex;
@@ -166,44 +200,72 @@
       #sec-info .v {
         font-weight: 600;
       }
+      .dock-panel {
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        resize: none !important;
+        box-sizing: border-box;
+        z-index: auto !important;
+      }
+      .dock-panel .hdr {
+        cursor: default;
+      }
 
       /* Toolbar básica (igual look & feel) */
       .ttb {
-        backdrop-filter: blur(6px);
-        background: rgba(255, 255, 255, 0.92);
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-        border: 1px solid #e5e7eb;
+        padding: 10px 12px 12px;
       }
-      .ttb-wrap {
+      #top-toolbar {
+        position: relative !important;
+        top: auto !important;
+        right: auto !important;
+        z-index: auto !important;
+      }
+      .ttb .ttb-wrap {
         display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px;
+        align-items: stretch;
+        gap: 0.5rem;
+        background: #ffffffcc;
+        backdrop-filter: blur(6px);
+        border: 1px solid #cfd8dc;
+        border-radius: 12px;
+        padding: 8px 10px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+        flex-direction: column;
       }
       .ttb-btn {
+        border: 1px solid #b0bec5;
         background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        color: #37474f;
+        border-radius: 10px;
         padding: 6px 10px;
         cursor: pointer;
+        font-size: 13px;
+        text-align: left;
+        width: 100%;
       }
       .ttb-btn:hover {
-        background: #f8fafc;
+        background: #f5f7f9;
       }
       .ttb-btn[disabled] {
         opacity: 0.45;
         cursor: not-allowed;
       }
       .ttb-sep {
-        width: 1px;
-        height: 24px;
-        background: #e5e7eb;
-        margin: 0 4px;
+        width: 100%;
+        height: 1px;
+        background: #e0e0e0;
       }
       .ttb-help {
-        background: #eef2ff;
-        border-color: #c7d2fe;
+        background: #ffe6ee;
+        border-color: #f48fb1;
+        color: #880e4f;
       }
 
       .leaflet-tooltip.at27-tt {
@@ -217,135 +279,7 @@
     </style>
   </head>
   <body>
-    <!-- Barra superior -->
-    <div
-      id="top-toolbar"
-      class="ttb"
-      style="position: absolute; top: 12px; right: 10px; z-index: 5200"
-    >
-      <div class="ttb-wrap">
-        <button
-          id="btn-gt-part"
-          class="ttb-btn"
-          title="Participación 21/24/27*"
-          type="button"
-        >
-          <span class="ico">🗳️</span><span class="txt">Part. 21/24/27*</span>
-        </button>
-
-        <button
-          id="btn-estabilidad"
-          class="ttb-btn"
-          title="Estabilidad 2018–2024"
-          type="button"
-        >
-          <span class="ico">🧭</span><span class="txt">Estabilidad 18–24</span>
-        </button>
-
-        <button
-          id="btn-gt-metas"
-          class="ttb-btn"
-          title="Metas de participación 2027*"
-          type="button"
-        >
-          <span class="ico">🎯</span><span class="txt">Meta 2027*</span>
-        </button>
-
-        <button
-          id="btn-gt-ganar"
-          class="ttb-btn"
-          title="¿Qué se requiere para ganar todo?"
-          type="button"
-        >
-          <span class="ico">🏆</span><span class="txt">Ganar todo</span>
-        </button>
-
-        <button
-          id="btn-recentrar"
-          class="ttb-btn"
-          title="Recentrar universo (R)"
-          type="button"
-        >
-          Recentrar
-        </button>
-
-        <button
-          id="btn-prob-volteo"
-          class="ttb-btn"
-          title="Probabilidad de voltear 2027"
-        >
-          Voltear 2027
-        </button>
-
-        <button
-          id="btn-plan-mayoria"
-          class="ttb-btn"
-          title="Mínimo de votos para mayoría"
-        >
-          Plan mayoría
-        </button>
-
-        <button
-          id="btn-eficiencia-voto"
-          class="ttb-btn"
-          title="Eficiencia del voto (votos ociosos)"
-        >
-          Eficiencia voto
-        </button>
-
-        <button
-          id="btn-corredores-volteo"
-          class="ttb-btn"
-          title="Corredores de volteo (clusters)"
-        >
-          Corredores
-        </button>
-
-        <button
-          id="btn-alertas-riesgo"
-          class="ttb-btn"
-          title="Alertas de riesgo (bastiones en caída)"
-        >
-          Alertas
-        </button>
-
-        <button
-          id="btn-simulador-impulso"
-          class="ttb-btn"
-          title="Simulador de impulso"
-        >
-          Impulso
-        </button>
-
-        <button
-          id="btn-brecha"
-          class="ttb-btn"
-          title="Mapa de brecha (pp / votos)"
-        >
-          Brecha pp/votos
-        </button>
-
-        <button
-          id="btn-sensibilidad-participacion"
-          class="ttb-btn"
-          title="Sensibilidad a participación (±pp)"
-        >
-          Sensibilidad p%
-        </button>
-
-        <div class="ttb-sep"></div>
-
-        <button
-          id="btn-ayuda"
-          class="ttb-btn ttb-help"
-          title="Ayuda (?)"
-          type="button"
-        >
-          <span class="ico">❓</span><span class="txt">Ayuda</span>
-        </button>
-      </div>
-    </div>
-
+    <div id="gt-layout">
     <div id="panel-lateral">
       <div id="panel-header">
         <!-- <img src="assets/img/logo.png" alt="Logo"/> -->
@@ -436,31 +370,163 @@
           Elige solo uno. Al cambiar, el mapa se actualiza.
         </div>
       </div>
-    </div>
 
-    <div
-      id="gt-consultas"
-      style="padding: 12px; border-top: 1px solid #cbd5e1; background: #f8fafc"
-    >
-      <div style="font-weight: 700; margin-bottom: 8px">
-        Ganar Todo · Consultas
+      <div id="top-toolbar" class="ttb">
+        <div class="ttb-wrap">
+          <button
+            id="btn-gt-part"
+            class="ttb-btn"
+            title="Participación 21/24/27*"
+            type="button"
+          >
+            <span class="ico">🗳️</span><span class="txt">Part. 21/24/27*</span>
+          </button>
+
+          <button
+            id="btn-estabilidad"
+            class="ttb-btn"
+            title="Estabilidad 2018–2024"
+            type="button"
+          >
+            <span class="ico">🧭</span><span class="txt">Estabilidad 18–24</span>
+          </button>
+
+          <button
+            id="btn-gt-metas"
+            class="ttb-btn"
+            title="Metas de participación 2027*"
+            type="button"
+          >
+            <span class="ico">🎯</span><span class="txt">Meta 2027*</span>
+          </button>
+
+          <button
+            id="btn-gt-ganar"
+            class="ttb-btn"
+            title="¿Qué se requiere para ganar todo?"
+            type="button"
+          >
+            <span class="ico">🏆</span><span class="txt">Ganar todo</span>
+          </button>
+
+          <button
+            id="btn-recentrar"
+            class="ttb-btn"
+            title="Recentrar universo (R)"
+            type="button"
+          >
+            Recentrar
+          </button>
+
+          <button
+            id="btn-prob-volteo"
+            class="ttb-btn"
+            title="Probabilidad de voltear 2027"
+          >
+            Voltear 2027
+          </button>
+
+          <button
+            id="btn-plan-mayoria"
+            class="ttb-btn"
+            title="Mínimo de votos para mayoría"
+          >
+            Plan mayoría
+          </button>
+
+          <button
+            id="btn-eficiencia-voto"
+            class="ttb-btn"
+            title="Eficiencia del voto (votos ociosos)"
+          >
+            Eficiencia voto
+          </button>
+
+          <button
+            id="btn-corredores-volteo"
+            class="ttb-btn"
+            title="Corredores de volteo (clusters)"
+          >
+            Corredores
+          </button>
+
+          <button
+            id="btn-alertas-riesgo"
+            class="ttb-btn"
+            title="Alertas de riesgo (bastiones en caída)"
+          >
+            Alertas
+          </button>
+
+          <button
+            id="btn-simulador-impulso"
+            class="ttb-btn"
+            title="Simulador de impulso"
+          >
+            Impulso
+          </button>
+
+          <button
+            id="btn-brecha"
+            class="ttb-btn"
+            title="Mapa de brecha (pp / votos)"
+          >
+            Brecha pp/votos
+          </button>
+
+          <button
+            id="btn-sensibilidad-participacion"
+            class="ttb-btn"
+            title="Sensibilidad a participación (±pp)"
+          >
+            Sensibilidad p%
+          </button>
+
+          <div class="ttb-sep"></div>
+
+          <button
+            id="btn-ayuda"
+            class="ttb-btn ttb-help"
+            title="Ayuda (?)"
+            type="button"
+          >
+            <span class="ico">❓</span><span class="txt">Ayuda</span>
+          </button>
+        </div>
       </div>
-      <button
-        id="btn-gt-part"
-        style="
-          width: 100%;
-          padding: 8px;
-          border: 1px solid #cbd5e1;
-          border-radius: 8px;
-          background: #fff;
-          cursor: pointer;
-        "
-      >
-        🗳️ Participación 21/24/27*
-      </button>
     </div>
 
-    <div id="map"></div>
+    <div id="map-wrap">
+      <div id="map"></div>
+    </div>
+
+    <div id="gt-dashboard">
+      <div id="dash-panels">
+        <div id="sec-info">
+          <div class="hdr">
+            <span class="ttl">Sección</span>
+            <button id="sec-close" class="btn-close" aria-label="Cerrar">×</button>
+          </div>
+          <div class="body">
+            <div class="row">
+              <span class="k">Sección</span> <span class="v" id="si-sec">—</span>
+            </div>
+            <div class="row">
+              <span class="k">Distrito Federal</span
+              ><span class="v" id="si-df">—</span>
+            </div>
+            <div class="row">
+              <span class="k">Distrito Local</span>
+              <span class="v" id="si-dl">—</span>
+            </div>
+            <div class="row">
+              <span class="k">LN (2024)</span> <span class="v" id="si-ln">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
 
     <!-- === SCRIPT ÚNICO === -->
     <script>
@@ -510,6 +576,42 @@
         if (typeof clearSectionOverlays === "function") clearSectionOverlays();
       }
 
+      function AT_isDockedPanel(el) {
+        return !!(el && el.classList && el.classList.contains("dock-panel"));
+      }
+
+      function AT_dockPanel(el) {
+        if (!el) return;
+        el.classList.add("dock-panel");
+        const host = document.getElementById("dash-panels");
+        if (host && el.parentElement !== host) host.appendChild(el);
+      }
+
+      function AT_watchDockPanels() {
+        const host = document.getElementById("dash-panels");
+        if (!host || host.__dockObserver) return;
+        const dockIfNeeded = (node) => {
+          if (!node || node.nodeType !== 1) return;
+          if (node.id && /^AT27_/.test(node.id) && /_panel$/.test(node.id)) {
+            AT_dockPanel(node);
+          }
+        };
+        const obs = new MutationObserver((mutations) => {
+          for (const m of mutations) {
+            for (const n of m.addedNodes) {
+              dockIfNeeded(n);
+              if (n.querySelectorAll) {
+                n.querySelectorAll('[id^="AT27_"][id$="_panel"]').forEach(
+                  dockIfNeeded
+                );
+              }
+            }
+          }
+        });
+        obs.observe(document.body, { childList: true, subtree: true });
+        host.__dockObserver = true;
+      }
+
       function ensureSecInfoPanelWired() {
         const box = document.getElementById("sec-info");
         const hdr = box?.querySelector(".hdr");
@@ -528,6 +630,7 @@
           bx = 0,
           by = 0;
         hdr.addEventListener("mousedown", (e) => {
+          if (AT_isDockedPanel(box)) return;
           if (e.target.closest(".btn-close")) return; // no iniciar drag si clic en "×"
           e.preventDefault();
           e.stopPropagation();
@@ -755,6 +858,7 @@
           bx = 0,
           by = 0;
         hdr.addEventListener("mousedown", (e) => {
+          if (AT_isDockedPanel(box)) return;
           dragging = true;
           sx = e.clientX;
           sy = e.clientY;
@@ -793,7 +897,8 @@
 
         // Pintar
         const box = document.getElementById("sec-info");
-        box.querySelector(".hdr").textContent = `Sección ${sec}`;
+        const ttl = box.querySelector(".ttl");
+        if (ttl) ttl.textContent = `Sección ${sec}`;
         document.getElementById("si-sec").textContent = sec;
         document.getElementById("si-df").textContent = df;
         document.getElementById("si-dl").textContent = dl;
@@ -1297,6 +1402,9 @@
 
       // ===== 3) Boot =====
       document.addEventListener("DOMContentLoaded", async () => {
+        AT_dockPanel(document.getElementById("sec-info"));
+        AT_watchDockPanels();
+
         // a) Leer universo y rutas puestos en el PORTAL
         const u = JSON.parse(localStorage.getItem("AT_UNIVERSE") || "null");
         const paths = JSON.parse(
@@ -1467,29 +1575,6 @@
         });
       })();
     </script>
-    <div id="sec-info">
-      <div class="hdr">
-        <span class="ttl">Sección</span>
-        <button id="sec-close" class="btn-close" aria-label="Cerrar">×</button>
-      </div>
-      <div class="body">
-        <div class="row">
-          <span class="k">Sección</span> <span class="v" id="si-sec">—</span>
-        </div>
-        <div class="row">
-          <span class="k">Distrito Federal</span
-          ><span class="v" id="si-df">—</span>
-        </div>
-        <div class="row">
-          <span class="k">Distrito Local</span>
-          <span class="v" id="si-dl">—</span>
-        </div>
-        <div class="row">
-          <span class="k">LN (2024)</span> <span class="v" id="si-ln">—</span>
-        </div>
-      </div>
-    </div>
-
     <script>
       /* ========== MOD: GANAR TODO · PARTICIPACIÓN (AT27_GT_PART_) ========== */
       const AT27_GT_PART_PUESTOS = {

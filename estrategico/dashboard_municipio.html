@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Dashboard Municipal — AT 27-30</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#f6f7f9; --card:#fff; --text:#111827; --muted:#6b7280;
+      --line:#e5e7eb; --shadow:0 10px 30px rgba(0,0,0,.08);
+      --accent:#7a1f2b; /* guinda tenue */
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto; background:var(--bg); color:var(--text);}
+    .topbar{
+      position:sticky; top:0; z-index:5; background:rgba(246,247,249,.92);
+      backdrop-filter: blur(8px); border-bottom:1px solid var(--line);
+      padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .title{display:flex; flex-direction:column; gap:4px;}
+    .title h1{margin:0; font-size:16px; letter-spacing:.2px}
+    .title .sub{font-size:12px; color:var(--muted)}
+    .actions{display:flex; gap:8px; flex-wrap:wrap}
+    .btn{
+      border:1px solid var(--line); background:#fff; padding:10px 12px; border-radius:12px;
+      cursor:pointer; font-weight:600; font-size:12px; box-shadow:0 6px 18px rgba(0,0,0,.06);
+    }
+    .btn.primary{border-color:rgba(122,31,43,.25)}
+    .wrap{padding:14px 16px 22px;}
+    .grid{
+      display:grid; grid-template-columns: 1.2fr .8fr; gap:14px;
+    }
+    .card{
+      background:var(--card); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow);
+      padding:14px;
+    }
+    .kpis{display:grid; grid-template-columns: repeat(5, 1fr); gap:10px}
+    .kpi{padding:12px; border:1px solid var(--line); border-radius:16px; background:#fff}
+    .kpi .label{font-size:11px; color:var(--muted); margin-bottom:6px}
+    .kpi .value{font-size:16px; font-weight:800}
+    .row2{display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-top:14px;}
+    .row3{display:grid; grid-template-columns: 1fr; gap:14px; margin-top:14px;}
+    #map{height:520px; border-radius:16px; overflow:hidden; border:1px solid var(--line)}
+    .rent-grid{display:grid; grid-template-columns:1fr; gap:12px}
+    .list{border:1px solid var(--line); border-radius:16px; overflow:hidden}
+    .list .head{display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:#fbfbfc}
+    .list .head b{font-size:12px}
+    .list .body{max-height:170px; overflow:auto}
+    .item{display:flex; justify-content:space-between; gap:10px; padding:10px 12px; border-top:1px solid var(--line); font-size:12px}
+    .pill{padding:3px 8px; border-radius:999px; border:1px solid var(--line); color:var(--muted); font-weight:700; font-size:11px}
+    .footnote{font-size:11px; color:var(--muted); margin-top:8px; line-height:1.35}
+    canvas{max-width:100%}
+    @media (max-width:1100px){
+      .grid{grid-template-columns:1fr}
+      .kpis{grid-template-columns: repeat(2,1fr)}
+      #map{height:420px}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="title">
+      <h1 id="hdrTitle">Dashboard Municipal — AT 27-30</h1>
+      <div class="sub" id="hdrSub">Cargando universo…</div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="btnBack">Volver al portal</button>
+      <button class="btn primary" id="btnPDF">Exportar PDF</button>
+      <button class="btn" id="btnPrint">Imprimir</button>
+    </div>
+  </div>
+
+  <div class="wrap" id="dashboardRoot">
+    <div class="card">
+      <div class="kpis" id="kpiGrid"></div>
+    </div>
+
+    <div class="grid" style="margin-top:14px;">
+      <div class="card">
+        <div id="map"></div>
+        <div class="footnote">
+          * El mapa clasifica secciones por rentabilidad (alta/media/baja) según costo de voltear, tamaño (LN) y participación.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="rent-grid">
+          <div class="list">
+            <div class="head"><b>Más rentables</b><span class="pill" id="pillHigh">—</span></div>
+            <div class="body" id="listHigh"></div>
+          </div>
+          <div class="list">
+            <div class="head"><b>Rentabilidad media</b><span class="pill" id="pillMid">—</span></div>
+            <div class="body" id="listMid"></div>
+          </div>
+          <div class="list">
+            <div class="head"><b>Menos rentables</b><span class="pill" id="pillLow">—</span></div>
+            <div class="body" id="listLow"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="card">
+        <h3 style="margin:0 0 10px;font-size:13px;">Historial (2018–2021–2024)</h3>
+        <canvas id="chartHist"></canvas>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 10px;font-size:13px;">Ganar Todo — Oportunidades (Top)</h3>
+        <canvas id="chartTop"></canvas>
+      </div>
+    </div>
+
+    <div class="row3">
+      <div class="card">
+        <h3 style="margin:0 0 10px;font-size:13px;">Tabla operativa (Top secciones)</h3>
+        <div id="tableTop"></div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/*** ========= CONFIG ========= ***/
+const PATHS = {
+  geojson: "data/geo/secciones.geojson",          // <-- AJUSTA a tu ruta real
+  electoralA: "data/electoral/A.json"             // <-- tu A.json (puesto Ayuntamiento)
+};
+
+const PUESTO = "A";
+const YEAR_BASE = 2024;
+
+/*** ========= HELPERS ========= ***/
+const num = v => (v==null || v==="" || isNaN(Number(v))) ? null : Number(v);
+const pct = v => (v==null) ? "—" : (v*100).toFixed(1) + "%";
+const fmt = v => (v==null) ? "—" : new Intl.NumberFormat("es-MX").format(v);
+
+function getMunFromContext(){
+  // 1) URL ?mun=20
+  const q = new URLSearchParams(location.search);
+  const munQ = q.get("mun");
+  if (munQ) return String(munQ);
+
+  // 2) lo que ya guardas desde portal (si aplica)
+  const stored = localStorage.getItem("AT_UNIVERSO");
+  if (stored){
+    try{
+      const u = JSON.parse(stored);
+      if (u.scope === "MUN" && u.key) return String(u.key);
+    }catch(e){}
+  }
+  // fallback: León (20) por defecto
+  return "20";
+}
+
+// Muy simple: diccionario mínimo. Si ya tienes uno global, lo enchufamos después.
+const MUN_LABELS = {
+  "20":"León de los Aldama",
+  "6":"Abasolo"
+};
+
+function normalize(val, min, max){
+  if (val==null) return 0;
+  if (max === min) return 0.5;
+  return (val - min) / (max - min);
+}
+
+/*** ========= LOAD DATA ========= ***/
+async function loadJSON(url){
+  const r = await fetch(url);
+  if (!r.ok) throw new Error("No se pudo cargar: " + url);
+  return await r.json();
+}
+
+let map, layer;
+
+function initMap(){
+  map = L.map("map", {zoomControl:true}).setView([21.0,-101.2], 10);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:19}).addTo(map);
+}
+
+function renderKpis(k){
+  const grid = document.getElementById("kpiGrid");
+  grid.innerHTML = "";
+  const items = [
+    {label:"Municipio", value:k.munLabel},
+    {label:"Universo (secciones)", value:fmt(k.totalSecciones)},
+    {label:"Participación prom.", value: pct(k.partProm)},
+    {label:"Ganador global (2024)", value: k.ganador || "—"},
+    {label:"Oportunidad", value: k.oportunidad || "—"}
+  ];
+  items.forEach(it=>{
+    const d = document.createElement("div");
+    d.className="kpi";
+    d.innerHTML = `<div class="label">${it.label}</div><div class="value">${it.value}</div>`;
+    grid.appendChild(d);
+  });
+}
+
+function fillList(elId, arr){
+  const el = document.getElementById(elId);
+  el.innerHTML = "";
+  arr.forEach(row=>{
+    const div = document.createElement("div");
+    div.className="item";
+    div.innerHTML = `
+      <div><b>Sección ${row.seccion}</b> <span class="pill">score ${row.score.toFixed(0)}</span></div>
+      <div style="text-align:right;color:var(--muted)">
+        faltan: <b>${fmt(row.faltan)}</b><br/>
+        LN: ${fmt(row.ln)}
+      </div>
+    `;
+    el.appendChild(div);
+  });
+}
+
+function exportPDF(){
+  const root = document.getElementById("dashboardRoot");
+  html2canvas(root, {scale:2, useCORS:true}).then(canvas=>{
+    const img = canvas.toDataURL("image/png");
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF("p","mm","a4");
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const imgW = pageW;
+    const imgH = canvas.height * imgW / canvas.width;
+
+    let y = 0;
+    if (imgH <= pageH){
+      pdf.addImage(img, "PNG", 0, 0, imgW, imgH);
+    } else {
+      // multipágina
+      let remaining = imgH;
+      let pos = 0;
+      while (remaining > 0){
+        pdf.addImage(img, "PNG", 0, pos, imgW, imgH);
+        remaining -= pageH;
+        pos -= pageH;
+        if (remaining > 0) pdf.addPage();
+      }
+    }
+    pdf.save("dashboard_municipio.pdf");
+  });
+}
+
+/*** ========= CORE: rentabilidad ========= ***/
+function buildRentabilidad({features, electoralSecciones, munKey}){
+  // electoralSecciones: { "331": {2024:{PAN:...,VOTOS:...,LN:...}, ...}, ... }
+  const rows = [];
+
+  for (const f of features){
+    const seccion = String(f.properties?.SECCION);
+    const e = electoralSecciones?.[seccion]?.[String(YEAR_BASE)];
+    if (!e) continue;
+
+    const ln = num(e.LN);
+    const votos = num(e.VOTOS);
+    const part = (ln && votos) ? (votos/ln) : null;
+
+    // top1/top2
+    const parties = Object.entries(e).filter(([k,v]) => !["VOTOS","LN"].includes(k));
+    parties.sort((a,b)=> (num(b[1])||0) - (num(a[1])||0));
+    const top1 = parties[0] ? {p:parties[0][0], v:num(parties[0][1])||0} : null;
+    const top2 = parties[1] ? {p:parties[1][0], v:num(parties[1][1])||0} : null;
+
+    // "tuyo" aún no definido aquí (porque depende del candidato/alianza).
+    // Para DEMO: asumimos que tu objetivo es competir al top1 (voltéo) => usamos costo como margen+1.
+    // Luego lo hacemos configurable (PARTIDO_OBJETIVO) sin tocar nada más.
+    const faltan = (top1 && top2) ? Math.max(0, (top1.v - top2.v) + 1) : 0;
+
+    rows.push({ seccion, ln, votos, part, faltan, top1: top1?.p || "—" });
+  }
+
+  // normalizaciones
+  const faltVals = rows.map(r=>r.faltan);
+  const lnVals = rows.map(r=>r.ln).filter(v=>v!=null);
+
+  const minF = Math.min(...faltVals), maxF = Math.max(...faltVals);
+  const minLN = Math.min(...lnVals), maxLN = Math.max(...lnVals);
+
+  rows.forEach(r=>{
+    const scoreCosto = 1 - normalize(r.faltan, minF, maxF);
+    const scoreTam = normalize(r.ln, minLN, maxLN);
+
+    // turnout target ~0.55
+    const t = (r.part==null) ? 0.5 : (1 - Math.min(1, Math.abs(r.part - 0.55)/0.30));
+    const scoreTurn = t;
+
+    const score = (0.50*scoreCosto + 0.35*scoreTam + 0.15*scoreTurn) * 100;
+    r.score = score;
+  });
+
+  rows.sort((a,b)=> b.score - a.score);
+
+  const n = rows.length;
+  const cut1 = Math.floor(n/3);
+  const cut2 = Math.floor(2*n/3);
+
+  const high = rows.slice(0, Math.min(20, cut1));
+  const mid  = rows.slice(cut1, Math.min(cut1+20, cut2));
+  const low  = rows.slice(Math.max(cut2, n-20), n);
+
+  return { rows, high, mid, low };
+}
+
+/*** ========= RENDER ========= ***/
+function renderMap(features, rentRows){
+  if (layer) layer.remove();
+
+  const scoreBySec = new Map(rentRows.map(r=>[r.seccion, r.score]));
+
+  layer = L.geoJSON({type:"FeatureCollection", features}, {
+    style: (feat)=>{
+      const s = scoreBySec.get(String(feat.properties?.SECCION));
+      // sin colores hardcode “partidistas”; solo grises con matiz suave:
+      let fill = "#e5e7eb";
+      if (s!=null){
+        if (s>=66) fill = "#d1fae5";      // alta
+        else if (s>=33) fill = "#fef3c7"; // media
+        else fill = "#e5e7eb";            // baja
+      }
+      return {color:"#7a1f2b", weight:1, fillColor:fill, fillOpacity:.55};
+    },
+    onEachFeature: (feat, lyr)=>{
+      const sec = String(feat.properties?.SECCION);
+      const r = rentRows.find(x=>x.seccion===sec);
+      lyr.bindTooltip(
+        `<b>Sección ${sec}</b><br/>Score: ${r? r.score.toFixed(0):"—"}<br/>faltan: ${r? fmt(r.faltan):"—"}<br/>LN: ${r? fmt(r.ln):"—"}`,
+        {sticky:true}
+      );
+    }
+  }).addTo(map);
+
+  map.fitBounds(layer.getBounds(), {padding:[20,20]});
+}
+
+function renderCharts(rentAll){
+  // placeholders: en el siguiente paso los conectamos a Historial real por año y a GanarTodo
+  const ctxH = document.getElementById("chartHist");
+  new Chart(ctxH, {
+    type:"bar",
+    data:{
+      labels:["2018","2021","2024"],
+      datasets:[
+        {label:"Votos (global)", data:[0,0,0]}
+      ]
+    },
+    options:{responsive:true, plugins:{legend:{display:true}}}
+  });
+
+  const ctxT = document.getElementById("chartTop");
+  const top = rentAll.slice(0, 12);
+  new Chart(ctxT, {
+    type:"bar",
+    data:{
+      labels: top.map(r=>"S"+r.seccion),
+      datasets:[
+        {label:"Score rentabilidad", data: top.map(r=>Number(r.score.toFixed(1)))}
+      ]
+    },
+    options:{responsive:true, plugins:{legend:{display:true}}}
+  });
+
+  document.getElementById("tableTop").innerHTML =
+    `<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Top 12 secciones por score</div>` +
+    `<div style="border:1px solid var(--line);border-radius:14px;overflow:hidden">` +
+    top.map(r=>`
+      <div class="item">
+        <div><b>Sección ${r.seccion}</b> <span class="pill">score ${r.score.toFixed(0)}</span></div>
+        <div style="text-align:right;color:var(--muted)">
+          faltan: <b>${fmt(r.faltan)}</b> · LN: ${fmt(r.ln)}
+        </div>
+      </div>
+    `).join("") +
+    `</div>`;
+}
+
+/*** ========= BOOT ========= ***/
+(async function main(){
+  const munKey = getMunFromContext();
+  const munLabel = MUN_LABELS[munKey] || ("Municipio " + munKey);
+
+  document.getElementById("hdrTitle").textContent = `Dashboard Municipal — ${munLabel}`;
+  document.getElementById("hdrSub").textContent = `Puesto ${PUESTO} · Año base ${YEAR_BASE} · Cargando datos…`;
+
+  document.getElementById("btnBack").onclick = ()=> location.href = "portal.html";
+  document.getElementById("btnPDF").onclick = exportPDF;
+  document.getElementById("btnPrint").onclick = ()=> window.print();
+
+  initMap();
+
+  const geo = await loadJSON(PATHS.geojson);
+  const elec = await loadJSON(PATHS.electoralA);
+
+  // Elec A.json: elec.secciones["331"].2024...
+  const elecSecs = elec.secciones || {};
+
+  const featuresMun = geo.features.filter(f => String(f.properties?.MUNICIPIO) === String(munKey));
+
+  const { rows, high, mid, low } = buildRentabilidad({features:featuresMun, electoralSecciones:elecSecs, munKey});
+
+  renderKpis({
+    munLabel,
+    totalSecciones: featuresMun.length,
+    partProm: (()=>{
+      const parts = rows.map(r=>r.part).filter(v=>v!=null);
+      if (!parts.length) return null;
+      return parts.reduce((a,b)=>a+b,0)/parts.length;
+    })(),
+    ganador: "—",         // siguiente paso: agregamos ganador global real
+    oportunidad: "—"      // siguiente paso: índice global
+  });
+
+  document.getElementById("pillHigh").textContent = `Top ${high.length}`;
+  document.getElementById("pillMid").textContent  = `Mid ${mid.length}`;
+  document.getElementById("pillLow").textContent  = `Bottom ${low.length}`;
+
+  fillList("listHigh", high);
+  fillList("listMid", mid);
+  fillList("listLow", low);
+
+  renderMap(featuresMun, rows);
+  renderCharts(rows);
+
+  document.getElementById("hdrSub").textContent =
+    `Puesto ${PUESTO} · Año base ${YEAR_BASE} · Secciones: ${featuresMun.length}`;
+})();
+</script>
+</body>
+</html>

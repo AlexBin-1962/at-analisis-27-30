@@ -31,29 +31,59 @@
     html, body { margin:0; padding:0; height:100%; width:100%; font-family:'Segoe UI', Arial, sans-serif; background:#f4f6fb; color:#1f2937; }
     
     
-    :root{ --sidebar-w:320px; --stroke:#e6eaf2; --primary:#2563eb; --accent:#3b82f6; --card:#fff; }
+    :root{ --sidebar-w:240px; --stroke:#e6eaf2; --primary:#2563eb; --accent:#3b82f6; --card:#fff; }
+
+    body{
+      display:grid;
+      grid-template-columns: var(--sidebar-w) 1fr 1fr;
+      grid-template-rows: 100vh;
+      overflow:hidden;
+    }
+    #at-layout{ display:contents; }
     
     #panel-lateral{
-      position:absolute; left:0; top:0; bottom:0; width:var(--sidebar-w); height:100%;
+      width:var(--sidebar-w); height:100vh;
       background: linear-gradient(180deg, #8ea3ad 0%, #dfe6e9 100%);
       border-right:1px solid #b2bec3; box-shadow:2px 0 5px rgba(0,0,0,.08);
       display:flex; flex-direction:column; z-index:2000; overflow-y:auto;   /* <- scroll si hiciera falta */
     }
     #panel-header{ padding:10px 12px; font-size:16px; }
 
-        /* Antes: position:absolute; top:0; left:var(--sidebar-w); width:calc(100% - var(--sidebar-w)); height:100%; */
+    #map-wrap{
+      position:relative;
+      height:100vh;
+      min-width:0;
+      overflow:hidden;
+    }
     #map{
-      position: fixed;          /* ocupa siempre la ventana */
-      top: 0;
-      left: var(--sidebar-w);   /* deja libre el sidebar */
-      right: 0;
-      bottom: 0;
-      z-index: 100;
-      background: #f4f6fb;      /* opcional, por si tarda el tile */
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      z-index:100;
+      background:#f4f6fb;
     }
 
-
-     #map{ position:absolute; top:0; left:var(--sidebar-w); width:calc(100% - var(--sidebar-w)); height:100%; } 
+    #at-dashboard{
+      height:100vh;
+      min-width:0;
+      overflow:hidden;
+      background:#f2f6fb;
+      border-left:1px solid #d3dbe0;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      padding:12px;
+      box-sizing:border-box;
+    }
+    #dash-panels{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      min-height:0;
+      overflow:auto;
+      padding-right:4px;
+    }
 
     .card{ margin:10px; padding:10px; border:1px solid var(--stroke); border-radius:14px; background:var(--card); }
     .row{ display:flex; flex-direction:column; gap:4px; margin-bottom:6px; }
@@ -87,7 +117,7 @@
   </style>
 </head>
 <body>
-  <div id="map-wrap"><div id="map"></div></div>
+  <div id="at-layout">
   <div id="panel-lateral">
     <div id="panel-header">Socioeconómico</div>
 
@@ -116,69 +146,85 @@
     </div>
   </div>
 
-    <!-- Controles -->
-    <div class="card" id="controls">
-      <div class="row">
-        <label for="ind-sel">Indicador</label>
-        <select id="ind-sel">
-          <option value="IM">Marginación (IM)</option>
-          <option value="EDU">Rezago educativo</option>
-          <option value="ING">Ingreso estimado</option>
-          <option value="SERV">Acceso a servicios</option>
-          <option value="POB">Pobreza (proxy)</option>
-          <option value="URB">Índice urbano-rural</option>
-          <!-- Luego se añaden Población 18+ 2027 y Lista Nominal 2027 -->
-        </select>
-        <div class="hint">Fuente: GeoJSON + socioeconómico que tengas en el Portal (AT_PATHS). Si no hay dataset, se simula para probar.</div>
-      </div>
-
-      <div class="row">
-        <label for="clasif">Clasificación</label>
-        <select id="clasif">
-          <option value="q5">Quintiles (Q5)</option>
-          <option value="q4">Cuartiles (Q4)</option>
-          <option value="q3">Tercios (Q3)</option>
-        </select>
-        <div class="hint">Cuantiles: separa en rangos de igual número de secciones; oscuro = mayor valor.</div>
-      </div>
-
-      <div class="row" style="gap:8px;">
-        <input type="file" id="file-input" accept=".csv,.json"/>
-        <button class="btn" id="btn-clear">Limpiar datos cargados</button>
-      </div>
-
-      <div class="row">
-        <button class="btn primary" id="btn-aplicar">Aplicar en mapa</button>
-      </div>
-    </div>
-
-    <!-- Proyección 2027 -->
-    <div class="card" id="proj">
-      <div class="row">
-        <strong>Proyección 2027</strong>
-        <div class="hint">Si existe 2018→2024, uso CAGR local; si no, uso tu tasa anual.</div>
-      </div>
-
-      <div class="row">
-        <label for="tasa-ln">Tasa anual LN (%)</label>
-        <input type="number" id="tasa-ln" step="0.1" min="-10" max="10" value="1.5"/>
-        <button class="btn" id="btn-proj-ln">Calcular <b>Lista Nominal 2027</b></button>
-      </div>
-
-      <div class="row">
-        <label for="tasa-p18">Tasa anual P18+ (%)</label>
-        <input type="number" id="tasa-p18" step="0.1" min="-10" max="10" value="1.2"/>
-        <button class="btn" id="btn-proj-p18">Calcular <b>Población 18+ 2027</b></button>
-      </div>
-
-      <div class="hint">Campos esperados (si existen): LN_2018, LN_2024, P18_2018, P18_2024. Si faltan, se usa la tasa.</div>
-    </div>
   
 
 
  
 
-  <div id="legend" class="legend" style="display:none;"></div>
+  </div>
+
+  <div id="map-wrap">
+    <div id="map"></div>
+    <div id="legend" class="legend" style="display:none;"></div>
+  </div>
+
+  <div id="at-dashboard">
+    <div id="dash-panels">
+      <div class="card" id="controls">
+        <div class="card-head" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+          <strong>Controles</strong>
+          <button class="btn" id="controls-close" type="button">×</button>
+        </div>
+        <div class="row">
+          <label for="ind-sel">Indicador</label>
+          <select id="ind-sel">
+            <option value="IM">Marginación (IM)</option>
+            <option value="EDU">Rezago educativo</option>
+            <option value="ING">Ingreso estimado</option>
+            <option value="SERV">Acceso a servicios</option>
+            <option value="POB">Pobreza (proxy)</option>
+            <option value="URB">Índice urbano-rural</option>
+            <!-- Luego se añaden Población 18+ 2027 y Lista Nominal 2027 -->
+          </select>
+          <div class="hint">Fuente: GeoJSON + socioeconómico que tengas en el Portal (AT_PATHS). Si no hay dataset, se simula para probar.</div>
+        </div>
+
+        <div class="row">
+          <label for="clasif">Clasificación</label>
+          <select id="clasif">
+            <option value="q5">Quintiles (Q5)</option>
+            <option value="q4">Cuartiles (Q4)</option>
+            <option value="q3">Tercios (Q3)</option>
+          </select>
+          <div class="hint">Cuantiles: separa en rangos de igual número de secciones; oscuro = mayor valor.</div>
+        </div>
+
+        <div class="row" style="gap:8px;">
+          <input type="file" id="file-input" accept=".csv,.json"/>
+          <button class="btn" id="btn-clear">Limpiar datos cargados</button>
+        </div>
+
+        <div class="row">
+          <button class="btn primary" id="btn-aplicar">Aplicar en mapa</button>
+        </div>
+      </div>
+
+      <div class="card" id="proj">
+        <div class="card-head" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+          <strong>Proyección 2027</strong>
+          <button class="btn" id="proj-close" type="button">×</button>
+        </div>
+        <div class="row">
+          <div class="hint">Si existe 2018→2024, uso CAGR local; si no, uso tu tasa anual.</div>
+        </div>
+
+        <div class="row">
+          <label for="tasa-ln">Tasa anual LN (%)</label>
+          <input type="number" id="tasa-ln" step="0.1" min="-10" max="10" value="1.5"/>
+          <button class="btn" id="btn-proj-ln">Calcular <b>Lista Nominal 2027</b></button>
+        </div>
+
+        <div class="row">
+          <label for="tasa-p18">Tasa anual P18+ (%)</label>
+          <input type="number" id="tasa-p18" step="0.1" min="-10" max="10" value="1.2"/>
+          <button class="btn" id="btn-proj-p18">Calcular <b>Población 18+ 2027</b></button>
+        </div>
+
+        <div class="hint">Campos esperados (si existen): LN_2018, LN_2024, P18_2018, P18_2024. Si faltan, se usa la tasa.</div>
+      </div>
+    </div>
+  </div>
+  </div>
 
   <script>
     // ========= Config =========
@@ -190,7 +236,7 @@
 
     const paths = getPaths();
     const urlGeo = paths.geo || 'data/geo/secciones.geojson';
-    const socioUrl = paths.socio || 'data/socioeconomico.json';
+    const socioUrl = paths.socio || 'data/Datos_Socioeconomicos.json';
     const catUrl = paths.catalog || 'data/catalogo_territorial.json';
 
     // ========= Mapa =========
@@ -257,6 +303,27 @@
       }catch{ window.AT_CATALOG = null; }
       return window.AT_CATALOG;
     }
+    function getMunNameFromCatalog(code){
+      const cat = window.AT_CATALOG;
+      if (!cat?.municipios) return String(code ?? '');
+      const s = String(code ?? '');
+      return (
+        cat.municipios[s] ||
+        cat.municipios[s.padStart(2,'0')] ||
+        cat.municipios[s.padStart(3,'0')] ||
+        s
+      );
+    }
+    function updatePanelHeader(u){
+      const hdr = document.getElementById('panel-header');
+      if (!hdr) return;
+      let title = 'Socioeconómico';
+      if (u?.scope === 'MUN' && u.key != null && String(u.key).trim() !== ''){
+        const name = getMunNameFromCatalog(u.key);
+        if (name) title += ` · ${name}`;
+      }
+      hdr.textContent = title;
+    }
 
     async function loadSocio(){
       if (SOCIO) return SOCIO;
@@ -304,6 +371,15 @@
     }
     function fillSel(sel, arr){
       sel.innerHTML = '<option value="">— Ninguno —</option>' + arr.map(v => `<option value="${v}">${v}</option>`).join('');
+    }
+    function labelMunicipiosFromCatalog(){
+      const sel = document.getElementById('mini-mun');
+      if (!sel) return;
+      for (const opt of sel.options){
+        if (!opt.value) continue;
+        const name = getMunNameFromCatalog(opt.value);
+        opt.text = `${opt.value} — ${name}`;
+      }
     }
     function getMiniUniverse(){
       // leer DIRECTO del DOM (sin depender de MINI.*)
@@ -357,6 +433,7 @@
       fillSel(MINI.selMun, opt.mun);
       fillSel(MINI.selDf,  opt.df);
       fillSel(MINI.selDl,  opt.dl);
+      labelMunicipiosFromCatalog();
       if (u){
         if (u.scope==='ALL') MINI.all.checked=true;
         if (u.scope==='MUN') MINI.selMun.value=String(u.key);
@@ -586,12 +663,14 @@
     async function applyUniverse(){
       const u2 = getMiniUniverse() || getUniverse();
       const raw = await loadGeo();
+      await loadCatalog();
       const geo2 = filterGeo(raw, u2);
       const m = ensureMap();
       if (LAYER){ try{ m.removeLayer(LAYER); }catch{} }
       LAYER = L.geoJSON(geo2, { style:{ color:'#000', weight:.8, fillOpacity:.05 } }).addTo(m);
       try{ m.fitBounds(LAYER.getBounds(), { padding:[18,18] }); }catch{}
       LAST_GEO = geo2;
+      updatePanelHeader(u2);
     }
 
     // ========= Boot =========
@@ -607,8 +686,9 @@
       try{ m.fitBounds(LAYER.getBounds(), { padding:[18,18] }); }catch{}
       LAST_GEO = geo;
 
+      await loadCatalog();
       initMini(raw, u);
-      loadCatalog();
+      updatePanelHeader(u);
 
       restoreUserSocio();
       if (!SOCIO) await loadSocio();
@@ -640,6 +720,13 @@
 
     document.getElementById('btn-ir-sec')?.addEventListener('click', () => { goSec(); });
     document.getElementById('q-seccion')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') goSec(); });
+
+      document.getElementById('controls-close')?.addEventListener('click', ()=>{
+        document.getElementById('controls')?.style && (document.getElementById('controls').style.display='none');
+      });
+      document.getElementById('proj-close')?.addEventListener('click', ()=>{
+        document.getElementById('proj')?.style && (document.getElementById('proj').style.display='none');
+      });
 
 
 

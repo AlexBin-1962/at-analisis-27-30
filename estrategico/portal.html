@@ -889,12 +889,16 @@ body, html { overflow-x: hidden; }
         fetch("data/catalogo_territorial.json")
           .then(response => response.json())
           .then(data => {
-            cargarMunicipios(data.municipios); // Llena el select de municipios
+            cargarMunicipios(data.municipios);              // Llena el select de municipios
             cargarDistritos("sel-df", data.distritos_federales); // Llena el select de DF
-            cargarDistritos("sel-dl", data.distritos_locales); // Llena el select de DL
+            cargarDistritos("sel-dl", data.distritos_locales);   // Llena el select de DL
+
+            // ✅ AQUÍ: ya existen allSt, selMun, selDf, selDl
+            AT_initUniverseDefault();
           })
           .catch(error => console.error("Error al cargar el catálogo:", error));
       });
+
 
       // =============================
       // Funciones para llenar selects
@@ -1026,7 +1030,8 @@ body, html { overflow-x: hidden; }
       extra: defaults.extra
     };
 
-    localStorage.setItem('AT_UNIVERSE', JSON.stringify({ ...u, ts: Date.now() }));
+    AT_setUniverse(u);
+
     localStorage.setItem('AT_PATHS', JSON.stringify(paths));
   }
 
@@ -1063,6 +1068,20 @@ body, html { overflow-x: hidden; }
   // Inicial:
   evaluarSeleccion();
 })();
+
+function AT_initUniverseDefault(){
+  // si ya hay universo guardado, lo respetamos
+  const saved = localStorage.getItem("AT_UNIVERSE");
+  if (saved) return;
+
+  // default = Estado completo
+  if (allSt) allSt.checked = true;
+
+  const uDefault = { scope: "ALL", key: null, label: "Estado completo" };
+  AT_setUniverse(uDefault);
+}
+
+
 </script>
 
 <script>
@@ -1262,6 +1281,42 @@ body, html { overflow-x: hidden; }
 
 
   <script>
+
+    function AT_clearLegacyKeys(){
+      ["AT_SCOPE","AT_MUN_ID","AT_DF_ID","AT_DL_ID"].forEach(k => localStorage.removeItem(k));
+    }
+
+    function AT_setUniverse(u){
+      if(!u) return;
+
+      // Evita loops por eventos encadenados
+      if (AT_setUniverse.__locking) return;
+      AT_setUniverse.__locking = true;
+
+      try {
+        // Limpia keys viejas (pero SIN disparar setUniverse otra vez)
+        AT_clearLegacyKeys();
+
+        // Guarda universo
+        localStorage.setItem("AT_UNIVERSE", JSON.stringify({ ...u, ts: Date.now() }));
+        localStorage.setItem("AT_SCOPE", u.scope || "");
+
+        // Guarda id según scope
+        if (u.scope === "MUN") localStorage.setItem("AT_MUN_ID", String(u.key));
+        if (u.scope === "DF")  localStorage.setItem("AT_DF_ID",  String(u.key));
+        if (u.scope === "DL")  localStorage.setItem("AT_DL_ID",  String(u.key));
+
+        // (Opcional) debug
+        console.log("[AT] Universo guardado:", u);
+
+      } finally {
+        AT_setUniverse.__locking = false;
+      }
+    }
+
+
+
+
     (() => {
       const btnManual = document.getElementById('btnManualAT');
       const manualModal = document.getElementById('manualATModal');

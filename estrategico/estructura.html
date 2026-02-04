@@ -563,15 +563,20 @@
         background: #f4f4f4;
       }
       :root {
-        --sidebar-w: 320px;
+        --sidebar-w: 260px;
+      }
+      body {
+        display: grid;
+        grid-template-columns: var(--sidebar-w) 1fr 1fr;
+        grid-template-rows: 100vh;
+        overflow: hidden;
+      }
+      #estructura-layout {
+        display: contents;
       }
       #panel-lateral {
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
         width: var(--sidebar-w);
-        height: 100%;
+        height: 100vh;
         background: linear-gradient(180deg, #8ea3ad 0%, #dfe6e9 100%);
         color: #2c3e50;
         border-right: 1px solid #b2bec3;
@@ -581,6 +586,7 @@
         box-sizing: border-box;
         align-items: stretch;
         z-index: 2000;
+        overflow-y: auto;
       }
       #panel-header {
         background: #b2bec3;
@@ -595,12 +601,37 @@
         height: 32px;
         margin-right: 10px;
       }
+      #map-wrap {
+        position: relative;
+        height: 100vh;
+        min-width: 0;
+        overflow: hidden;
+      }
       #map {
         position: absolute;
-        top: 0;
-        left: var(--sidebar-w);
-        width: calc(100% - var(--sidebar-w));
+        inset: 0;
+        width: 100%;
         height: 100%;
+      }
+      #estructura-dashboard {
+        height: 100vh;
+        min-width: 0;
+        overflow: hidden;
+        background: #f2f6fb;
+        border-left: 1px solid #d3dbe0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px;
+        box-sizing: border-box;
+      }
+      #dash-panels {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-height: 0;
+        overflow: auto;
+        padding-right: 4px;
       }
 
       #sec-search {
@@ -726,6 +757,9 @@
         display: none;
         pointer-events: auto;
       }
+      #sec-info.dock-panel {
+        display: block;
+      }
       #sec-info .hdr {
         cursor: move;
         display: flex;
@@ -769,9 +803,29 @@
       #sec-info .v {
         font-weight: 600;
       }
+      .dock-panel {
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        resize: none !important;
+        box-sizing: border-box;
+        z-index: auto !important;
+      }
+      .dock-panel .hdr {
+        cursor: default !important;
+      }
+      #et27-sec-panel.dock-panel .et27-resizer {
+        display: none;
+      }
     </style>
   </head>
   <body>
+    <div id="estructura-layout">
     <div id="panel-lateral">
       <div id="panel-header">
         <!-- <img src="assets/img/logo.png" alt="Logo"/> -->
@@ -861,7 +915,12 @@
         </div>
       </div>
     </div>
-    <div id="map"></div>
+    <div id="map-wrap">
+      <div id="map"></div>
+    </div>
+    <div id="estructura-dashboard">
+      <div id="dash-panels"></div>
+    </div>
 
     <!-- ET-27 Toolbar -->
     <div id="et27-toolbar" class="et27-toolbar">
@@ -2039,6 +2098,40 @@
         if (typeof clearSectionOverlays === "function") clearSectionOverlays();
       }
 
+      function AT_isDockedPanel(el) {
+        return !!(el && el.classList && el.classList.contains("dock-panel"));
+      }
+      function AT_dockPanel(el) {
+        if (!el) return;
+        el.classList.add("dock-panel");
+        const host = document.getElementById("dash-panels");
+        if (host && el.parentElement !== host) host.appendChild(el);
+      }
+      function AT_watchDockPanels() {
+        const host = document.getElementById("dash-panels");
+        if (!host || host.__dockObserver) return;
+        const dockIfNeeded = (node) => {
+          if (!node || node.nodeType !== 1) return;
+          if (node.id && /^(AT27_|et27-).*(panel|toolbar|tab)$/.test(node.id)) {
+            AT_dockPanel(node);
+          }
+        };
+        const obs = new MutationObserver((mutations) => {
+          for (const m of mutations) {
+            for (const n of m.addedNodes) {
+              dockIfNeeded(n);
+              if (n.querySelectorAll) {
+                n
+                  .querySelectorAll('[id^="AT27_"], [id^="et27-"]')
+                  .forEach(dockIfNeeded);
+              }
+            }
+          }
+        });
+        obs.observe(document.body, { childList: true, subtree: true });
+        host.__dockObserver = true;
+      }
+
       function ensureSecInfoPanelWired() {
         const box = document.getElementById("sec-info");
         const hdr = box?.querySelector(".hdr");
@@ -2057,6 +2150,7 @@
           bx = 0,
           by = 0;
         hdr.addEventListener("mousedown", (e) => {
+          if (AT_isDockedPanel(box)) return;
           if (e.target.closest(".btn-close")) return; // no iniciar drag si clic en "×"
           e.preventDefault();
           e.stopPropagation();
@@ -2284,6 +2378,7 @@
           bx = 0,
           by = 0;
         hdr.addEventListener("mousedown", (e) => {
+          if (AT_isDockedPanel(box)) return;
           dragging = true;
           sx = e.clientX;
           sy = e.clientY;
@@ -2322,7 +2417,8 @@
 
         // Pintar
         const box = document.getElementById("sec-info");
-        box.querySelector(".hdr").textContent = `Sección ${sec}`;
+        const ttl = box.querySelector(".ttl");
+        if (ttl) ttl.textContent = `Sección ${sec}`;
         document.getElementById("si-sec").textContent = sec;
         document.getElementById("si-df").textContent = df;
         document.getElementById("si-dl").textContent = dl;
@@ -2860,6 +2956,7 @@
           console.warn("[ET] panel no encontrado");
           return;
         }
+        if (AT_isDockedPanel(panel)) return;
 
         const header = panel.querySelector(".hdr");
         const resizer = panel.querySelector(".et27-resizer");
@@ -3056,6 +3153,13 @@
 
       // ===== 3) Boot =====
       document.addEventListener("DOMContentLoaded", async () => {
+        AT_dockPanel(document.getElementById("sec-info"));
+        AT_dockPanel(document.getElementById("et27-toolbar"));
+        AT_dockPanel(document.getElementById("et27-toolbar-tab"));
+        AT_dockPanel(document.getElementById("et27-panel"));
+        AT_dockPanel(document.getElementById("et27-sec-panel"));
+        AT_watchDockPanels();
+
         // a) Leer universo y rutas puestos en el PORTAL
         const u = JSON.parse(localStorage.getItem("AT_UNIVERSE") || "null");
         const paths = JSON.parse(
@@ -4510,5 +4614,6 @@
         if (last) openETPanelForSection(last);
       });
     </script>
+    </div>
   </body>
 </html>
