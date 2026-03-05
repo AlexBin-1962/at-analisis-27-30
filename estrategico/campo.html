@@ -679,6 +679,77 @@
           </div>
 
           <div class="ec-tabview ec-hidden" id="ec-tab-admin">
+
+            
+         <hr style="margin:12px 0;border:none;border-top:1px solid #e5e7eb" />
+
+            <div style="padding:10px;border:1px solid #e5e7eb;border-radius:12px;background:#fbfdff">
+              <div style="font-weight:800;margin-bottom:6px">CAMPO-OFICINA · Generador de rutas</div>
+              <div style="font-size:12px;color:#64748b;margin-bottom:10px">
+                Importa <code>df3_base_operativa.geojson</code>, elige sección origen y genera rutas de 60 puntos por pareja.
+              </div>
+
+              <div class="ec-field">
+                <label>Archivo base (GeoJSON de puntos)</label>
+                <input id="of-file-base" type="file" accept=".geojson,.json" />
+                <small style="color:#64748b">Fuente: df3_base_operativa.geojson</small>
+              </div>
+
+              <div class="ec-grid2">
+                <div class="ec-field">
+                  <label>Fecha / Jornada</label>
+                  <input id="of-fecha" type="date" />
+                </div>
+                <div class="ec-field">
+                  <label>Meta por pareja (puntos por ruta)</label>
+                  <input id="of-meta" type="number" value="60" min="10" max="300" />
+                </div>
+              </div>
+
+              <div class="ec-grid2">
+                <div class="ec-field">
+                  <label>Objetivo por sección (aprox.)</label>
+                  <input id="of-target-sec" type="number" value="120" min="30" max="500" />
+                </div>
+                <div class="ec-field">
+                  <label>Número de parejas (opcional)</label>
+                  <input id="of-num-parejas" type="number" value="1" min="1" max="50" />
+                </div>
+              </div>
+
+              <div class="ec-grid2">
+                <div class="ec-field">
+                  <label>Campo SECCIÓN (en propiedades)</label>
+                  <input id="of-field-seccion" value="SECCION" />
+                  <small style="color:#64748b">Si tu GeoJSON usa otro nombre (ej. SECC, SEC), cámbialo.</small>
+                </div>
+                <div class="ec-field">
+                  <label>Campo ID de punto (en propiedades)</label>
+                  <input id="of-field-id" value="PUNTO_ID" />
+                  <small style="color:#64748b">Si no existe, lo generamos automáticamente.</small>
+                </div>
+              </div>
+
+              <div class="ec-field">
+                <label>Sección origen</label>
+                <select id="of-sec-origen">
+                  <option value="">— Carga el archivo para ver secciones —</option>
+                </select>
+              </div>
+
+              <div class="ec-actions">
+                <button id="of-btn-cargar" class="ec-primary" type="button">Cargar base</button>
+                <button id="of-btn-generar" class="ec-btn" type="button" disabled>Generar rutas</button>
+                <button id="of-btn-descargar-resumen" class="ec-btn" type="button" disabled>Descargar resumen CSV</button>
+              </div>
+
+              <div style="margin-top:10px">
+                <div style="font-size:12px;color:#64748b">Salida:</div>
+                <div id="of-out" style="font-size:12px;display:grid;gap:6px;margin-top:6px"></div>
+              </div>
+            </div>
+
+
             <div class="ec-field">
               <label>URL GeoJSON (GitHub RAW)</label>
               <input
@@ -1001,15 +1072,16 @@
 
       // Dibuja selección + adyacentes + labels
       function paintSelectionAndAdj(feat) {
-        const atMap = ensureLeafletMap();
+        const map = ensureLeafletMap();
         clearSectionOverlays();
 
         // resaltado principal
         window.__SEC_HL = L.geoJSON(feat, {
           style: { color: "#e91e63", weight: 3, fillOpacity: 0.25 },
-        }).addTo(atMap);
+        }).addTo(map);
         try {
-          atMap().fitBounds(window.__SEC_HL.getBounds(), { padding: [28, 28] });
+          const tightBounds = window.__SEC_HL.getBounds().pad(-0.05); // ~10% más cerca
+          map.fitBounds(tightBounds, { padding: [28, 28] });
         } catch (_) {}
 
         // adyacentes
@@ -1025,7 +1097,7 @@
                 fillOpacity: 0.05,
               },
             }
-          ).addTo(atMap);
+          ).addTo(map);
         }
 
         // labels
@@ -1238,16 +1310,16 @@
           JSON.stringify({ ...u2, ts: Date.now() })
         );
         // 2) Redibujar con el nuevo universo usando el raw ya cargado
-        const atMap = ensureLeafletMap();
+        const map = ensureLeafletMap();
         const filtered2 = filterGeojson(window.AT_DATA, u2);
         if (window.AT_CTX?.layer) {
-          atMap.removeLayer(AT_CTX.layer);
+          map.removeLayer(AT_CTX.layer);
         }
         const layer2 = L.geoJSON(filtered2, {
           style: { color: "#7d0025", weight: 1.2, fillOpacity: 0.15 },
-        }).addTo(atMap);
+        }).addTo(map);
         try {
-          atMap().fitBounds(layer2.getBounds(), { padding: [20, 20] });
+          map.fitBounds(layer2.getBounds(), { padding: [20, 20] });
         } catch (e) {}
         window.AT_CTX = {
           ...(window.AT_CTX || {}),
@@ -2152,12 +2224,8 @@
                 delete el.seccion.dataset.lng;
               }
             } catch {}
-            try {
-              // remover pin si existe en el mapa
-              const m = atMap?.();
-              const pin = document.getElementById("ct-pin");
-              if (m && pin && pin._leaflet_id) m.removeLayer(pin);
-            } catch {}
+            // Nota: `#ct-pin` es el modal de PIN (DOM), no una capa de Leaflet.
+            // La limpieza del mapa ya ocurre con `layerGroup.clearLayers()`.
             try {
               // recentrar a MX
               const m = atMap?.();
@@ -2862,6 +2930,702 @@
       }
       // Llamada
       enableDragPanel();
+
+
+      // ===============================
+      // CAMPO-OFICINA · Generador de rutas
+      // ===============================
+      const OFICINA = {
+        baseFC: null,
+        bySec: new Map(),       // sec -> features[]
+        secOrder: [],           // lista ordenada de secciones
+        secCentroid: new Map(), // sec -> [lng,lat]
+        resumen: [],            // filas para CSV
+        rutas: []               // [{rutaId, parejaId, features}]
+      };
+
+
+      function ofSaveRoutesForTerritorio(rutas, meta){
+          // Guarda TODO lo que necesita otro módulo para “mostrar rutas”
+          // (sin backend) → localStorage
+          const payload = {
+            meta: meta || {},
+            rutas: rutas.map(r => ({
+              rutaId: r.rutaId,
+              parejaId: r.parejaId,
+              featureCollection: { type:"FeatureCollection", features: r.features }
+            }))
+          };
+          localStorage.setItem("AT_CAMPO_RUTAS_GENERADAS", JSON.stringify(payload));
+        }
+
+
+      // ====== Capa de rutas en mapa (OFICINA) ======
+        let OF_ROUTE_LAYER = null;
+
+        function ofClearRouteLayer(){
+          try{
+            const m = (typeof atMap === "function") ? atMap() : (window.__AT_MAP || null);
+            if (!m) return;
+            if (OF_ROUTE_LAYER){
+              m.removeLayer(OF_ROUTE_LAYER);
+              OF_ROUTE_LAYER = null;
+            }
+          }catch(e){ console.warn(e); }
+        }
+
+
+
+      function ofShowRouteOnMap(featureCollection){
+        try{
+          const m = (typeof atMap === "function") ? atMap() : (window.__AT_MAP || null);
+          if (!m) return;
+
+          ofClearRouteLayer();
+
+          // 1) Capa de puntos
+          OF_ROUTE_LAYER = L.geoJSON(featureCollection, {
+            pointToLayer: (f, latlng) => L.circleMarker(latlng, {
+              radius: 5,
+              weight: 1,
+              fillOpacity: 0.75
+            }),
+            onEachFeature: (f, layer) => {
+              const p = f.properties || {};
+              const nom = p.NOMBRE || p.nombre || "";
+              const tel = p.TELEFONO || p.telefono || "";
+              const dom = p.DOMICILIO || p.dom || p.DIRECCION || p.CALLE || "";
+              const sec = p.SECCION || p.seccion || "";
+              layer.bindPopup(
+                `<b>${nom || "—"}</b><br/>${dom || ""}<br/>Tel: ${tel || "—"}<br/>Sección: ${sec || "—"}`
+              );
+            }
+          }).addTo(m);
+
+          // 2) Generar ruta (línea) con orden “óptimo práctico”
+          const coords = (featureCollection.features || [])
+            .map(f => f?.geometry?.type === "Point" ? f.geometry.coordinates : null)
+            .filter(c => Array.isArray(c) && Number.isFinite(c[0]) && Number.isFinite(c[1]));
+
+          if (coords.length >= 2){
+            let ordered = orderPointsNearestNeighbor(coords);
+            ordered = twoOptImprove(ordered, 40);
+
+            const latlngs = ordered.map(c => [c[1], c[0]]); // Leaflet usa [lat,lng]
+            const line = L.polyline(latlngs, { weight: 4, opacity: 0.85 });
+
+            // metemos la línea dentro de la misma “capa” para limpiarla junta
+            OF_ROUTE_LAYER.addLayer(line);
+          }
+
+          // zoom
+          try{
+            const b = OF_ROUTE_LAYER.getBounds();
+            if (b && b.isValid()) m.fitBounds(b.pad(0.12));
+          }catch(_){}
+        }catch(e){
+          console.error("[OFICINA] No pude pintar ruta en mapa:", e);
+        }
+      }
+
+        // ====== Rutas: ordenar puntos y crear línea ======
+        function haversineMeters(a, b){
+          const toRad = (x)=> x * Math.PI/180;
+          const R = 6371000;
+          const dLat = toRad(b[1]-a[1]);
+          const dLon = toRad(b[0]-a[0]);
+          const lat1 = toRad(a[1]);
+          const lat2 = toRad(b[1]);
+          const s = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+          return 2*R*Math.asin(Math.sqrt(s));
+        }
+
+        function orderPointsNearestNeighbor(coords){
+          if (!coords || coords.length <= 2) return coords || [];
+          const used = new Array(coords.length).fill(false);
+          const out = [];
+
+          // arranque: primer punto
+          let cur = 0;
+          used[cur] = true;
+          out.push(coords[cur]);
+
+          for (let step=1; step<coords.length; step++){
+            let best = -1;
+            let bestD = Infinity;
+            for (let i=0;i<coords.length;i++){
+              if (used[i]) continue;
+              const d = haversineMeters(coords[cur], coords[i]);
+              if (d < bestD){ bestD = d; best = i; }
+            }
+            used[best] = true;
+            out.push(coords[best]);
+            cur = best;
+          }
+          return out;
+        }
+
+        // 2-opt simple (mejora la ruta)
+        function twoOptImprove(routeCoords, maxIter=60){
+          if (!routeCoords || routeCoords.length < 4) return routeCoords;
+          const dist = (r, i, j) => haversineMeters(r[i], r[j]);
+          let r = routeCoords.slice();
+
+          const totalLen = (arr)=>{
+            let s=0;
+            for (let i=0;i<arr.length-1;i++) s += haversineMeters(arr[i], arr[i+1]);
+            return s;
+          };
+
+          let bestLen = totalLen(r);
+
+          for (let iter=0; iter<maxIter; iter++){
+            let improved = false;
+            for (let i=1; i<r.length-2; i++){
+              for (let k=i+1; k<r.length-1; k++){
+                // swap edges (i-1,i) and (k,k+1)
+                const a = i-1, b = i, c = k, d = k+1;
+                const cur = dist(r,a,b) + dist(r,c,d);
+                const alt = dist(r,a,c) + dist(r,b,d);
+                if (alt + 1e-6 < cur){
+                  // reverse segment [i..k]
+                  const rev = r.slice(i, k+1).reverse();
+                  r.splice(i, k-i+1, ...rev);
+                  improved = true;
+                }
+              }
+            }
+            const lenNow = totalLen(r);
+            if (lenNow + 1e-6 < bestLen){
+              bestLen = lenNow;
+              improved = true;
+            }
+            if (!improved) break;
+          }
+          return r;
+        }
+
+
+      function of$(id){ return document.getElementById(id); }
+
+      function ofInitUI(){
+        const fecha = of$("of-fecha");
+        if (fecha && !fecha.value){
+          // hoy local
+          const d = new Date();
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth()+1).padStart(2,"0");
+          const dd = String(d.getDate()).padStart(2,"0");
+          fecha.value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        of$("of-btn-cargar")?.addEventListener("click", ofLoadBaseFromFile);
+        of$("of-btn-generar")?.addEventListener("click", ofGenerateRoutes);
+        of$("of-btn-descargar-resumen")?.addEventListener("click", ofDownloadResumenCSV);
+      }
+      ofInitUI();
+
+      function ofMsg(html){
+        const out = of$("of-out");
+        if (!out) return;
+        const div = document.createElement("div");
+        div.innerHTML = html;
+        out.appendChild(div);
+      }
+
+      function ofClearOut(){
+        const out = of$("of-out");
+        if (out) out.innerHTML = "";
+      }
+
+      function readFileAsText(file){
+        return new Promise((resolve,reject)=>{
+          const fr = new FileReader();
+          fr.onload = ()=>resolve(fr.result);
+          fr.onerror = ()=>reject(fr.error);
+          fr.readAsText(file);
+        });
+      }
+
+      function ensureProp(f, key, val){
+        if (!f.properties) f.properties = {};
+        if (f.properties[key] == null || f.properties[key] === "") f.properties[key] = val;
+      }
+
+      function genPointId(f){
+        // 1) Si el navegador soporta crypto.randomUUID → ID único real
+        if (window.crypto && typeof crypto.randomUUID === "function"){
+          return "PT_" + crypto.randomUUID();
+        }
+
+        // 2) Fallback determinístico (hash) usando coords + atributos
+        const p = f.properties || {};
+        const g = f.geometry || {};
+        const c = Array.isArray(g.coordinates) ? g.coordinates : [];
+        const seed = [
+          c[0], c[1],
+          p.NOMBRE || p.nombre || "",
+          p.TELEFONO || p.telefono || "",
+          p.DOMICILIO || p.dom || ""
+        ].join("|");
+
+        let h = 0;
+        for (let i=0;i<seed.length;i++){
+          h = (h<<5) - h + seed.charCodeAt(i);
+          h |= 0;
+        }
+        return "PT_" + Math.abs(h);
+      }
+
+      function featureToLonLat(f){
+        if (!f || !f.geometry) return null;
+        if (f.geometry.type === "Point") {
+          const [lng,lat] = f.geometry.coordinates || [];
+          if (Number.isFinite(lng) && Number.isFinite(lat)) return [lng,lat];
+        }
+        return null;
+      }
+
+      function computeCentroidForSection(features){
+        // centroid aproximado (promedio) de puntos
+        let sx=0, sy=0, n=0;
+        for (const f of features){
+          const ll = featureToLonLat(f);
+          if (!ll) continue;
+          sx += ll[0]; sy += ll[1]; n++;
+        }
+        if (!n) return null;
+        return [sx/n, sy/n];
+      }
+
+      function dist2(a,b){
+        const dx = a[0]-b[0];
+        const dy = a[1]-b[1];
+        return dx*dx + dy*dy;
+      }
+
+
+      async function ofAssignSeccionFromPolygons(pointsFC, fieldSec = "SECCION") {
+        // Usa la misma ruta de secciones que ya maneja tu app
+        // (si tu variable se llama distinto, ajusta urlGeo / URL_SECC)
+        const seccUrl = (typeof urlGeo !== "undefined" && urlGeo) ? urlGeo : (window.URL_SECC || "data/geo/secciones.geojson");
+
+        const res = await fetch(seccUrl);
+        if (!res.ok) throw new Error("No pude cargar secciones.geojson para asignar SECCION");
+        const seccFC = await res.json();
+
+        if (!seccFC || seccFC.type !== "FeatureCollection") {
+          throw new Error("secciones.geojson no es FeatureCollection válido");
+        }
+
+        // Índice simple: recorre secciones y asigna por contención
+        let asignados = 0;
+        let sinCoord = 0;
+
+        for (const pf of pointsFC.features) {
+          if (!pf || !pf.geometry || pf.geometry.type !== "Point") { sinCoord++; continue; }
+          if (!pf.properties) pf.properties = {};
+
+          const secVal = String(pf.properties[fieldSec] ?? "").trim();
+          if (secVal) continue; // ya trae sección
+
+          const pt = turf.point(pf.geometry.coordinates);
+
+          let found = null;
+          for (const sf of seccFC.features) {
+            if (!sf || !sf.geometry) continue;
+            // Ajusta aquí si tu polígono trae el campo con otro nombre
+            const sec = String(sf.properties?.SECCION ?? sf.properties?.SECC ?? sf.properties?.SEC ?? "").trim();
+            if (!sec) continue;
+
+            if (turf.booleanPointInPolygon(pt, sf)) {
+              found = sec;
+              break;
+            }
+          }
+
+          if (found) {
+            pf.properties[fieldSec] = found;
+            asignados++;
+          }
+        }
+
+        return { asignados, sinCoord, seccUrl };
+      }
+
+
+
+      async function ofLoadBaseFromFile(){
+        ofClearOut();
+
+        const inp = of$("of-file-base");
+        if (!inp || !inp.files || !inp.files[0]){
+          ofMsg("⚠️ Selecciona el <b>GeoJSON base</b> (df3_base_operativa.geojson).");
+          return;
+        }
+
+        const fieldSec = (of$("of-field-seccion")?.value || "SECCION").trim();
+        const fieldId  = (of$("of-field-id")?.value || "PUNTO_ID").trim();
+
+        try{
+          const txt = await readFileAsText(inp.files[0]);
+          const json = JSON.parse(txt);
+
+          const fc = (json && json.type === "FeatureCollection") ? json : null;
+          if (!fc || !Array.isArray(fc.features)){
+            throw new Error("El archivo no parece ser FeatureCollection válido.");
+          }
+
+
+          // Si SECCION viene vacío, intentamos autollenarlo con secciones.geojson (Turf)
+          const previewMissing = fc.features.slice(0, 50).filter(f => {
+            const p = f.properties || {};
+            const sec = String(p[fieldSec] ?? p.SECCION ?? p.seccion ?? "").trim();
+            return !sec;
+          }).length;
+
+          if (previewMissing > 0) {
+            ofMsg(`🧩 Detecté SECCION vacío en puntos. Intentando asignar SECCION automáticamente...`);
+            const r = await ofAssignSeccionFromPolygons(fc, fieldSec);
+            ofMsg(`✅ SECCION asignada a <b>${r.asignados}</b> puntos (usando ${r.seccUrl}).`);
+          }
+
+
+
+          // Normalizar
+          OFICINA.baseFC = fc;
+          OFICINA.bySec = new Map();
+          OFICINA.secCentroid = new Map();
+          OFICINA.resumen = [];
+          OFICINA.rutas = [];
+
+          let sinSec = 0;
+          let total = 0;
+
+          for (const f of fc.features){
+            total++;
+            const p = f.properties || {};
+            const sec = String(p[fieldSec] ?? p.SECCION ?? p.seccion ?? "").trim();
+
+            if (!sec){ sinSec++; continue; }
+
+            // ID
+            if (!p[fieldId]) ensureProp(f, fieldId, genPointId(f));
+
+            if (!OFICINA.bySec.has(sec)) OFICINA.bySec.set(sec, []);
+            OFICINA.bySec.get(sec).push(f);
+          }
+
+          // Lista de secciones
+          OFICINA.secOrder = Array.from(OFICINA.bySec.keys()).sort((a,b)=>a.localeCompare(b));
+
+          // centroides por sección
+          for (const sec of OFICINA.secOrder){
+            const c = computeCentroidForSection(OFICINA.bySec.get(sec));
+            if (c) OFICINA.secCentroid.set(sec, c);
+          }
+
+          // poblar select
+          const sel = of$("of-sec-origen");
+          if (sel){
+            sel.innerHTML = `<option value="">— Selecciona —</option>` + OFICINA.secOrder
+              .map(s=>`<option value="${s}">${s} (${OFICINA.bySec.get(s).length} pts)</option>`)
+              .join("");
+          }
+
+          // habilitar
+          of$("of-btn-generar").disabled = false;
+
+          ofMsg(`✅ Base cargada: <b>${total.toLocaleString()}</b> puntos · <b>${OFICINA.secOrder.length}</b> secciones.`);
+          if (sinSec) ofMsg(`⚠️ Puntos sin sección (${fieldSec} vacío): <b>${sinSec}</b> (se omitieron).`);
+
+          // preparar resumen inicial
+          OFICINA.resumen = OFICINA.secOrder.map(sec=>({
+            SECCION: sec,
+            PUNTOS: OFICINA.bySec.get(sec).length
+          }));
+
+          of$("of-btn-descargar-resumen").disabled = false;
+
+        }catch(err){
+          console.error(err);
+          ofMsg(`❌ Error: ${err.message || err}`);
+        }
+      }
+
+      function pickSectionsNearOrigin(originSec, targetPoints){
+        // Selección “operativa”: tomar sección origen + secciones más cercanas por centroides
+        // hasta llegar al objetivo targetPoints (≈120).
+        const picked = [];
+        const used = new Set();
+
+        if (!originSec || !OFICINA.bySec.has(originSec)) return picked;
+
+        picked.push(originSec);
+        used.add(originSec);
+
+        let acc = OFICINA.bySec.get(originSec).length;
+
+        const oC = OFICINA.secCentroid.get(originSec);
+        if (!oC) return picked;
+
+        // ordenar otras secciones por distancia al origen
+        const rest = OFICINA.secOrder
+          .filter(s=>s!==originSec)
+          .map(s=>({ s, c: OFICINA.secCentroid.get(s) }))
+          .filter(x=>!!x.c)
+          .sort((a,b)=>dist2(oC,a.c)-dist2(oC,b.c));
+
+        for (const x of rest){
+          if (acc >= targetPoints) break;
+          if (used.has(x.s)) continue;
+          picked.push(x.s);
+          used.add(x.s);
+          acc += OFICINA.bySec.get(x.s).length;
+        }
+        return picked;
+      }
+
+      function chunk(arr, size){
+        const out = [];
+        for (let i=0;i<arr.length;i+=size) out.push(arr.slice(i,i+size));
+        return out;
+      }
+
+      function downloadBlob(filename, content, mime){
+        const blob = new Blob([content], {type: mime || "application/octet-stream"});
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(()=>{
+          URL.revokeObjectURL(a.href);
+          a.remove();
+        }, 500);
+      }
+
+      function toCSV(rows){
+        if (!rows || !rows.length) return "";
+        const cols = Object.keys(rows[0]);
+        const esc = (v)=> `"${String(v ?? "").replace(/"/g,'""')}"`;
+        const head = cols.map(esc).join(",");
+        const body = rows.map(r=>cols.map(c=>esc(r[c])).join(",")).join("\n");
+        return head + "\n" + body;
+      }
+
+      function featuresToSimpleCSV(features){
+        const pick = (p, keys) => {
+          for (const k of keys){
+            const v = p?.[k];
+            if (v != null && String(v).trim() !== "") return v;
+          }
+          return "";
+        };
+
+        const joinClean = (...vals) => vals
+          .map(v => String(v ?? "").trim())
+          .filter(v => v && v !== "-" && v.toLowerCase() !== "null")
+          .join(", ");
+
+        const buildDomicilio = (p) => {
+          // 1) si existe un campo directo, úsalo
+          const direct = pick(p, [
+            "DOMICILIO","domicilio","dom","DIRECCION","direccion","DIRECCIÓN","DIRECION","ADDRESS",
+            "DOMICILIO_CORTO","domicilio_corto","DIR","dir","CALLE_Y_NUM","calle_y_num"
+          ]);
+          if (String(direct).trim()) return direct;
+
+          // 2) si viene por partes, lo armamos
+          const calle   = pick(p, ["CALLE","calle","Calle","STREET","street","VIALIDAD","vialidad"]);
+          const num     = pick(p, ["NUMERO","numero","NUM","num","NO","no","NÚM","NUM_EXT","num_ext","EXT","ext","INTERIOR","interior"]);
+          const col     = pick(p, ["COLONIA","colonia","Colonia","FRACC","fracc","ASENTAMIENTO","asentamiento","BARRIO","barrio"]);
+          const mun     = pick(p, ["MUNICIPIO","municipio","Municipio","MUN","mun"]);
+          const cp      = pick(p, ["CP","cp","C.P.","COD_POSTAL","cod_postal","ZIP","zip"]);
+          const ref     = pick(p, ["REFERENCIA","referencia","REF","ref","ENTRE_CALLES","entre_calles","OBS_DOM","obs_dom"]);
+
+          const base = joinClean(
+            joinClean(calle, num),
+            col,
+            joinClean(mun, cp)
+          );
+
+          return joinClean(base, ref);
+        };
+
+        const rows = features.map(f=>{
+          const p = f.properties || {};
+          return {
+            SECCION: pick(p, ["SECCION","seccion","SEC","SECC","CVE_SECC"]),
+            CVE: pick(p, ["CVE","cve","CLAVE","clave","CVE_ELECTOR","ELECTOR","ID_ELECTOR","FOLIO","ID","id"]),
+            NOMBRE: pick(p, ["NOMBRE","nombre","NOM","PERSONA","CIUDADANO"]),
+            DOMICILIO: buildDomicilio(p),
+            TELEFONO: pick(p, ["TELEFONO","telefono","TEL","CEL","CELULAR","MOVIL"])
+          };
+        });
+
+        return toCSV(rows);
+      }
+
+      function ofGenerateRoutes(){
+        ofClearOut();
+
+        if (! OFICINA.baseFC || !OFICINA.bySec.size){
+          ofMsg("⚠️ Primero carga la base.");
+          return;
+        }
+
+        const origin = of$("of-sec-origen")?.value?.trim();
+        if (!origin){
+          ofMsg("⚠️ Selecciona la <b>sección origen</b>.");
+          return;
+        }
+
+        const fecha = of$("of-fecha")?.value || "";
+        const meta = Number(of$("of-meta")?.value || 60);
+        const targetSec = Number(of$("of-target-sec")?.value || 120);
+        const numParejas = Number(of$("of-num-parejas")?.value || 1);
+
+        // 1) elegir secciones operativas (≈120 pts)
+        const secs = pickSectionsNearOrigin(origin, targetSec);
+
+        // 2) juntar puntos de esas secciones
+        let pool = [];
+        for (const sec of secs){
+          pool = pool.concat(OFICINA.bySec.get(sec) || []);
+        }
+
+        // 3) (opcional) si hay demasiados, recortar a parejas*meta
+        const totalTarget = Math.max(1, numParejas) * Math.max(10, meta);
+        if (pool.length > totalTarget){
+          pool = pool.slice(0, totalTarget);
+        }
+
+        // 4) crear rutas de meta puntos
+        const parts = chunk(pool, Math.max(10, meta));
+        OFICINA.rutas = [];
+
+        const basePrefix = `DF3_${origin}`;
+        let idx = 1;
+
+        for (const part of parts){
+          const rutaId = `${basePrefix}_R${String(idx).padStart(3,"0")}`;
+          const parejaId = `P${String(idx).padStart(2,"0")}`;
+
+          for (const f of part){
+            if (!f.properties) f.properties = {};
+            f.properties.RUTA_ID = rutaId;
+            f.properties.PAREJA_ID = parejaId;
+            if (fecha) f.properties.FECHA_JORNADA = fecha;
+            // marcadores iniciales
+            if (!f.properties.VALIDACION) f.properties.VALIDACION = "";
+            if (!f.properties.ESTADO_VISITA) f.properties.ESTADO_VISITA = "pendiente";
+          }
+
+          OFICINA.rutas.push({ rutaId, parejaId, features: part });
+          idx++;
+        }
+
+        // 5) Render output con botones de descarga
+        ofMsg(`✅ Secciones seleccionadas: <b>${secs.join(", ")}</b>`);
+        ofMsg(`✅ Puntos en pool: <b>${pool.length.toLocaleString()}</b> · Rutas generadas: <b>${OFICINA.rutas.length}</b> (meta ${meta} c/u)`);
+
+        // construir resumen
+        const resumen = [];
+        for (const r of OFICINA.rutas){
+          resumen.push({
+            RUTA_ID: r.rutaId,
+            PAREJA_ID: r.parejaId,
+            FECHA_JORNADA: fecha,
+            ORIGEN_SECCION: origin,
+            SECCIONES_USADAS: secs.join("|"),
+            PUNTOS: r.features.length
+          });
+        }
+        OFICINA.resumenRutas = resumen;
+
+
+        // 1) Mostrar la primera ruta en el mapa (como vista previa)
+        if (OFICINA.rutas.length){
+          const fcPrev = { type:"FeatureCollection", features: OFICINA.rutas[0].features };
+          ofShowRouteOnMap(fcPrev);
+        }
+
+        // 2) Guardar rutas para CAMPO-TERRITORIO (localStorage)
+        ofSaveRoutesForTerritorio(OFICINA.rutas, {
+          origen: origin,
+          fecha,
+          metaPorPareja: meta,
+          targetPorSeccion: targetSec
+        });
+
+        ofMsg(`🗺️ Ruta previa mostrada en el mapa. (Se guardaron ${OFICINA.rutas.length} rutas para CAMPO-TERRITORIO)`);
+
+        // botones por ruta
+        for (const r of OFICINA.rutas){
+          const fnGeo = `${r.rutaId}_${fecha || "SINFECHA"}_ruta.geojson`;
+          const fnCsv = `${r.rutaId}_${fecha || "SINFECHA"}_lista.csv`;
+
+          const fc = { type:"FeatureCollection", features: r.features };
+          const geoTxt = JSON.stringify(fc, null, 2);
+          const csvTxt = featuresToSimpleCSV(r.features);
+
+          ofMsg(`
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <span style="font-weight:700">${r.rutaId}</span>
+              <span style="color:#64748b">(${r.features.length} pts)</span>
+              <button class="ec-btn" type="button" data-dl="geo" data-id="${r.rutaId}">Descargar GeoJSON</button>
+              <button class="ec-btn" type="button" data-dl="csv" data-id="${r.rutaId}">Descargar CSV</button>
+            </div>
+          `);
+
+          // attach handlers (delegación simple)
+          setTimeout(()=>{
+            const out = of$("of-out");
+            if (!out || out.__ofHandlers) return;
+            out.__ofHandlers = true;
+            out.addEventListener("click",(ev)=>{
+              const btn = ev.target?.closest?.("button[data-dl]");
+              if (!btn) return;
+              const kind = btn.getAttribute("data-dl");
+              const id = btn.getAttribute("data-id");
+              const rr = OFICINA.rutas.find(x=>x.rutaId===id);
+              if (!rr) return;
+
+              const fc2 = { type:"FeatureCollection", features: rr.features };
+              const geo2 = JSON.stringify(fc2, null, 2);
+              const csv2 = featuresToSimpleCSV(rr.features);
+
+              const fng = `${rr.rutaId}_${fecha || "SINFECHA"}_ruta.geojson`;
+              const fnc = `${rr.rutaId}_${fecha || "SINFECHA"}_lista.csv`;
+
+              if (kind==="geo") downloadBlob(fng, geo2, "application/geo+json");
+              if (kind==="csv") downloadBlob(fnc, csv2, "text/csv;charset=utf-8");
+            });
+          }, 0);
+        }
+
+        // habilitar resumen rutas
+        of$("of-btn-descargar-resumen").disabled = false;
+        ofMsg(`📌 Tip: Envía cada <b>ruta.geojson</b> por WhatsApp a la pareja (y el CSV si lo quieres como hoja).`);
+      }
+
+      function ofDownloadResumenCSV(){
+        // si aún no hay rutas, descarga resumen por sección
+        if (OFICINA.resumenRutas && OFICINA.resumenRutas.length){
+          const csv = toCSV(OFICINA.resumenRutas);
+          downloadBlob(`resumen_rutas_${new Date().toISOString().slice(0,10)}.csv`, csv, "text/csv;charset=utf-8");
+          return;
+        }
+        if (OFICINA.resumen && OFICINA.resumen.length){
+          const csv = toCSV(OFICINA.resumen);
+          downloadBlob(`resumen_secciones_${new Date().toISOString().slice(0,10)}.csv`, csv, "text/csv;charset=utf-8");
+          return;
+        }
+        ofMsg("⚠️ No hay resumen para descargar todavía.");
+      }
+
+
     </script>
 
     </div>
