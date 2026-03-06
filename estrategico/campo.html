@@ -689,11 +689,11 @@
                 Importa <code>df3_base_operativa.geojson</code>, elige sección origen y genera rutas de 60 puntos por pareja.
               </div>
 
-              <div class="ec-field">
-                <label>Archivo base (GeoJSON de puntos)</label>
-                <input id="of-file-base" type="file" accept=".geojson,.json" />
-                <small style="color:#64748b">Fuente: df3_base_operativa.geojson</small>
-              </div>
+             <div class="ec-field">
+              <label>Base de puntos</label>
+              <input value="data/geo/df3_base_operativa.geojson" readonly />
+              <small style="color:#64748b">La base se carga automáticamente al abrir CAMPO.</small>
+            </div>
 
               <div class="ec-grid2">
                 <div class="ec-field">
@@ -2931,6 +2931,8 @@
       // Llamada
       enableDragPanel();
 
+      const OF_BASE_POINTS_URL = "data/geo/df3_base_operativa.geojson";
+
 
       // ===============================
       // CAMPO-OFICINA · Generador de rutas
@@ -3119,9 +3121,15 @@
           fecha.value = `${yyyy}-${mm}-${dd}`;
         }
 
-        of$("of-btn-cargar")?.addEventListener("click", ofLoadBaseFromFile);
+
+        of$("of-btn-cargar")?.addEventListener("click", ofLoadBaseFromURL);
         of$("of-btn-generar")?.addEventListener("click", ofGenerateRoutes);
         of$("of-btn-descargar-resumen")?.addEventListener("click", ofDownloadResumenCSV);
+
+        setTimeout(() => {
+          ofLoadBaseFromURL();
+        }, 0);
+
       }
       ofInitUI();
 
@@ -3353,37 +3361,102 @@
         }
       }
 
-      function pickSectionsNearOrigin(originSec, targetPoints){
-        // Selección “operativa”: tomar sección origen + secciones más cercanas por centroides
-        // hasta llegar al objetivo targetPoints (≈120).
-        const picked = [];
-        const used = new Set();
 
-        if (!originSec || !OFICINA.bySec.has(originSec)) return picked;
+      async function ofLoadBaseFromURL(){
+        ofClearOut();
 
-        picked.push(originSec);
-        used.add(originSec);
+        const fieldSec = (of$("of-field-seccion")?.value || "SECCION").trim();
+        const fieldId  = (of$("of-field-id")?.value || "PUNTO_ID").trim();
 
-        let acc = OFICINA.bySec.get(originSec).length;
+        try{
+          const res = await fetch(OF_BASE_POINTS_URL);
+          if (!res.ok) throw new Error(`HTTP ${res.status} al cargar ${OF_BASE_POINTS_URL}`);
 
-        const oC = OFICINA.secCentroid.get(originSec);
-        if (!oC) return picked;
+          const json = await res.json();
+          const fc = (json && json.type === "FeatureCollection") ? json : null;
 
-        // ordenar otras secciones por distancia al origen
-        const rest = OFICINA.secOrder
-          .filter(s=>s!==originSec)
-          .map(s=>({ s, c: OFICINA.secCentroid.get(s) }))
-          .filter(x=>!!x.c)
-          .sort((a,b)=>dist2(oC,a.c)-dist2(oC,b.c));
+          if (!fc || !Array.isArray(fc.features)){
+            throw new Error("El GeoJSON base no es FeatureCollection válido.");
+          }
 
-        for (const x of rest){
-          if (acc >= targetPoints) break;
-          if (used.has(x.s)) continue;
-          picked.push(x.s);
-          used.add(x.s);
-          acc += OFICINA.bySec.get(x.s).length;
+          // Si SECCION viene vacío, intentamos asignarlo con polígonos
+          const previewMissing = fc.features.slice(0, 50).filter(f => {
+            const p = f.properties || {};
+            const sec = String(p[fieldSec] ?? p.SECCION ?? p.seccion ?? "").trim();
+            return !sec;
+          }).length;
+
+          if (previewMissing > 0) {
+            ofMsg(`🧩 Detecté SECCION vacío en puntos. Intentando asignar SECCION automáticamente...`);
+            const r = await ofAssignSeccionFromPolygons(fc, fieldSec);
+            ofMsg(`✅ SECCION asignada a <b>${r.asignados}</b> puntos.`);
+          }
+
+          // Domicilio en memoria si hace falta
+          if (typeof ofBuildDomicilioInGeoJSON === "function"){
+            const nDom = ofBuildDomicilioInGeoJSON(fc);
+            ofMsg(`🏠 DOMICILIO construido/normalizado en <b>${nDom}</b> puntos.`);
+          }
+
+          OFICINA.baseFC = fc;
+          OFICINA.bySec = new Map();
+          OFICINA.secCentroid = new Map();
+          OFICINA.resumen = [];
+          OFICINA.rutas = [];
+
+          let sinSec = 0;
+          let total = 0;
+
+          for (const f of fc.features){
+            total++;
+            const p = f.properties || {};
+            const sec = String(p[fieldSec] ?? p.SECCION ?? p.seccion ?? "").trim();
+
+            if (!sec){ sinSec++; continue; }
+
+            if (!p[fieldId]) ensureProp(f, fieldId, genPointId(f));
+
+            if (!OFICINA.bySec.has(sec)) OFICINA.bySec.set(sec, []);
+            OFICINA.bySec.get(sec).push(f);
+          }
+
+          OFICINA.secOrder = Array.from(OFICINA.bySec.keys()).sort((a,b)=>a.localeCompare(b));
+
+          for (const sec of OFICINA.secOrder){
+            const c = computeCentroidForSection(OFICINA.bySec.get(sec));
+            if (c) OFICINA.secCentroid.set(sec, c);
+          }
+
+          const sel = of$("of-sec-origen");
+          if (sel){
+            sel.innerHTML = `<option value="">— Selecciona —</option>` + OFICINA.secOrder
+              .map(s=>`<option value="${s}">${s} (${OFICINA.bySec.get(s).length} pts)</option>`)
+              .join("");
+          }
+
+          of$("of-btn-generar").disabled = false;
+          of$("of-btn-descargar-resumen").disabled = false;
+
+          ofMsg(`✅ Base cargada automáticamente: <b>${total.toLocaleString()}</b> puntos · <b>${OFICINA.secOrder.length}</b> secciones.`);
+          if (sinSec) ofMsg(`⚠️ Puntos sin sección: <b>${sinSec}</b> (omitidos).`);
+
+          OFICINA.resumen = OFICINA.secOrder.map(sec=>({
+            SECCION: sec,
+            PUNTOS: OFICINA.bySec.get(sec).length
+          }));
+
+        }catch(err){
+          console.error(err);
+          ofMsg(`❌ Error al cargar base automática: ${err.message || err}`);
         }
-        return picked;
+      }
+
+   function pickSectionsNearOrigin(originSec, targetPoints){
+        // Nuevo criterio operativo:
+        // SOLO usar la sección seleccionada.
+        // Sin adyacentes. Sin completar con otras secciones.
+        if (!originSec || !OFICINA.bySec.has(originSec)) return [];
+        return [originSec];
       }
 
       function chunk(arr, size){
@@ -3527,7 +3600,10 @@
         }
 
         // 5) Render output con botones de descarga
-        ofMsg(`✅ Secciones seleccionadas: <b>${secs.join(", ")}</b>`);
+        ofMsg(`✅ Sección de trabajo: <b>${secs.join(", ")}</b>`);
+        if (pool.length < meta){
+          ofMsg(`⚠️ La sección tiene <b>${pool.length}</b> puntos, menor a la meta de <b>${meta}</b>. La brigada deberá complementar visitas en campo.`);
+        }
         ofMsg(`✅ Puntos en pool: <b>${pool.length.toLocaleString()}</b> · Rutas generadas: <b>${OFICINA.rutas.length}</b> (meta ${meta} c/u)`);
 
         // construir resumen
