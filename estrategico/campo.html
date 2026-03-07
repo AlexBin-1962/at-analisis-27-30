@@ -815,12 +815,13 @@
       function ensureLeafletMap() {
         if (window.__AT_MAP && window.__AT_MAP instanceof L.Map)
           return window.__AT_MAP;
-        const m = L.map("map", { zoomControl: true }).setView(
-          [21.0, -101.3],
-          7
-        );
+        const m = L.map("map", {
+          zoomControl: true,
+          maxZoom: 22
+        }).setView([21.0, -101.3], 7);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
           attribution: "© OSM",
+          maxZoom: 22
         }).addTo(m);
         window.__AT_MAP = m;
         return m;
@@ -3089,6 +3090,9 @@ async function ofLoadRoadNetwork(){
           try{
             const b = OF_ROUTE_LAYER.getBounds();
             if (b && b.isValid()) m.fitBounds(b.pad(0.12));
+            setTimeout(() => {
+              if (m.getZoom() < 19) m.setZoom(19);
+            }, 100);
           }catch(_){}
         }catch(e){
           console.error("[OFICINA] No pude pintar ruta en mapa:", e);
@@ -3517,6 +3521,30 @@ async function ofLoadRoadNetwork(){
         }
       }
 
+
+      // Distancia aproximada en metros entre dos coords [lng,lat]
+        function haversineMeters(a, b){
+          const toRad = x => x * Math.PI/180;
+          const R = 6371000;
+          const dLat = toRad(b[1]-a[1]);
+          const dLon = toRad(b[0]-a[0]);
+          const lat1 = toRad(a[1]), lat2 = toRad(b[1]);
+          const s = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+          return 2*R*Math.asin(Math.sqrt(s));
+        }
+
+        // Proyecta p sobre el segmento a-b (todo en [lng,lat] tratado como plano local)
+        function projectPointOnSegment(p, a, b){
+          const ax=a[0], ay=a[1], bx=b[0], by=b[1], px=p[0], py=p[1];
+          const abx = bx-ax, aby = by-ay;
+          const apx = px-ax, apy = py-ay;
+          const ab2 = abx*abx + aby*aby;
+          if (ab2 === 0) return a;
+          let t = (apx*abx + apy*aby) / ab2;
+          t = Math.max(0, Math.min(1, t));
+          return [ax + t*abx, ay + t*aby];
+        }
+
    function pickSectionsNearOrigin(originSec, targetPoints){
         // Nuevo criterio operativo:
         // SOLO usar la sección seleccionada.
@@ -3552,6 +3580,129 @@ async function ofLoadRoadNetwork(){
         const body = rows.map(r=>cols.map(c=>esc(r[c])).join(",")).join("\n");
         return head + "\n" + body;
       }
+
+      function snapPointToRoad(pointLngLat){
+        if (!OF_ROAD_LAYER) return null;
+
+        let best = {
+          coord: null,
+          dist: Infinity
+        };
+
+        OF_ROAD_LAYER.eachLayer(layer => {
+          const gj = layer.toGeoJSON();
+          const coords = gj.geometry.coordinates; // LineString
+
+          for (let i=0; i<coords.length-1; i++){
+            const a = coords[i];
+            const b = coords[i+1];
+
+            const proj = projectPointOnSegment(pointLngLat, a, b);
+            const d = haversineMeters(pointLngLat, proj);
+
+            if (d < best.dist){
+              best.coord = proj;
+              best.dist = d;
+            }
+          }
+        });
+
+        return best; // { coord:[lng,lat], dist:metros }
+      }
+
+
+    function testSnapOnFirstPoint(ruta){
+
+      if (!ruta || !ruta.features || !ruta.features.length) return;
+
+      const p = ruta.features[0].geometry.coordinates;
+
+      const snap = snapPointToRoad(p);
+      if (!snap) return;
+
+      const m = (typeof atMap === "function") ? atMap() : window.__AT_MAP;
+
+      // punto original
+      L.circleMarker([p[1], p[0]], {
+        radius:6,
+        color:"#e74c3c"
+      }).addTo(m).bindPopup("Punto original");
+
+      // punto ajustado a calle
+      L.circleMarker([snap.coord[1], snap.coord[0]], {
+        radius:6,
+        color:"#27ae60"
+      }).addTo(m).bindPopup(`Snap calle (${snap.dist.toFixed(1)} m)`);
+
+      // línea de ajuste
+      L.polyline([[p[1],p[0]],[snap.coord[1],snap.coord[0]]],{
+        color:"#3498db",
+        dashArray:"4,4"
+      }).addTo(m);
+    }
+
+    function drawSnappedRoutePoints(snappedPoints){
+      if (!snappedPoints || !snappedPoints.length) return;
+
+      const m = (typeof atMap === "function") ? atMap() : window.__AT_MAP;
+      if (!m) return;
+
+      // grupo para limpiar fácil después si luego quieres
+      window.__SNAP_ALL_LAYER = window.__SNAP_ALL_LAYER || L.layerGroup().addTo(m);
+      window.__SNAP_ALL_LAYER.clearLayers();
+
+      for (const pt of snappedPoints){
+        const o = pt.original;
+        const s = pt.snapped;
+
+        // original (rojo)
+        L.circleMarker([o[1], o[0]], {
+          radius: 4,
+          color: "#e74c3c",
+          weight: 1
+        }).addTo(window.__SNAP_ALL_LAYER);
+
+        // snapped (verde)
+        L.circleMarker([s[1], s[0]], {
+          radius: 4,
+          color: "#27ae60",
+          weight: 1
+        }).addTo(window.__SNAP_ALL_LAYER)
+          .bindPopup(`Snap calle (${pt.dist.toFixed(1)} m)`);
+
+        // línea de ajuste
+        L.polyline([[o[1],o[0]],[s[1],s[0]]],{
+          color:"#3498db",
+          dashArray:"4,4",
+          weight:1
+        }).addTo(window.__SNAP_ALL_LAYER);
+      }
+    }
+
+    function snapAllRoutePoints(ruta){
+      if (!ruta || !ruta.features || !ruta.features.length) return [];
+
+      const snapped = [];
+
+      for (const f of ruta.features){
+        if (!f.geometry || f.geometry.type !== "Point") continue;
+
+        const p = f.geometry.coordinates; // [lng,lat]
+        const snap = snapPointToRoad(p);
+
+        if (!snap || !snap.coord) continue;
+
+        snapped.push({
+          original: p,
+          snapped: snap.coord,
+          dist: snap.dist,
+          properties: f.properties || {}
+        });
+      }
+
+      return snapped;
+    }
+
 
       function featuresToSimpleCSV(features){
         const pick = (p, keys) => {
@@ -3745,6 +3896,16 @@ async function ofLoadRoadNetwork(){
               if (kind==="csv") downloadBlob(fnc, csv2, "text/csv;charset=utf-8");
             });
           }, 0);
+        }
+
+        if (OFICINA.rutas && OFICINA.rutas.length){
+          testSnapOnFirstPoint(OFICINA.rutas[0]);
+        }
+
+        if (OFICINA.rutas && OFICINA.rutas.length){
+          const snapped = snapAllRoutePoints(OFICINA.rutas[0]);
+          drawSnappedRoutePoints(snapped);
+          console.log("[SNAP ALL] puntos ajustados:", snapped.length, snapped);
         }
 
         // habilitar resumen rutas
