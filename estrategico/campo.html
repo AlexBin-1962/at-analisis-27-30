@@ -741,6 +741,7 @@
                 <button id="of-btn-cargar" class="ec-primary" type="button">Cargar base</button>
                 <button id="of-btn-generar" class="ec-btn" type="button" disabled>Generar rutas</button>
                 <button id="of-btn-descargar-resumen" class="ec-btn" type="button" disabled>Descargar resumen CSV</button>
+                <button id="of-btn-red-vial" class="ec-btn" type="button">Mostrar red vial</button>
               </div>
 
               <div style="margin-top:10px">
@@ -2947,6 +2948,70 @@
       };
 
 
+      // ===============================
+// RED VIAL CAMPO · Carga y toggle
+// ===============================
+const OF_ROAD_URL = "data/geo/calles_leon_routing.geojson";
+let OF_ROAD_LAYER = null;
+let OF_ROAD_LOADED = false;
+let OF_ROAD_VISIBLE = false;
+
+async function ofLoadRoadNetwork(){
+  try{
+    if (OF_ROAD_LOADED && OF_ROAD_LAYER) return OF_ROAD_LAYER;
+
+    const m = (typeof atMap === "function") ? atMap() : (window.__AT_MAP || null);
+    if (!m) throw new Error("Mapa no disponible para cargar red vial.");
+
+    const res = await fetch(OF_ROAD_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status} al cargar ${OF_ROAD_URL}`);
+
+    const geo = await res.json();
+    if (!geo || geo.type !== "FeatureCollection"){
+      throw new Error("La red vial no es un FeatureCollection válido.");
+    }
+
+    OF_ROAD_LAYER = L.geoJSON(geo, {
+      style: function(){
+        return {
+          color: "#7f8c8d",
+          weight: 1,
+          opacity: 0.45
+        };
+      },
+      interactive: false
+    });
+
+    OF_ROAD_LOADED = true;
+    return OF_ROAD_LAYER;
+  }catch(err){
+    console.error("[RED VIAL] Error cargando red:", err);
+    ofMsg(`❌ Error al cargar red vial: ${err.message || err}`);
+    return null;
+  }
+}
+
+    async function ofToggleRoadNetwork(){
+      const btn = document.getElementById("of-btn-red-vial");
+      const m = (typeof atMap === "function") ? atMap() : (window.__AT_MAP || null);
+      if (!m) return;
+
+      const layer = await ofLoadRoadNetwork();
+      if (!layer) return;
+
+      if (!OF_ROAD_VISIBLE){
+        layer.addTo(m);
+        OF_ROAD_VISIBLE = true;
+        if (btn) btn.textContent = "Ocultar red vial";
+        ofMsg("🛣️ Red vial visible en el mapa.");
+      } else {
+        try { m.removeLayer(layer); } catch(_){}
+        OF_ROAD_VISIBLE = false;
+        if (btn) btn.textContent = "Mostrar red vial";
+        ofMsg("🛣️ Red vial oculta.");
+      }
+    }
+
       function ofSaveRoutesForTerritorio(rutas, meta){
           // Guarda TODO lo que necesita otro módulo para “mostrar rutas”
           // (sin backend) → localStorage
@@ -3125,6 +3190,7 @@
         of$("of-btn-cargar")?.addEventListener("click", ofLoadBaseFromURL);
         of$("of-btn-generar")?.addEventListener("click", ofGenerateRoutes);
         of$("of-btn-descargar-resumen")?.addEventListener("click", ofDownloadResumenCSV);
+        of$("of-btn-red-vial")?.addEventListener("click", ofToggleRoadNetwork);
 
         setTimeout(() => {
           ofLoadBaseFromURL();
