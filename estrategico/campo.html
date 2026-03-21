@@ -63,6 +63,56 @@
         margin-right: 10px;
       }
 
+      .btn-oficina-ruta-inteligente{
+        background: linear-gradient(135deg, #ff8a00, #ff5e00);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,.18);
+        transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+      }
+
+      .btn-oficina-ruta-inteligente:hover{
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(0,0,0,.22);
+      }
+
+      .btn-oficina-ruta-inteligente:active{
+        transform: translateY(0);
+      }
+
+      .btn-oficina-ruta-inteligente:disabled{
+        opacity: .6;
+        cursor: not-allowed;
+      }
+
+      .btn-oficina-limpiar-ruta{
+        background: #ffffff;
+        color: #334155;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,.10);
+        transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+        margin-left: 8px;
+      }
+
+      .btn-oficina-limpiar-ruta:hover{
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(0,0,0,.16);
+      }
+
+      .btn-oficina-limpiar-ruta:active{
+        transform: translateY(0);
+      }
+
       /* === Botón CAMPO integrado al panel lateral === */
       .btn-campo {
         background: linear-gradient(90deg, #09b7ce 0%, #0c8d8d 100%);
@@ -414,6 +464,27 @@
       .ec-grow {
         flex: 1;
       }
+
+      .marker-num{
+        background: transparent !important;
+        border: none !important;
+      }
+
+      .marker-num-inner{
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #2563eb;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+        font-weight: 700;
+        line-height: 1;
+        box-shadow: 0 1px 4px rgba(0,0,0,.35);
+        border: 1px solid #ffffff;
+      }
     </style>
   </head>
   <body>
@@ -739,7 +810,14 @@
 
               <div class="ec-actions">
                 <button id="of-btn-cargar" class="ec-primary" type="button">Cargar base</button>
-                <button id="of-btn-generar" class="ec-btn" type="button" disabled>Generar rutas</button>
+                <button id="btn-oficina-ruta-inteligente" class="btn-oficina-ruta-inteligente" type="button">
+                  🧭 Generar Ruta Inteligente
+                </button>
+                <button id="btn-oficina-limpiar-ruta" class="btn-oficina-limpiar-ruta">
+                  🧹 Limpiar Ruta
+                </button>
+
+                <button id="of-btn-generar" class="ec-btn" type="button" disabled style="display:none">Generar rutas</button>
                 <button id="of-btn-descargar-resumen" class="ec-btn" type="button" disabled>Descargar resumen CSV</button>
                 <button id="of-btn-red-vial" class="ec-btn" type="button">Mostrar red vial</button>
               </div>
@@ -817,11 +895,12 @@
           return window.__AT_MAP;
         const m = L.map("map", {
           zoomControl: true,
-          maxZoom: 22
+          maxZoom: 19
         }).setView([21.0, -101.3], 7);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
           attribution: "© OSM",
-          maxZoom: 22
+          maxZoom: 19,
+          maxNativeZoom: 19
         }).addTo(m);
         window.__AT_MAP = m;
         return m;
@@ -2952,7 +3031,7 @@
       // ===============================
 // RED VIAL CAMPO · Carga y toggle
 // ===============================
-const OF_ROAD_URL = "data/geo/calles_leon_routing.geojson";
+const OF_ROAD_URL = "data/geo/red_vial_leon.geojson";
 let OF_ROAD_LAYER = null;
 let OF_ROAD_LOADED = false;
 let OF_ROAD_VISIBLE = false;
@@ -2990,7 +3069,165 @@ async function ofLoadRoadNetwork(){
     ofMsg(`❌ Error al cargar red vial: ${err.message || err}`);
     return null;
   }
-}
+  }
+
+
+    let ROAD_GRAPH = null;
+
+    function buildRoadGraph() {
+      if (!OF_ROAD_LAYER) return null;
+
+      const nodes = {};
+      const edges = {};
+      const segments = [];
+
+      function nodeId(coord) {
+        const c = coord2D(coord);
+        if (!c) return null;
+        return c[0].toFixed(6) + "," + c[1].toFixed(6);
+      }
+
+      OF_ROAD_LAYER.eachLayer(layer => {
+        const gj = layer.toGeoJSON();
+        if (!gj || !gj.geometry) return;
+
+        const geom = gj.geometry;
+
+        let lines = [];
+        if (geom.type === "LineString") {
+          lines = [geom.coordinates];
+        } else if (geom.type === "MultiLineString") {
+          lines = geom.coordinates;
+        } else {
+          return;
+        }
+
+        lines.forEach(coords => {
+          for (let i = 0; i < coords.length - 1; i++) {
+            const a = coord2D(coords[i]);
+            const b = coord2D(coords[i + 1]);
+
+            if (!a || !b) continue;
+
+            const idA = nodeId(a);
+            const idB = nodeId(b);
+
+            if (!idA || !idB) continue;
+
+            if (!nodes[idA]) nodes[idA] = a;
+            if (!nodes[idB]) nodes[idB] = b;
+
+            const d = haversineMeters(a, b);
+
+            edges[idA] = edges[idA] || [];
+            edges[idB] = edges[idB] || [];
+
+            edges[idA].push({ to: idB, dist: d });
+            edges[idB].push({ to: idA, dist: d });
+
+            segments.push({
+              a,
+              b,
+              idA,
+              idB,
+              dist: d
+            });
+          }
+        });
+      });
+
+      ROAD_GRAPH = { nodes, edges, segments };
+
+      console.log("ROAD GRAPH construido:", Object.keys(nodes).length, "nodos");
+      console.log("ROAD GRAPH segmentos:", segments.length);
+
+      return ROAD_GRAPH;
+    }
+
+
+    function bridgeNearbyRoadNodesFast(maxDistMeters = 8) {
+        if (!ROAD_GRAPH || !ROAD_GRAPH.nodes || !ROAD_GRAPH.edges) return;
+
+        const nodeIds = Object.keys(ROAD_GRAPH.nodes);
+        const cellSize = 0.00012; // aprox 10 a 13 metros, suficiente para prueba
+        const grid = {};
+        let bridges = 0;
+
+        function cellKey(coord) {
+          const lng = coord[0];
+          const lat = coord[1];
+          const x = Math.floor(lng / cellSize);
+          const y = Math.floor(lat / cellSize);
+          return `${x},${y}`;
+        }
+
+        // 1. guardar nodos terminales en una rejilla
+        for (const id of nodeIds) {
+          const coord = ROAD_GRAPH.nodes[id];
+          const degree = (ROAD_GRAPH.edges[id] || []).length;
+
+          // solo nodos con pocas conexiones
+          if (degree > 2) continue;
+
+          const key = cellKey(coord);
+          if (!grid[key]) grid[key] = [];
+          grid[key].push(id);
+        }
+
+        // 2. revisar vecinos cercanos por celdas
+        const checked = new Set();
+
+        for (const key in grid) {
+          const [x, y] = key.split(",").map(Number);
+
+          const nearbyIds = [];
+
+          for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+              const neighborKey = `${x + dx},${y + dy}`;
+              if (grid[neighborKey]) {
+                nearbyIds.push(...grid[neighborKey]);
+              }
+            }
+          }
+
+          const localIds = grid[key];
+
+          for (const idA of localIds) {
+            const coordA = ROAD_GRAPH.nodes[idA];
+
+            for (const idB of nearbyIds) {
+              if (idA === idB) continue;
+
+              const pairKey = idA < idB ? `${idA}|${idB}` : `${idB}|${idA}`;
+              if (checked.has(pairKey)) continue;
+              checked.add(pairKey);
+
+              const alreadyConnected = (ROAD_GRAPH.edges[idA] || []).some(e => e.to === idB);
+              if (alreadyConnected) continue;
+
+              const coordB = ROAD_GRAPH.nodes[idB];
+              const d = haversineMeters(coordA, coordB);
+
+              if (d > 0 && d <= maxDistMeters) {
+                ROAD_GRAPH.edges[idA].push({ to: idB, dist: d });
+                ROAD_GRAPH.edges[idB].push({ to: idA, dist: d });
+                bridges++;
+              }
+            }
+          }
+        }
+
+        console.log("[ROAD GRAPH] puentes agregados:", bridges);
+      }
+
+
+
+
+      function graphNodeId(coord){
+        return coord[0].toFixed(6) + "," + coord[1].toFixed(6);
+      }
+
 
     async function ofToggleRoadNetwork(){
       const btn = document.getElementById("of-btn-red-vial");
@@ -3043,61 +3280,78 @@ async function ofLoadRoadNetwork(){
         }
 
 
-
-      function ofShowRouteOnMap(featureCollection){
-        try{
-          const m = (typeof atMap === "function") ? atMap() : (window.__AT_MAP || null);
-          if (!m) return;
-
-          ofClearRouteLayer();
-
-          // 1) Capa de puntos
-          OF_ROUTE_LAYER = L.geoJSON(featureCollection, {
-            pointToLayer: (f, latlng) => L.circleMarker(latlng, {
-              radius: 5,
-              weight: 1,
-              fillOpacity: 0.75
-            }),
-            onEachFeature: (f, layer) => {
-              const p = f.properties || {};
-              const nom = p.NOMBRE || p.nombre || "";
-              const tel = p.TELEFONO || p.telefono || "";
-              const dom = p.DOMICILIO || p.dom || p.DIRECCION || p.CALLE || "";
-              const sec = p.SECCION || p.seccion || "";
-              layer.bindPopup(
-                `<b>${nom || "—"}</b><br/>${dom || ""}<br/>Tel: ${tel || "—"}<br/>Sección: ${sec || "—"}`
-              );
-            }
-          }).addTo(m);
-
-          // 2) Generar ruta (línea) con orden “óptimo práctico”
-          const coords = (featureCollection.features || [])
-            .map(f => f?.geometry?.type === "Point" ? f.geometry.coordinates : null)
-            .filter(c => Array.isArray(c) && Number.isFinite(c[0]) && Number.isFinite(c[1]));
-
-          if (coords.length >= 2){
-            let ordered = orderPointsNearestNeighbor(coords);
-            ordered = twoOptImprove(ordered, 40);
-
-            const latlngs = ordered.map(c => [c[1], c[0]]); // Leaflet usa [lat,lng]
-            const line = L.polyline(latlngs, { weight: 4, opacity: 0.85 });
-
-            // metemos la línea dentro de la misma “capa” para limpiarla junta
-            OF_ROUTE_LAYER.addLayer(line);
-          }
-
-          // zoom
-          try{
-            const b = OF_ROUTE_LAYER.getBounds();
-            if (b && b.isValid()) m.fitBounds(b.pad(0.12));
-            setTimeout(() => {
-              if (m.getZoom() < 19) m.setZoom(19);
-            }, 100);
-          }catch(_){}
-        }catch(e){
-          console.error("[OFICINA] No pude pintar ruta en mapa:", e);
+        function coord2D(coord) {
+          if (!Array.isArray(coord) || coord.length < 2) return null;
+          return [Number(coord[0]), Number(coord[1])];
         }
-      }
+
+
+
+
+        function ofShowRouteOnMap(featureCollection){
+          try{
+            const m = (typeof atMap === "function") ? atMap() : (window.__AT_MAP || null);
+            if (!m) return;
+
+            ofClearRouteLayer();
+
+            const coords = (featureCollection.features || [])
+              .map(f => f?.geometry?.type === "Point" ? f.geometry.coordinates : null)
+              .filter(c => Array.isArray(c) && Number.isFinite(c[0]) && Number.isFinite(c[1]));
+
+            let ordered = coords.slice();
+
+            if (coords.length >= 2){
+              ordered = orderPointsNearestNeighbor(coords);
+              ordered = twoOptImprove(ordered, 40);
+
+              ordered.forEach((c, i) => {
+                if (featureCollection.features[i]) {
+                  featureCollection.features[i].properties = featureCollection.features[i].properties || {};
+                  featureCollection.features[i].properties.__order = i + 1;
+                }
+              });
+            }
+
+            OF_ROUTE_LAYER = L.geoJSON(featureCollection, {
+              pointToLayer: (f, latlng) => {
+                const idx = f.properties?.__order ?? "";
+
+                return L.marker(latlng, {
+                  zIndexOffset: 200,
+                  icon: L.divIcon({
+                    className: "marker-num",
+                    html: `<div class="marker-num-inner">${idx}</div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                  })
+                });
+              },
+              onEachFeature: (f, layer) => {
+                const p = f.properties || {};
+                const nom = p.NOMBRE || p.nombre || "";
+                const tel = p.TELEFONO || p.telefono || "";
+                const dom = p.DOMICILIO || p.dom || p.DIRECCION || p.CALLE || "";
+                const sec = p.SECCION || p.seccion || "";
+                layer.bindPopup(
+                  `<b>${nom || "—"}</b><br/>${dom || ""}<br/>Tel: ${tel || "—"}<br/>Sección: ${sec || "—"}`
+                );
+              }
+            }).addTo(m);
+
+            // aquí ya NO dibujas la línea azul vieja
+
+            try{
+              const b = OF_ROUTE_LAYER.getBounds();
+              if (b && b.isValid()) m.fitBounds(b.pad(0.12));
+              setTimeout(() => {
+                if (m.getZoom() < 19) m.setZoom(19);
+              }, 100);
+            }catch(_){}
+          }catch(e){
+            console.error("[OFICINA] No pude pintar ruta en mapa:", e);
+          }
+        }
 
         // ====== Rutas: ordenar puntos y crear línea ======
         function haversineMeters(a, b){
@@ -3192,9 +3446,41 @@ async function ofLoadRoadNetwork(){
 
 
         of$("of-btn-cargar")?.addEventListener("click", ofLoadBaseFromURL);
-        of$("of-btn-generar")?.addEventListener("click", ofGenerateRoutes);
         of$("of-btn-descargar-resumen")?.addEventListener("click", ofDownloadResumenCSV);
         of$("of-btn-red-vial")?.addEventListener("click", ofToggleRoadNetwork);
+
+        (function initBotonLimpiarRutaOF(){
+          const btn = document.getElementById("btn-oficina-limpiar-ruta");
+          if (!btn) return;
+
+          btn.addEventListener("click", () => {
+            ofClearSmartRoute();
+          });
+        })();
+
+        (function initBotonRutaInteligenteOF(){
+          const btn = document.getElementById("btn-oficina-ruta-inteligente");
+          if (!btn) return;
+
+          btn.addEventListener("click", async () => {
+            try{
+              btn.disabled = true;
+              btn.textContent = "⏳ Generando ruta...";
+
+              if (typeof ofGenerateRoutes === "function") {
+                await ofGenerateRoutes();
+              } else {
+                console.warn("[OFICINA] No encontré la función ofGenerateRoutes()");
+              }
+
+            } catch (e){
+              console.error("[OFICINA] Error al generar ruta inteligente:", e);
+            } finally {
+              btn.disabled = false;
+              btn.textContent = "🧭 Generar Ruta Inteligente";
+            }
+          });
+        })();
 
         setTimeout(() => {
           ofLoadBaseFromURL();
@@ -3522,8 +3808,16 @@ async function ofLoadRoadNetwork(){
       }
 
 
+      function isValidLngLat(coord){
+        return Array.isArray(coord)
+          && coord.length >= 2
+          && Number.isFinite(coord[0])
+          && Number.isFinite(coord[1]);
+      }
+
       // Distancia aproximada en metros entre dos coords [lng,lat]
         function haversineMeters(a, b){
+          if (!isValidLngLat(a) || !isValidLngLat(b)) return Infinity;
           const toRad = x => x * Math.PI/180;
           const R = 6371000;
           const dLat = toRad(b[1]-a[1]);
@@ -3581,34 +3875,47 @@ async function ofLoadRoadNetwork(){
         return head + "\n" + body;
       }
 
-      function snapPointToRoad(pointLngLat){
-        if (!OF_ROAD_LAYER) return null;
+      function snapPointToRoad(pointLngLat) {
+        if (!ROAD_GRAPH || !ROAD_GRAPH.segments || !ROAD_GRAPH.segments.length) return null;
+
+        const pt = coord2D(pointLngLat);
+        if (!pt) return null;
 
         let best = {
           coord: null,
-          dist: Infinity
+          dist: Infinity,
+          a: null,
+          b: null,
+          idA: null,
+          idB: null,
+          nodeId: null
         };
 
-        OF_ROAD_LAYER.eachLayer(layer => {
-          const gj = layer.toGeoJSON();
-          const coords = gj.geometry.coordinates; // LineString
+        for (const seg of ROAD_GRAPH.segments) {
+          const a = seg.a; // [lng, lat]
+          const b = seg.b; // [lng, lat]
 
-          for (let i=0; i<coords.length-1; i++){
-            const a = coords[i];
-            const b = coords[i+1];
+          const proj = projectPointOnSegment(pt, a, b);
+          const d = haversineMeters(pt, proj);
 
-            const proj = projectPointOnSegment(pointLngLat, a, b);
-            const d = haversineMeters(pointLngLat, proj);
+          if (d < best.dist) {
+            const dA = haversineMeters(proj, a);
+            const dB = haversineMeters(proj, b);
+            const chosenNodeId = dA <= dB ? seg.idA : seg.idB;
 
-            if (d < best.dist){
-              best.coord = proj;
-              best.dist = d;
-            }
+            best.coord = proj;
+            best.dist = d;
+            best.a = a;
+            best.b = b;
+            best.idA = seg.idA;
+            best.idB = seg.idB;
+            best.nodeId = chosenNodeId;
           }
-        });
+        }
 
-        return best; // { coord:[lng,lat], dist:metros }
+        return best.coord && best.nodeId ? best : null;
       }
+
 
 
     function testSnapOnFirstPoint(ruta){
@@ -3679,29 +3986,45 @@ async function ofLoadRoadNetwork(){
       }
     }
 
-    function snapAllRoutePoints(ruta){
-      if (!ruta || !ruta.features || !ruta.features.length) return [];
+      function snapAllRoutePoints(ruta) {
+        if (!ruta || !ruta.features || !ruta.features.length) return [];
 
-      const snapped = [];
+        const snapped = [];
 
-      for (const f of ruta.features){
-        if (!f.geometry || f.geometry.type !== "Point") continue;
+        for (const f of ruta.features) {
+          if (!f.geometry || f.geometry.type !== "Point") continue;
 
-        const p = f.geometry.coordinates; // [lng,lat]
-        const snap = snapPointToRoad(p);
+          const p = coord2D(f.geometry.coordinates); // <- normaliza [lng,lat,z] a [lng,lat]
+          if (!p) {
+            console.warn("[SNAP ALL] coordenada inválida:", f.geometry.coordinates);
+            continue;
+          }
 
-        if (!snap || !snap.coord) continue;
+          const snap = snapPointToRoad(p);
 
-        snapped.push({
-          original: p,
-          snapped: snap.coord,
-          dist: snap.dist,
-          properties: f.properties || {}
-        });
+          if (!snap || !snap.coord || !snap.nodeId) {
+            console.warn("[SNAP ALL] punto sin snap válido:", f.geometry.coordinates);
+            continue;
+          }
+
+          snapped.push({
+            original: p,
+            snapped: snap.coord,
+            dist: snap.dist,
+            a: snap.a,
+            b: snap.b,
+            idA: snap.idA,
+            idB: snap.idB,
+            nodeId: snap.nodeId,
+            properties: f.properties || {}
+          });
+        }
+
+        console.log("[SNAP ALL] puntos ajustados:", snapped.length, snapped);
+
+        return snapped;
       }
 
-      return snapped;
-    }
 
 
       function featuresToSimpleCSV(features){
@@ -3899,14 +4222,50 @@ async function ofLoadRoadNetwork(){
         }
 
         if (OFICINA.rutas && OFICINA.rutas.length){
-          testSnapOnFirstPoint(OFICINA.rutas[0]);
+          // testSnapOnFirstPoint(OFICINA.rutas[0]);
         }
 
-        if (OFICINA.rutas && OFICINA.rutas.length){
-          const snapped = snapAllRoutePoints(OFICINA.rutas[0]);
-          drawSnappedRoutePoints(snapped);
-          console.log("[SNAP ALL] puntos ajustados:", snapped.length, snapped);
+      if (OFICINA.rutas && OFICINA.rutas.length) {
+
+        buildRoadGraph();
+        bridgeNearbyRoadNodesFast(6);
+
+
+
+        console.log("[DEBUG] ROAD_GRAPH:", ROAD_GRAPH);
+        console.log("[DEBUG] segmentos:", ROAD_GRAPH?.segments?.length || 0);
+
+        const snapped = snapAllRoutePoints(OFICINA.rutas[0]);
+
+        drawSnappedRoutePoints(snapped);
+
+        console.log("[SNAP ALL] puntos ajustados:", snapped.length, snapped);
+
+        if (snapped.length >= 2) {
+
+          console.log("[DEBUG] start nodeId:", snapped[0].nodeId);
+          console.log("[DEBUG] end nodeId:", snapped[1].nodeId);
+
+          console.log("[DEBUG] start exists:", !!ROAD_GRAPH.nodes[snapped[0].nodeId]);
+          console.log("[DEBUG] end exists:", !!ROAD_GRAPH.nodes[snapped[1].nodeId]);
+
+          const testRoute = routeBetweenSnappedPoints(snapped[0], snapped[1]);
+
+          console.log("[DEBUG] testRoute length:", testRoute.length);
+          console.log("[DEBUG] testRoute:", testRoute);
+
+          const fullStreetRoute = buildFullStreetRouteFromSnapped(snapped);
+
+          console.log("[FULL ROUTE] puntos snappeados:", snapped.length);
+          console.log("[FULL ROUTE] nodos totales en ruta callejera:", fullStreetRoute.length, fullStreetRoute);
+
+          drawStreetRoute(fullStreetRoute);
+
+        } else {
+          console.warn("[FULL ROUTE] No hay suficientes puntos snappeados para trazar la ruta.");
         }
+      }
+
 
         // habilitar resumen rutas
         of$("of-btn-descargar-resumen").disabled = false;
@@ -3927,6 +4286,325 @@ async function ofLoadRoadNetwork(){
         }
         ofMsg("⚠️ No hay resumen para descargar todavía.");
       }
+
+
+      function nearestGraphNode(coord){
+
+        if (!ROAD_GRAPH) return null;
+
+        let best = null;
+        let bestDist = Infinity;
+
+        const MAX_DIST = 40; // metros
+
+        for (const id in ROAD_GRAPH.nodes){
+
+          const n = ROAD_GRAPH.nodes[id];
+          const d = haversineMeters(coord,n);
+
+          if (d < bestDist && d < MAX_DIST){
+            bestDist = d;
+            best = id;
+          }
+        }
+
+        return best;
+      }
+
+
+      function shortestPath(startId, endId){
+        if (!ROAD_GRAPH || !ROAD_GRAPH.nodes[startId] || !ROAD_GRAPH.nodes[endId]) return [];
+
+        const dist = {};
+        const prev = {};
+        const visited = new Set();
+        const queue = [];
+
+        for (const id in ROAD_GRAPH.nodes){
+          dist[id] = Infinity;
+        }
+
+        dist[startId] = 0;
+        queue.push({ id: startId, d: 0 });
+
+        while (queue.length){
+          queue.sort((a,b) => a.d - b.d);
+          const { id } = queue.shift();
+
+          if (visited.has(id)) continue;
+          visited.add(id);
+
+          if (id === endId) break;
+
+          const neighbors = ROAD_GRAPH.edges[id] || [];
+
+          for (const n of neighbors){
+            const alt = dist[id] + n.dist;
+
+            if (alt < dist[n.to]){
+              dist[n.to] = alt;
+              prev[n.to] = id;
+              queue.push({ id: n.to, d: alt });
+            }
+          }
+        }
+
+        // 🔴 CLAVE: si nunca llegó al final, no devolvemos “ruta falsa”
+        if (dist[endId] === Infinity){
+          return [];
+        }
+
+        const path = [];
+        let u = endId;
+
+        while (u){
+          path.unshift(ROAD_GRAPH.nodes[u]);
+          u = prev[u];
+        }
+
+        return path;
+      }
+
+      function routeBetweenSnappedPoints(snapA, snapB) {
+        if (!snapA || !snapB) return [];
+        if (!ROAD_GRAPH || !ROAD_GRAPH.nodes || !ROAD_GRAPH.edges) return [];
+
+        const startCandidates = [snapA.idA, snapA.idB].filter(Boolean);
+        const endCandidates = [snapB.idA, snapB.idB].filter(Boolean);
+
+        let bestRoute = [];
+        let bestLen = Infinity;
+
+        for (const startId of startCandidates) {
+          for (const endId of endCandidates) {
+
+            if (!ROAD_GRAPH.nodes[startId] || !ROAD_GRAPH.nodes[endId]) continue;
+
+            const core = shortestPath(startId, endId);
+
+            if (!core || core.length === 0) continue;
+
+            const fullRoute = [];
+
+            // punto snappeado inicial
+            fullRoute.push(snapA.snapped);
+
+            // ruta del grafo
+            for (const p of core) {
+              fullRoute.push(p);
+            }
+
+            // punto snappeado final
+            fullRoute.push(snapB.snapped);
+
+            let total = 0;
+            for (let i = 0; i < fullRoute.length - 1; i++) {
+              total += haversineMeters(fullRoute[i], fullRoute[i + 1]);
+            }
+
+            if (total < bestLen) {
+              bestLen = total;
+              bestRoute = fullRoute;
+            }
+          }
+        }
+
+        if (!bestRoute.length) {
+          console.warn("[ROUTE] sin camino real entre nodos", {
+            startCandidates,
+            endCandidates
+          });
+        }
+
+        return bestRoute;
+      }
+
+
+
+      function drawStreetRoute(coords){
+        if (!coords || !coords.length) return;
+
+        const m = (typeof atMap === "function") ? atMap() : window.__AT_MAP;
+        if (!m) return;
+
+        // limpiar ruta anterior
+        if (window.__STREET_ROUTE_LAYER){
+          try { m.removeLayer(window.__STREET_ROUTE_LAYER); } catch(_){}
+          window.__STREET_ROUTE_LAYER = null;
+        }
+
+        // limpiar marcadores inicio / fin anteriores
+        if (window.__ROUTE_MARKERS && Array.isArray(window.__ROUTE_MARKERS)){
+          window.__ROUTE_MARKERS.forEach(marker => {
+            try { m.removeLayer(marker); } catch(_){}
+          });
+        }
+        window.__ROUTE_MARKERS = [];
+
+        // dibujar ruta principal
+        const latlngs = coords.map(c => [c[1], c[0]]);
+
+        window.__STREET_ROUTE_LAYER = L.polyline(latlngs, {
+          color: "#ff8c00",
+          weight: 6,
+          opacity: 0.95,
+          lineCap: "round",
+          lineJoin: "round"
+        }).addTo(m);
+
+        // inicio y fin
+        if (coords.length > 1){
+          const start = coords[0];
+          const end = coords[coords.length - 1];
+
+          const startMarker = L.circleMarker([start[1], start[0]], {
+            radius: 9,
+            pane: "markerPane",
+            color: "#0f766e",
+            fillColor: "#22c55e",
+            fillOpacity: 1,
+            weight: 3
+          }).bindPopup("Inicio de ruta");
+
+          const endMarker = L.circleMarker([end[1], end[0]], {
+            radius: 9,
+            pane: "markerPane",
+            color: "#991b1b",
+            fillColor: "#ef4444",
+            fillOpacity: 1,
+            weight: 3
+          }).bindPopup("Fin de ruta");
+
+          startMarker.addTo(m);
+          endMarker.addTo(m);
+
+          startMarker.bringToFront();
+          endMarker.bringToFront();
+
+          window.__ROUTE_MARKERS.push(startMarker, endMarker);
+        }
+
+        // zoom a la ruta
+        try{
+          const b = window.__STREET_ROUTE_LAYER.getBounds();
+          if (b && b.isValid()) m.fitBounds(b.pad(0.12));
+        }catch(_){}
+      }
+
+      function ofClearSmartRoute(){
+        try{
+          const m = (typeof atMap === "function") ? atMap() : (window.__AT_MAP || null);
+          if (!m) return;
+
+          if (window.__STREET_ROUTE_LAYER){
+            m.removeLayer(window.__STREET_ROUTE_LAYER);
+            window.__STREET_ROUTE_LAYER = null;
+          }
+
+          if (window.__ROUTE_MARKERS && Array.isArray(window.__ROUTE_MARKERS)){
+            window.__ROUTE_MARKERS.forEach(layer => {
+              try { m.removeLayer(layer); } catch(_) {}
+            });
+            window.__ROUTE_MARKERS = [];
+          }
+
+          if (typeof OF_ROUTE_LAYER !== "undefined" && OF_ROUTE_LAYER){
+            m.removeLayer(OF_ROUTE_LAYER);
+            OF_ROUTE_LAYER = null;
+          }
+
+          console.log("[OFICINA] Ruta inteligente limpiada");
+        }catch(e){
+          console.error("[OFICINA] No pude limpiar la ruta:", e);
+        }
+      }
+
+      function orderSnappedPointsByNearest(snapped) {
+        if (!snapped || snapped.length <= 2) return snapped ? snapped.slice() : [];
+
+        const remaining = snapped.slice(1); // dejamos fijo el primero
+        const ordered = [snapped[0]];
+
+        while (remaining.length) {
+          const last = ordered[ordered.length - 1];
+
+          let bestIndex = 0;
+          let bestDist = Infinity;
+
+          for (let i = 0; i < remaining.length; i++) {
+            const candidate = remaining[i];
+
+            const d = haversineMeters(
+              last.snapped || last.coord || last.original,
+              candidate.snapped || candidate.coord || candidate.original
+            );
+
+            if (d < bestDist) {
+              bestDist = d;
+              bestIndex = i;
+            }
+          }
+
+          ordered.push(remaining.splice(bestIndex, 1)[0]);
+        }
+
+        return ordered;
+}
+
+
+
+  function buildFullStreetRouteFromSnapped(snapped) {
+    if (!snapped || snapped.length < 2) return [];
+
+    const ordered = orderSnappedPointsByNearest(snapped);
+
+    console.log("[DEBUG ORDEN ORIGINAL]", snapped.map((p, i) => ({
+      i,
+      snapped: p.snapped,
+      nodeId: p.nodeId
+    })));
+
+    console.log("[DEBUG ORDEN REORDENADO]", ordered.map((p, i) => ({
+      i,
+      snapped: p.snapped,
+      nodeId: p.nodeId
+    })));
+
+    let fullRoute = [];
+    let skipped = 0;
+
+    for (let i = 0; i < ordered.length - 1; i++) {
+      const a = ordered[i];
+      const b = ordered[i + 1];
+
+      const tramo = routeBetweenSnappedPoints(a, b);
+
+      if (!tramo || !tramo.length) {
+        skipped++;
+        console.warn(`[FULL ROUTE] sin camino entre puntos ${i + 1} y ${i + 2}`);
+        continue;
+      }
+
+      if (fullRoute.length > 0) {
+        const last = fullRoute[fullRoute.length - 1];
+        const first = tramo[0];
+
+        if (
+          last[0].toFixed(6) === first[0].toFixed(6) &&
+          last[1].toFixed(6) === first[1].toFixed(6)
+        ) {
+          fullRoute = fullRoute.concat(tramo.slice(1));
+        } else {
+          fullRoute = fullRoute.concat(tramo);
+        }
+      } else {
+        fullRoute = tramo.slice();
+      }
+    }
+
+    console.log(`[FULL ROUTE] tramos sin camino real: ${skipped}`);
+    return fullRoute;
+  }
 
 
     </script>
